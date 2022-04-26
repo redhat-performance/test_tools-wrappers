@@ -1,0 +1,79 @@
+#!/bin/bash
+mount_pnt=""
+number_mount_pnts=""
+
+usage()
+{
+	echo "Usage: $1"
+	echo "  --mount_pnt: directory to mount to"
+	echo "  --number_mount_pnts: Number of devices mounted."
+	exit 1
+}
+
+
+#
+# Define options
+#
+ARGUMENT_LIST=(
+        "mount_pnt"
+	"number_mount_pnts"
+)
+
+NO_ARGUMENTS=(
+        "usage"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit
+fi
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--mount_pnt)
+			mount_pnt=$2
+			shift 2
+		;;
+		--number_mount_pnts)
+			number_mount_pnts=$2
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo option not found $1
+			usage $0
+		;;
+	esac
+done
+
+if [[ $mount_pnt == "" ]]; then
+	echo Need to designate mount point prefix
+	usage
+fi
+if [[ $number_mount_pnts == "" ]]; then
+	echo Need to designate the number of mount points
+	usage
+fi
+
+let "number_mount_pnts=$number_mount_pnts-1"
+for findex in `seq 0 1 $number_mount_pnts`
+do
+	umount  ${mount_pnt}${findex}
+done

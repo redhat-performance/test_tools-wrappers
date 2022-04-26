@@ -1,0 +1,143 @@
+#!/bin/bash
+
+chars=`echo $0 | awk -v RS='/' 'END{print NR-1}'`
+TOOLS_BIN=`echo $0 | cut -d'/' -f 1-${chars}`
+
+cmd_executing=""
+configuration=""
+puser=""
+run_label=""
+spacing=0
+sys_type=""
+test_name=""
+times_to_run=1
+pbench_copy=0
+
+
+#
+# Usage information.
+#
+
+usage()
+{
+	echo "$1 usage:"
+	echo "  --sysname: name of the system running, used in determing config files"
+	echo "tools_git: Pointer to the test_tools git.  Default is ${tools_git}.  Top directory is always test_tools"
+	echo "  --tuned_setting: used in naming the tar file"
+	echo "  --usage: this usage message"
+	echo "  --pbench: use pbench-user-benchmark and place information into pbench"
+	echo "  --pbench_copy: Copy the data to the pbench repository, not move_it."
+	echo "  --pbench_user: user who started everything."
+	echo "Unused options, present as Zathras passes them in."
+	echo "  --host_config"
+	echo "  --home_parent"
+	echo "  --iterations"
+	echo "  --run_label: the label to associate with the pbench run"
+	echo "  --run_user"
+	echo "  --sys_type"
+	exit
+}
+
+#
+# Define options
+#
+ARGUMENT_LIST=(
+	"cmd_executing"
+	"host_config"
+	"iterations"
+	"pbench_user"
+	"run_label"
+	"spacing"
+	"sys_type"
+	"test"
+)
+
+NO_ARGUMENTS=(
+	"pbench_copy"
+	"usage"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+        case "$1" in
+		--cmd_executing)
+			cmd_executing=${2}
+			shift 2
+		;;
+		--host_config)
+			configuration=${2}
+			shift 2
+		;;
+                --iterations)
+                        times_to_run=${2}
+			shift 2
+                ;;
+		--pbench_copy)
+			pbench_copy=1
+			shift 1
+		;;
+		--pbench_user)
+			puser=$2
+			shift 2
+		;;
+		--run_label)
+			run_label=$2
+			shift 2
+		;;
+		--spacing)
+			spacing=${2}
+			shift 2
+		;;
+		--sys_type)
+			sys_type=${2}
+			shift 2
+		;;
+		--test)
+			test_name=${2}
+			shift 2
+		;;
+		--usage)
+			usage
+		;;
+		-h)
+			usage
+		;;
+		--)
+			break; 
+		;;
+		*)
+			echo option not found $1
+			usage
+		;;
+        esac
+done
+
+echo $times_to_run > ./iteration.lis
+pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis -- $cmd_executing
+
+dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
+last_dir=`ls -rtd /tmp/results_${test_name}_* | grep -v tar |  tail -1`
+pushd $dir > /dev/null
+cp $last_dir/${test_name}_results/results_${test_name}*/results_${test_name}.csv .
+${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in results_${test_name}.csv --results_out results.txt
+
+last_tar=`ls -rtd /tmp/results_${test_name}_*tar |  tail -1`
+tar xf $last_tar
+cd /tmp
+mv_tar_to=`echo $last_tar | sed "s/results_${test_name}/results_pbench_${test_name}/"`
+mv $last_tar $mv_tar_to
+value=`$TOOLS_BIN/set_pbench_variables --host_config $configuration --sys_type $sys_type --test ${test_name} --pbench_user $puser --run_label $run_label`
+results_prefix=`echo $value | cut -d: -f 2`
+hostname=`echo $value | cut -d: -f 1`
+echo $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy ${pbench_copy} >> /tmp/debugging
+$TOOLS_BIN/pbench_copy_data --hostname "${run_label}" --user "${puser}" --prefix ${results_prefix} --copy ${pbench_copy}

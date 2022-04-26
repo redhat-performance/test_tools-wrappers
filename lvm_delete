@@ -1,0 +1,76 @@
+#!/bin/bash
+
+lvm_vol=""
+lvm_grp=""
+mount_pnt=""
+
+usage()
+{
+	echo "Usage: $1"
+	echo " --lvm_grp: name of the lvm group removing"
+	echo " --lvm_vol: name of the lvm volume removing"
+	echo " --mount_pnt: mount point of the lvm"
+	exit 0
+}
+
+
+#
+# Define options
+#
+ARGUMENT_LIST=(
+	"lvm_vol"
+        "lvm_grp"
+        "mount_pnt"
+)
+
+NO_ARGUMENTS=(
+        "usage"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit
+fi
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--lvm_vol)
+			lvm_vol=${2}
+			shift 2
+		;;
+		--lvm_grp)
+			lvm_grp=${2}
+			shift 2
+		;;
+		--mount_pnt)
+			mount_pnt=${2}
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo option not found $1
+			usage $0
+		;;
+	esac
+done
+
+umount $mount_pnt
+lvremove -f $lvm_vol/$lvm_grp
+vgremove -f $lvm_vol

@@ -1,0 +1,146 @@
+#!/bin/bash
+lv_disks=""
+lv_total_size=0
+lv_disk_count=0;
+devices_to_use=""
+devices_list=""
+lvm_vol=""
+lvm_grp=""
+wipefs=""
+
+usage()
+{
+	echo "Usage: $1"
+	echo "   --devices_to_use: comma separated list of devices to use"
+	echo "   --lvm_grp: name of the lvm group creating"
+	echo "   --lvm_vol: name of the lvm volume creating"
+	echo "   --wipefs: wipe the device before doing the lvm operations"
+	exit 0
+}
+
+#
+# Verify the passed data is correct.
+#
+validate_data()
+{
+	if [[ $lvm_vol = "" ]]; then
+		echo Need to designate an lvm_vol name.
+		exit -1
+	fi
+	if [[ $lvm_grp = "" ]]; then
+		echo Need to designate an lvm_grp name.
+		exit -1
+	fi
+	if [[ $devices_to_use = "" ]]; then
+		echo Need to designate an lvm_grp name.
+		exit -1
+	fi
+	for i in $devices_to_use;
+	do
+		if [[ ! -e $i ]]; then
+			echo Error, device $i not found.
+			exit -1
+		fi
+	done
+}
+
+#
+# Define options
+#
+ARGUMENT_LIST=(
+        "devices"
+	"lvm_vol"
+        "lvm_grp"
+)
+
+NO_ARGUMENTS=(
+	"wipefs"
+        "usage"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit
+fi
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--devices)
+			devices_list=${2}
+			shift 2
+		;;
+		--lvm_vol)
+			lvm_vol=${2}
+			shift 2
+		;;
+		--lvm_grp)
+			lvm_grp=${2}
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		--wipefs)
+			wipefs=1
+			shift 1
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo option not found $1
+			usage $0
+		;;
+	esac
+done
+
+devices_to_use=`echo $devices_list | sed "s/,/ /g"`
+validate_data
+
+seper=""
+for i in $devices_to_use; do
+	lv_disks=${i}${seper}${lv_disks}
+	size=`fdisk -l $i | grep bytes | grep  Disk | cut -d' ' -f 5`
+	gb=`echo "$size/(1024*1024*1024)" | bc`
+	let "lv_total_size=$lv_total_size+$gb"
+	let "lv_disk_count=$lv_disk_count+1"
+	seper=" "
+	if [ $wipefs -eq 1 ]; then
+		wipefs -a $i
+	fi
+done
+lvremove -f $lvm_vol/$lvm_grp
+vgremove -f $lvm_vol
+
+let "total_size=$lv_total_size-200"
+pvcreate -ff $lv_disks
+if [ $? -ne 0 ]; then
+	echo pvcreate -ff $lv_disks failed.
+	exit -1
+fi
+sleep 60
+vgcreate $lvm_vol $lv_disks
+if [ $? -ne 0 ]; then
+	echo vgcreate $lvm_vol $lv_disks failed
+	exit -1
+fi
+sleep 60
+echo y | lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp
+if [ $? -ne 0 ]; then
+	echo  lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp failed.
+	exit -1
+fi
+wipefs -f /dev/$lvm_vol/$lvm_grp
+

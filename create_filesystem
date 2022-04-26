@@ -1,0 +1,132 @@
+#!/bin/bash
+device_to_use=""
+mount_pnt=""
+fs_type=""
+valid_fs_type="xfs ext4 ext3 gfs2 gfs"
+
+usage()
+{
+	echo "Usage: $1"
+	echo "  --fs_type: filesystem to create.  ${valid_fs_type}"
+	echo "  --mount_dir: directory to mount to"
+	echo "  --device: device to use."
+	exit 1
+}
+
+#
+# Verify parameters passed in.
+#
+validate_data()
+{
+	if [[ $device_to_use = "" ]]; then
+		echo You need to designate a device to use.
+		exit 1
+	fi
+	if [[ ! -e $device_to_use ]]; then
+		echo Designated device, $device_to_use, does not exist
+		exit 1
+	fi
+	if [[ mount_pnt = "" ]]; then
+		echo You need to designate a mount point.
+		exit 1
+	fi
+	if [[ fs_type = "" ]]; then
+		echo You need to designate a filesys type.
+		exit 1
+	fi
+}
+
+#
+# Define options
+#
+ARGUMENT_LIST=(
+        "device"
+        "fs_type"
+        "mount_dir"
+)
+
+NO_ARGUMENTS=(
+        "usage"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit
+fi
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--device)
+			device_to_use=${2}
+			shift 2
+		;;
+		--fs_type)
+			fs_type=${2}
+			shift 2
+		;;
+		--mount_dir)
+			mount_pnt=${2}
+			mkdir -p $mount_pnt
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo option not found $1
+			usage $0
+		;;
+	esac
+done
+
+validate_data
+
+#
+# Create the file system.
+#
+case $fs_type in
+	ext3)
+		MKFS_OPS="-F"
+	;;
+	ext4|ext4dev)
+		MKFS_OPS="-F"
+	;;
+	gfs)
+		MKFS_OPS="-O -p lock_nolock -j 1"
+	;;
+	gfs2)
+		MKFS_OPS="-O -p lock_nolock -j 1"
+	;;
+	xfs)
+		MKFS_OPS="-f"
+	;;
+	*)
+		echo Error, $1 unknown filesystem type
+		exit 1
+	;;
+esac
+echo "mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}"
+mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+mount ${device_to_use} ${mount_pnt} 
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+exit 0

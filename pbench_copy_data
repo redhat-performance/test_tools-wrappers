@@ -1,0 +1,109 @@
+#!/bin/bash
+prefix="no_prefix_designated"
+user=""
+
+usage()
+{
+	echo "Usage: $1"
+	echo "  --prefix: prefix to attach to the results"
+	echo "  --user: Name of the user.  If blank, will be the current user"
+}
+
+
+#
+# Define options
+#
+ARGUMENT_LIST=(
+	"copy"
+	"hostname"
+	"prefix"
+	"user"
+)
+
+NO_ARGUMENTS=(
+	"usage"
+)
+
+# read arguments
+opts=$(getopt \
+	--longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+	--longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+	--name "$(basename "$0")" \
+	--options "h" \
+	-- "$@"
+)
+
+copy=0
+
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+eval set -- $opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--copy)
+			copy=$2
+			shift 2
+		;;
+		--hostname)
+			fhost=$2
+			shift 2
+		;;
+		--prefix)
+			results_prefix=$2
+			shift 2
+		;;
+		--user)
+			user=$2
+			shift 2
+		;;
+		--usage)
+			usage $0
+			exit 0
+		;;
+		-h)
+			usage $0
+			exit 0
+		;;
+		--)
+			shift 1
+			break
+		;;
+		*)
+			echo option not found $1 >&2
+			usage $0 >&2
+			exit 1
+		;;
+	esac
+done
+
+controller=${fhost}_${user}
+if [[ "$controller" == *"--"* ]]; then
+	echo Error controller $controller contains "--"! >> /tmp/debugging
+	exit 1
+fi
+
+if [[ "$user" == *"--"* ]]; then
+	echo Error user $user contains "--"! >> /tmp/debugging
+	exit 1
+fi
+
+if [[ "$results_prefix" == *"--"* ]]; then
+	echo Error results_prefix $results_prefix contains "--"! >> /tmp/debugging
+	exit 1
+fi
+
+#
+# Because pbench does a hostname validation, and it will not allow "_"
+#
+controller_name=`echo ${controller} | sed "s/_/-/g"`
+
+if [ $copy -eq 0 ]; then
+	echo pbench-move-results --controller="\"${controller_name}\"" --user="\"${user}\"" --prefix="\"${results_prefix}\"" >> /tmp/debugging
+	pbench-move-results --controller="${controller_name}" --user="${user}" --prefix="${results_prefix}"
+else
+	echo pbench-copy-results --controller="\"${controller_name}\"" --user="\"${user}\"" --prefix="\"${results_prefix}\"" >> /tmp/debugging
+	pbench-copy-results --controller="${controller_name}" --user="${user}" --prefix="${results_prefix}"
+fi
+exit $?

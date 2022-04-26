@@ -1,0 +1,78 @@
+#!/bin/bash
+disks_passed=$1
+disks=""
+numb_disks=0
+
+seper=""
+
+build_disks_list()
+{
+	disk_list=`echo $1 | sed 's/,/ /g'`
+	for i in $disk_list; do
+		let "numb_disks=$numb_disks + 1"
+		if [[ $i == "/dev/"* ]]; then
+			disks=${disks}${seper}${i}
+		else
+			disks=${disks}${seper}/dev/${i}
+		fi
+		seper=" "
+	done
+}
+
+grab_disks()
+{
+	if test -f "hw_config.yml"; then
+		grep storage hw_config.yml | cut -d: -f 2 | sed "s/,/ /g" > disks
+	else
+		ALLSTG=$(mktemp /tmp/allstgdsk.XXXXX)
+		USEDDSK=$(mktemp /tmp/useddsk.XXXXX)
+		ALLDSK=$(mktemp /tmp/alldsk.XXXXX)
+		MNTDDSK=$(mktemp /tmp/mntddsk.XXXXX)
+		lsblk -l > ${ALLSTG}
+		rootdisk=$(grep -e "part /$" -e boot$ ${ALLSTG} | awk '{print $1}')
+	
+		if [[ $rootdisk =~ nvme* ]]; then
+			grep part ${ALLSTG}| grep -e / -e swap | awk '{print $1}' | sed s/p[[:digit:]]*$// | sort | uniq > $USEDDSK
+		else
+			grep -e disk -e part ${ALLSTG}| grep -e / -e swap | awk '{print $1}' | sed s/[[:digit:]]*$// | sort | uniq > $USEDDSK
+		fi
+		#
+		# Now the mounted disks
+		#
+		for i in `df | grep /dev | cut -d' ' -f1 | grep /`
+		do 
+			echo ${i##*/} >> $USEDDSK
+		done
+
+		grep disk ${ALLSTG} | awk '{print $1}' | sort | uniq > ${ALLDSK}
+		disks_temp=`echo $(grep -F -x -v -f ${USEDDSK} ${ALLDSK})`
+		echo "$disks_temp"  | awk '{ for (i=NF; i > 1; i--) printf("%s ",$i); print $1; }' > disks
+	fi
+	build_disks_list "`cat disks`"
+}
+
+if [[ $disks_passed == *"none"* ]]; then
+	if [[ $sys_type == "local" ]]; then
+		echo Unable to continue. non cloud systems require a disk to be designated.
+		exit 1
+	fi
+fi
+
+if [[ $disks_passed == "grab_disks" ]]; then
+	grab_disks
+else
+	#
+	# Use the list of disks passed in.
+	#
+	build_disks_list $disks_passed
+fi
+#
+# If no disks have been passed in, bail.  Note we do not check
+# to make sure the disk exist.
+#
+if [ $numb_disks -eq 0 ]; then
+	echo  "Need to have disks to do fio"
+	exit 1
+fi
+echo  $disks:$numb_disks
+exit 0

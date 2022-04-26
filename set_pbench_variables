@@ -1,0 +1,100 @@
+#!/bin/bash
+host_config=""
+pbench_user=""
+run_label=""
+test=""
+sys_type=""
+
+usage()
+{
+	echo "Usage: $1"
+	echo "  --host_config: host configuration"
+	echo "  --pbench_user: user runniing pbench"
+	echo "  --run_label: label of the run"
+	echo "  --sys_type: local or cloud vendor"
+	echo "  --test: name of test running."
+	echo "  --usage: this usage message"
+	exit 1
+}
+
+
+#
+# Define options
+#
+ARGUMENT_LIST=(
+	"host_config"
+	"pbench_user"
+	"run_label"
+        "sys_type"
+	"test"
+)
+
+NO_ARGUMENTS=(
+        "usage"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit
+fi
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--host_config)
+			host_config=$2
+			shift 2
+		;;
+		--pbench_user)
+			pbench_user=$2
+			shift 2
+		;;
+		--run_label)
+			run_label=$2
+			shift 2
+		;;
+		--sys_type)
+			sys_type=$2
+			shift 2
+		;;
+		--test)
+			test=$2
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo option not found $1
+			usage $0
+		;;
+	esac
+done
+
+temp=`echo "${host_config}" | cut -d':' -f 1`
+if [[ $sys_type != "local" ]]; then
+	if [[ $host_config != "" ]]; then
+		temp=`echo $temp | sed  "s/\"//g"`
+	fi
+fi
+#
+# Really we are exporting the label.
+#
+hostname=${pbench_user}_${run_label}
+results_prefix="${temp}"
+echo ${hostname}:${results_prefix}
+

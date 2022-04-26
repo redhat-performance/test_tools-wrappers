@@ -1,0 +1,14 @@
+This directory contains a series of scripts that are used by  the test warappers (*-wrappers) in https://github.com/redhat-performance.
+They all have a --usage option
+
+convert_csv_to_txt: Converts a csv file to a plain text file
+create_filesystem: creates the designated filesystem type on the designated devices
+execute_via_pbench: Runs a program via the pbench wrappers
+general_setup: Wrappers source this file to process the common options.
+grab_disks: List the disks on the system that are not in use.
+lvm_create: Creates an lvm
+lvm_delete: Deletes an lvm
+pbench_copy_data: Takes the results from a pbench user run and saves the data.  By default we move the data.
+pull_data:  Process the csv data for the tests.
+set_pbench_variables
+umount_filesystems: unmounts a series of filesystems.
