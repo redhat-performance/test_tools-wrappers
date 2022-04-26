@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source ~/.bashrc
 chars=`echo $0 | awk -v RS='/' 'END{print NR-1}'`
 TOOLS_BIN=`echo $0 | cut -d'/' -f 1-${chars}`
 
@@ -11,8 +12,6 @@ spacing=0
 sys_type=""
 test_name=""
 times_to_run=1
-pbench_copy=0
-
 
 #
 # Usage information.
@@ -26,7 +25,6 @@ usage()
 	echo "  --tuned_setting: used in naming the tar file"
 	echo "  --usage: this usage message"
 	echo "  --pbench: use pbench-user-benchmark and place information into pbench"
-	echo "  --pbench_copy: Copy the data to the pbench repository, not move_it."
 	echo "  --pbench_user: user who started everything."
 	echo "Unused options, present as Zathras passes them in."
 	echo "  --host_config"
@@ -39,58 +37,46 @@ usage()
 }
 
 #
-# Define options
+# Now handle the command options
 #
-ARGUMENT_LIST=(
-	"cmd_executing"
-	"host_config"
-	"iterations"
-	"pbench_user"
-	"run_label"
-	"spacing"
-	"sys_type"
-	"test"
-)
 
-NO_ARGUMENTS=(
-	"pbench_copy"
-	"usage"
-)
-
-# read arguments
-opts=$(getopt \
-    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
-    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
-    --name "$(basename "$0")" \
-    --options "h" \
-    -- "$@"
-)
-
-eval set --$opts
-
-while [[ $# -gt 0 ]]; do
+i=1
+j=$#
+separ=""
+cmd_options=""
+while [ $i -le $j ]
+do
         case "$1" in
 		--cmd_executing)
 			cmd_executing=${2}
+			i=$((i + 2))
 			shift 2
 		;;
 		--host_config)
 			configuration=${2}
+			cmd_options="${cmd_options}${separ}${1} ${2}"
+			separ=" "
+			i=$((i + 2))
 			shift 2
 		;;
                 --iterations)
+			cmd_options="${cmd_options}${separ}--iterations 1"
+			separ=" "
                         times_to_run=${2}
+			i=$((i + 2))
 			shift 2
                 ;;
-		--pbench_copy)
-			pbench_copy=1
+		--pbench)
+			i=$((i + 1))
 			shift 1
 		;;
 		--pbench_user)
 			puser=$2
+			i=$((i + 2))
 			shift 2
 		;;
 		--run_label)
+			i=$((i + 2))
 			run_label=$2
 			shift 2
 		;;
@@ -99,6 +85,8 @@ while [[ $# -gt 0 ]]; do
 			shift 2
 		;;
 		--sys_type)
+			cmd_options="${cmd_options}${separ}${1} ${2}"
+			separ=" "
 			sys_type=${2}
 			shift 2
 		;;
@@ -106,29 +94,35 @@ while [[ $# -gt 0 ]]; do
 			test_name=${2}
 			shift 2
 		;;
-		--usage)
-			usage
-		;;
-		-h)
-			usage
-		;;
 		--)
 			break; 
 		;;
 		*)
-			echo option not found $1
-			usage
+			cmd_options="${cmd_options}${separ}${1}"
+			separ=" "
+			shift 1
+			i=$((i + 1))
+			if [[ $1 != *"--"* ]]; then
+				i=$((i + 1))
+				cmd_options="${cmd_options}${separ}${1}"
+				shift 1
+			fi
 		;;
         esac
 done
 
 echo $times_to_run > ./iteration.lis
-pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis -- $cmd_executing
+echo pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis -- $cmd_executing ${cmd_options}
+pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis -- $cmd_executing ${cmd_options}
 
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
+echo completed
 last_dir=`ls -rtd /tmp/results_${test_name}_* | grep -v tar |  tail -1`
+echo $last_dir
 pushd $dir > /dev/null
 cp $last_dir/${test_name}_results/results_${test_name}*/results_${test_name}.csv .
+pwd
+echo ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in results_${test_name}.csv --results_out results.txt
 ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in results_${test_name}.csv --results_out results.txt
 
 last_tar=`ls -rtd /tmp/results_${test_name}_*tar |  tail -1`
@@ -139,5 +133,16 @@ mv $last_tar $mv_tar_to
 value=`$TOOLS_BIN/set_pbench_variables --host_config $configuration --sys_type $sys_type --test ${test_name} --pbench_user $puser --run_label $run_label`
 results_prefix=`echo $value | cut -d: -f 2`
 hostname=`echo $value | cut -d: -f 1`
-echo $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy ${pbench_copy} >> /tmp/debugging
-$TOOLS_BIN/pbench_copy_data --hostname "${run_label}" --user "${puser}" --prefix ${results_prefix} --copy ${pbench_copy}
+echo $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} >> /tmp/debugging
+$TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix}
+
+#
+# Move results in /tmp to be results_pbench.....
+# Keeps Zathras happy, and matches with what was run.
+#
+cd /tmp
+files=`ls results_*.tar | grep -v pbench`
+for i in $files; do
+	move_to=`echo $files | sed "s/^results_s/results_pbench_/"`
+	mv $i $move_to
+done
