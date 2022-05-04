@@ -60,9 +60,13 @@ to_user=`whoami`
 to_sysname=`hostname`
 if [ -f /usr/sbin/tuned-adm ]; then
 	tval=`/usr/sbin/tuned-adm active|awk '{print $4}'`
+	if [[ $tval == "profile." ]]; then
+		tval=tuned_none
+	fi
 else
-	tval="none"
+	tval="tuned_none"
 fi
+
 to_tuned_setting=$tval
 
 i=1
