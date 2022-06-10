@@ -12,7 +12,7 @@ spacing=0
 sys_type=""
 test_name=""
 times_to_run=1
-pbench_tools="all"
+pbench_stats="default"
 #
 # Usage information.
 #
@@ -26,7 +26,7 @@ usage()
 	echo "  --usage: this usage message"
 	echo "  --pbench: use pbench-user-benchmark and place information into pbench"
 	echo "  --pbench_user: user who started everything."
-	echo "  --pbench_tools: tools to execute with, default is all"
+	echo "  --pbench_stats: stats to execute with, default is all"
 	echo "Unused options, present as Zathras passes them in."
 	echo "  --host_config"
 	echo "  --home_parent"
@@ -71,8 +71,8 @@ do
 			i=$((i + 1))
 			shift 1
 		;;
-		--pbench_tools)
-			pbench_tools=$2
+		--pbench_stats)
+			pbench_stats=$2
 			i=$((i + 2))
 			shift 2
 		;;
@@ -118,24 +118,26 @@ do
 done
 
 
-if [[ $pbench_tools != "all" ]]; then
+if [[ $pbench_stats != "default" ]]; then
 	pushd /var/lib/pbench-agent > /dev/null
-	cd tools-v1-default
+	rm -rf tools-v1-zathras
+	cp -R tools-v1-default tools-v1-zathras
+	cd tools-v1-zathras
 	dir=`ls -d *ip*`
-	cd ..
-	mv tools-v1-default tools-v1-default.orig
-	mkdir -p tools-v1-default/${dir}
-	cp tools-v1-default.orig/${dir}/__trigger__ tools-v1-default/${dir}
-	tools=`echo $pbench_tools | sed "s/,/ /g"`
+	cd  $dir
+	mkdir ../back
+	mv * ../back
+	tools=`echo $pbench_stats | sed "s/,/ /g"`
 	for i in $tools; do
-		cp tools-v1-default.orig/${dir}/$i tools-v1-default/${dir}${i}
+		cp ../back/$i .
 	done
+	rm -rf ../back
 	popd > /dev/null
+	pbench_stats="zathras"
 fi
 
 echo $times_to_run > ./iteration.lis
-echo pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis -- $cmd_executing ${cmd_options}
-pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis -- $cmd_executing ${cmd_options}
+pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis --tool-group=${pbench_stats} -- $cmd_executing ${cmd_options}
 
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
 echo completed
@@ -168,9 +170,3 @@ for i in $files; do
 	move_to=`echo $files | sed "s/^results_s/results_pbench_/"`
 	mv $i $move_to
 done
-if [[ $pbench_tools != "all" ]]; then
-	pushd /var/lib/pbench-agent
-	rm -rf tools-v1-default
-	mv tools-v1-default.orig tools-v1-default
-	popd > /dev/null
-fi
