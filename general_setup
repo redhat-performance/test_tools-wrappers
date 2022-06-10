@@ -16,6 +16,7 @@ source ~/.bashrc
 # to_pbench: Run the test via pbench
 # to_pbench_copy: Copy the pbench data, not move it.
 # to_puser: User running pbench
+# to_pstats: pbench stats to use
 # to_run_label: Label for the run
 # to_user: User on the test system running the test
 # to_sys_type: for results info, basically aws, azure or local
@@ -59,9 +60,9 @@ to_run_user=`whoami`
 to_times_to_run=1
 to_run_label=""
 to_user=`whoami`
-to_tools="default"
 to_sysname=`hostname`
 to_pstats="default"
+
 if [ -f /usr/sbin/tuned-adm ]; then
 	tval=`/usr/sbin/tuned-adm active|awk '{print $4}'`
 	if [[ $tval == "profile." ]]; then
