@@ -1,0 +1,95 @@
+#!/bin/bash
+
+ARGUMENT_LIST=(
+	"command"
+	"options"
+	"test_name"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+#
+# If there is an error, bail out.
+#
+if [ $? -ne 0 ]; then
+        usage $0
+fi
+
+eval set --$opts
+
+command=""
+options=""
+test_name=""
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--command)
+			command=$2
+			shift 2
+		;;
+		--options)
+			options=$2		
+			shift 2
+		;;
+		--test_name)
+			test_name=$2		
+			shift 2
+		;;
+		--)
+			break
+		;;
+		*)
+			echo "not found $1"
+			exit 1
+		;;
+	esac
+done
+
+tuned_active=1
+start_active_tuned=`tuned-adm active`
+if [ $? -ne 0 ]; then
+	echo No active tuned >> /tmp/${test_name}_tuned.status
+else
+	echo $start_active_tuned >> /tmp/${test_name}_tuned.status
+fi
+
+systemctl status tuned | grep -q inactive
+if  [ $? -eq 0 ]; then 
+	echo Warning: Tuned is not active >> /tmp/${test_name}_tuned.status
+	tuned_active=0
+fi
+
+command="$command $options"
+$command &> /tmp/${test_name}.out
+rtc=$?
+
+now_active_tuned=`tuned-adm active`
+if [ $tuned_active -eq 1 ]; then
+	systemctl status tuned | grep -q inactive
+	if  [ $? -eq 0 ]; then 
+		echo "Warning: Tuned was active now it isn't, restarting tuned" >> /tmp/${test_name}_tuned.status
+		systemctl enable --now tuned
+		tuned-adm profile $start_active
+	fi
+fi
+
+if [[ $now_active_tuned != $start_active_tuned ]]; then
+	echo "Warning: Tuned changed from $start_active_tuned to $now_active_tuned" >> /tmp/${test_name}_tuned.status
+else
+	echo Tuned did not change >> /tmp/${test_name}_tuned.status
+fi
+
+cd /tmp
+for i in `ls results*${test_name}*.tar`; do
+	rdir=`tar xvf $i | cut -d'/' -f1 | sort -u`
+	cp /tmp/${test_name}_tuned.status $rdir
+	tar cf $i $rdir
+done
+
+exit $rtc
