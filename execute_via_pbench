@@ -140,6 +140,7 @@ echo $times_to_run > ./iteration.lis
 pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis --tool-group=${pbench_stats} -- $cmd_executing ${cmd_options}
 
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
+cp /tmp/${test_name}_tuned.status $dir
 echo completed
 last_dir=`ls -rtd /tmp/results_${test_name}_* | grep -v tar |  tail -1`
 echo $last_dir
