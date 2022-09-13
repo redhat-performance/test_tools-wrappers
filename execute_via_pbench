@@ -142,7 +142,7 @@ pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
 cp /tmp/${test_name}_tuned.status $dir
 echo completed
-last_dir=`ls -rtd /tmp/results_${test_name}_* | grep -v tar |  tail -1`
+last_dir=`ls -rtd /tmp/results_${test_name}_*pbench.tar | grep -v tar |  tail -1`
 echo $last_dir
 pushd $dir > /dev/null
 cp $last_dir/${test_name}_results/results_${test_name}*/results_${test_name}.csv .
@@ -152,6 +152,11 @@ ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --result
 
 last_tar=`ls -rtd /tmp/results_${test_name}_*tar |  tail -1`
 tar xf $last_tar
+for i in `ls *csv`; do
+	base_name=`echo $i | rev | cut -d'.' -f2- | rev`
+	$TOOLS_BIN/convert_csv_to_txt  --field_seper : --results_in $i --results_out ${base_name}.txt --field_size 16
+
+done
 cd /tmp
 mv_tar_to=`echo $last_tar | sed "s/results_${test_name}/results_pbench_${test_name}/"`
 mv $last_tar $mv_tar_to
@@ -159,7 +164,7 @@ value=`$TOOLS_BIN/set_pbench_variables --host_config $configuration --sys_type $
 results_prefix=`echo $value | cut -d: -f 2`
 hostname=`echo $value | cut -d: -f 1`
 echo $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} >> /tmp/debugging
-$TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix}
+$TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy 1
 
 #
 # Move results in /tmp to be results_pbench.....
