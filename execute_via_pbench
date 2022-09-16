@@ -142,13 +142,16 @@ pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
 cp /tmp/${test_name}_tuned.status $dir
 echo completed
-last_dir=`ls -rtd /tmp/results_${test_name}_*pbench.tar | grep -v tar |  tail -1`
-echo $last_dir
+last_dir=`ls -rtd /tmp/results*${test_name}_*pbench |  grep -v tar | tail -1`
 pushd $dir > /dev/null
-cp $last_dir/${test_name}_results/results_${test_name}*/results_${test_name}.csv .
-pwd
-echo ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in results_${test_name}.csv --results_out results.txt
-${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in results_${test_name}.csv --results_out results.txt
+tar xf /tmp/results_${test_name}*pbench*.tar
+files=`find /tmp/$last_dir/${test_name}_results/results_${test_name}* | grep csv`
+for csv in $files; do
+	cp $csv .
+	new_file=`echo $csv | rev | cut -d'/' -f1 | rev | sed "s/csv/s///g"`
+	echo ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out $new_file.txt
+	${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out $new_file.txt
+done
 
 last_tar=`ls -rtd /tmp/results_${test_name}_*tar |  tail -1`
 tar xf $last_tar
