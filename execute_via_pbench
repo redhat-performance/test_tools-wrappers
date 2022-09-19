@@ -147,8 +147,8 @@ tar xf /tmp/results_pbench.tar
 
 for csv in `ls *csv`; do
 	new_file=`echo $csv | sed "s/csv//g"`
-	echo ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out $new_file.txt
-	${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out $new_file.txt
+	echo ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out ${new_file}txt
+	${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out ${new_file}txt
 done
 
 cd /tmp
