@@ -79,25 +79,29 @@ j=$#
 gen_args_back=$0
 while [ $i -le $j ]
 do
+	#
+	# Ansible causing problems again, getting passed }} for some reason from random workloads, filter it out.
+	#
+	value=`echo $2 | sed "s/}//g"`
 	case "$1" in
 		--sys_type)
 			i=$((i + 2))
-			to_sys_type=${2}
+			to_sys_type=$value
 			shift 2
 		;;
 		--home_parent)
 			i=$((i + 2))
-			to_home_root=${2}
+			to_home_root=$value
 			shift 2
 		;;
 		--host_config)
 			i=$((i + 2))
-			to_configuration=${2}
+			to_configuration=$value
 			shift 2
 		;;
 		--iterations)
 			i=$((i + 2))
-			to_times_to_run=${2}
+			to_times_to_run=$value
 			shift 2
 		;;
 		--pbench)
@@ -127,17 +131,17 @@ do
 		;;
 		--run_user)
 			i=$((i + 2))
-			to_user=${2}
+			to_user=$value
 			shift 2
 		;;
 		--sysname)
 			i=$((i + 2))
-			to_sysname=${2}
+			to_sysname=$value
 			shift 2
 		;;
 		--tuned_setting)
 			i=$((i + 2))
-			to_tuned_setting="${2}"
+			to_tuned_setting="${value}"
 			shift 2
 		;;
 		--usage)
