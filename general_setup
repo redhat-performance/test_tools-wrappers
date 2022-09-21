@@ -116,17 +116,17 @@ do
 		;;
 		--pbench_stats)
 			i=$((i + 2))
-			to_pstats=$2
+			to_pstats=$value
 			shift 2
 		;;
 		--pbench_user)
 			i=$((i + 2))
-			to_puser=$2
+			to_puser=$value
 			shift 2
 		;;
 		--run_label)
 			i=$((i + 2))
-			to_run_label=$2
+			to_run_label=$$value
 			shift 2
 		;;
 		--run_user)
