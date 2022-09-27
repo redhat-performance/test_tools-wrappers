@@ -41,21 +41,25 @@ fi
 eval set -- $opts
 
 while [[ $# -gt 0 ]]; do
+	#
+	# Ansible is being stupind on azure
+	#
+	value=`echo $2 | sed "s/}//g"`
 	case "$1" in
 		--copy)
-			copy=$2
+			copy=$value
 			shift 2
 		;;
 		--hostname)
-			fhost=$2
+			fhost=$value
 			shift 2
 		;;
 		--prefix)
-			results_prefix=$2
+			results_prefix=$value
 			shift 2
 		;;
 		--user)
-			user=$2
+			user=$value
 			shift 2
 		;;
 		--usage)
