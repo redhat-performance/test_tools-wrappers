@@ -157,8 +157,8 @@ mv $last_tar $mv_tar_to
 value=`$TOOLS_BIN/set_pbench_variables --host_config $configuration --sys_type $sys_type --test ${test_name} --pbench_user $puser --run_label $run_label`
 results_prefix=`echo $value | cut -d: -f 2`
 hostname=`echo $value | cut -d: -f 1`
-echo $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} >> /tmp/debugging
-$TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy 1
+echo $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy 0>> /tmp/debugging
+$TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy 0
 
 #
 # Move results in /tmp to be results_pbench.....
