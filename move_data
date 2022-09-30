@@ -1,0 +1,4 @@
+#!/bin/bash
+cp ${1}/meta_data.yml $2
+cp ~/hw_info.out $2
+
