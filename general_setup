@@ -144,7 +144,7 @@ do
 		;;
 		--run_label)
 			i=$((i + 2))
-			to_run_label=$$value
+			to_run_label=$value
 			shift 2
 		;;
 		--run_user)
