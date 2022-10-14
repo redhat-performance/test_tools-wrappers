@@ -18,7 +18,7 @@
 #
 
 
-pbench_results_locacation=""
+pbench_results_location=""
 
 retrieve_csv_files()
 {
@@ -30,8 +30,8 @@ retrieve_csv_files()
 	#
 	# Grab the top directories
 	#
-	wget -r -np --spider -l1  -P . http://${pbench_results_locacation}/${1}/ 2> /dev/null
-	pushd ${pbench_results_locacation}/${1} > /dev/null > /dev/null
+	wget -r -np --spider -l1  -P . http://${pbench_results_location}/${1}/ 2> /dev/null
+	pushd ${pbench_results_location}/${1} > /dev/null > /dev/null
 	systems=`ls`
 	popd > /dev/null
 	top_dir=`pwd`
@@ -39,8 +39,8 @@ retrieve_csv_files()
 	# Walk through the systems present
 	#
 	for sys in $systems; do
-		wget -r -np --spider -l1  -P . http://${pbench_results_locacation}/${1}/$sys/ 2> /dev/null
-		pushd ${pbench_results_locacation}/${1}/${sys} > /dev/null
+		wget -r -np --spider -l1  -P . http://${pbench_results_location}/${1}/$sys/ 2> /dev/null
+		pushd ${pbench_results_location}/${1}/${sys} > /dev/null
 		#
 		# Process the directories with the test names.
 		#
@@ -51,26 +51,26 @@ retrieve_csv_files()
 			# the data will be done here.
 			#
 			if [[ $tests == *"linpack_test"* ]]; then
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/results_linpack.csv 2> /dev/null
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/results.txt 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/results_linpack.csv 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/results.txt 2> /dev/null
 			fi
 			if [[ $tests == *"pig_test"* ]]; then
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/results_pig.csv 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/results_pig.csv 2> /dev/null
 			fi
 			if [[ $tests == *"streams_test"* ]]; then
 				pushd $top_dir > /dev/null
-				wget -r -np --spider -l1  -P . http://${pbench_results_locacation}/${1}/$sys/$tests 2> /dev/null
+				wget -r -np --spider -l1  -P . http://${pbench_results_location}/${1}/$sys/$tests 2> /dev/null
 				popd > /dev/null
 				for sdir in `ls -d results_streams_tuned_*`; do
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/$sdir/streams_results/results_streams.csv 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/$sdir/streams_results/results_streams.csv 2> /dev/null
 				done
 			fi
 			if [[ $tests == "uperf_tuned"* ]]; then
 				#
 				# Because uperf is a mess.
 				#
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/result.csv 2> /dev/null
-				wget http://${pbench_results_locacation}/$sys/$tests/result.txt 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/result.csv 2> /dev/null
+				wget http://${pbench_results_location}/$sys/$tests/result.txt 2> /dev/null
 				#
 				# We need to post process this file.
 				#
@@ -78,12 +78,12 @@ retrieve_csv_files()
 			fi
 			if [[ $tests == *"fio_run"* ]]; then
 				pushd $top_dir > /dev/null
-				wget -r -np --spider -l1  -P . http://${pbench_results_locacation}/${1}/$sys/$tests 2> /dev/null
+				wget -r -np --spider -l1  -P . http://${pbench_results_location}/${1}/$sys/$tests 2> /dev/null
 				popd > /dev/null
 				for sdir in `ls -d fio_bs*`; do
 					pushd ${sdir} > /dev/null
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/$sdir/result.txt 2> /dev/null
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/$sdir/result.csv 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/$sdir/result.txt 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/$sdir/result.csv 2> /dev/null
 					mv result.csv result_fio.csv
 					popd > /dev/null
 				done
@@ -91,43 +91,43 @@ retrieve_csv_files()
 			if [[ $tests == *"specjbb"* ]]; then
 				mkdir -p results/wrapper_results
 				cd results/wrapper_results
-				wget http://${pbench_results_locacation}//${1}/$sys/$tests/results/wrapper_results 2> /dev/null
+				wget http://${pbench_results_location}//${1}/$sys/$tests/results/wrapper_results 2> /dev/null
 				next_dir=`grep folder.gif wrapper_results  | cut -d'=' -f 5 | cut -d'"' -f 2 | cut -d'/' -f 1`
 				mkdir $next_dir
 				cd $next_dir
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/results/wrapper_results/${next_dir} 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/results/wrapper_results/${next_dir} 2> /dev/null
 				dir2=`grep folder.gif ${next_dir}  | cut -d'=' -f 5 | cut -d'"' -f 2 | sed "s/\.\///g" | sed "s/\///g"`
 				for subdir in $dir2; do
 					mkdir $subdir
 					cd $subdir
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/results/wrapper_results/${next_dir}/$subdir/results_specjbb.csv 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/results/wrapper_results/${next_dir}/$subdir/results_specjbb.csv 2> /dev/null
 					cd ..
 				done
 			fi
 			if [[ $tests == *"hammerdb"* ]]; then
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/mariadb 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/mariadb 2> /dev/null
 				if [ $? -eq 0 ]; then
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/mariadb/results_hammerdb_maria.csv 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/mariadb/results_hammerdb_maria.csv 2> /dev/null
 				fi
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/postgres 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/postgres 2> /dev/null
 				if [ $? -eq 0 ]; then
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/postgres/results_hammerdb_pg.csv 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/postgres/results_hammerdb_pg.csv 2> /dev/null
 				fi
-				wget http://${pbench_results_locacation}/${1}/$sys/$tests/mssql 2> /dev/null
+				wget http://${pbench_results_location}/${1}/$sys/$tests/mssql 2> /dev/null
 				if [ $? -eq 0 ]; then
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/mssql/results_hammerdb_mssql.csv 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/mssql/results_hammerdb_mssql.csv 2> /dev/null
 				fi
 			fi
 			if [[ $tests == *"auto_hpl"* ]]; then
 				pushd $top_dir > /dev/null
-				wget -r -np --spider -l1 http://${pbench_results_locacation}/${1}/$sys/$tests/ 2> /dev/null
+				wget -r -np --spider -l1 http://${pbench_results_location}/${1}/$sys/$tests/ 2> /dev/null
 				popd > /dev/null
 				for sdir in `ls -d results_auto_hpl_*`; do
 					pushd $sdir > /dev/null
 					#
 					#  Pulls the index.html file.
 					#
-					wget http://${pbench_results_locacation}/${1}/${sys}/${tests}/${sdir} 2> /dev/null
+					wget http://${pbench_results_location}/${1}/${sys}/${tests}/${sdir} 2> /dev/null
 
 					file_check=""
 					if [ -f "index.html" ]; then
@@ -139,7 +139,7 @@ retrieve_csv_files()
 					if [[ $file_check != "" ]]; then
 						file_to_pull=`grep csv $file_check | cut -d'<' -f 7 | cut -d'"' -f 2`
 						if [[ $file_to_pull != "" ]]; then
-							wget http://${pbench_results_locacation}/${1}/${sys}/${tests}/$sdir/$file_to_pull 2> /dev/null
+							wget http://${pbench_results_location}/${1}/${sys}/${tests}/$sdir/$file_to_pull 2> /dev/null
 							file_to=`echo $file_to_pull | cut -d'-' -f 1,2`
 							mv $file_to_pull results_${file_to}.csv
 						fi
@@ -150,12 +150,12 @@ retrieve_csv_files()
 			fi
 			if [[ $tests == *"etcd_run"* ]]; then
 				pushd $top_dir > /dev/null
-				wget -r -np --spider -l1  -P . http://${pbench_results_locacation}/${1}/$sys/$tests 2> /dev/null
+				wget -r -np --spider -l1  -P . http://${pbench_results_location}/${1}/$sys/$tests 2> /dev/null
 				popd > /dev/null
 				for sdir in `ls -d fio_bs*`; do
 					pushd ${sdir} > /dev/null
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/$sdir/result.txt 2> /dev/null
-					wget http://${pbench_results_locacation}/${1}/$sys/$tests/$sdir/result.csv 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/$sdir/result.txt 2> /dev/null
+					wget http://${pbench_results_location}/${1}/$sys/$tests/$sdir/result.csv 2> /dev/null
 					mv result.csv result_etcd.csv
 					popd > /dev/null
 				done
@@ -164,7 +164,7 @@ retrieve_csv_files()
 
 			if [[ $tests == *"speccpu2017"* ]]; then
 				pushd $top_dir > /dev/null
-				wget -r -np --spider -l1  -P . http://${pbench_results_locacation}/${1}/$sys/$tests 2> /dev/null
+				wget -r -np --spider -l1  -P . http://${pbench_results_location}/${1}/$sys/$tests 2> /dev/null
 				popd > /dev/null
 
 				for sdir in `ls -d results_speccpu*`; do
@@ -173,7 +173,7 @@ retrieve_csv_files()
 					#
 					mkdir -p $sdir/run_results
 					pushd $sdir/run_results
-					wget http://${pbench_results_locacation}/${1}/${sys}/${tests}/${sdir}/run_results/ 2> /dev/null
+					wget http://${pbench_results_location}/${1}/${sys}/${tests}/${sdir}/run_results/ 2> /dev/null
 					file_check=""
 					if [ -f "index.html" ]; then
 						file_check="index.html"
@@ -186,7 +186,7 @@ retrieve_csv_files()
 						echo file_to_pull $file_to_pull
 						if [[ $file_to_pull != "" ]]; then
 							for get_file in $file_to_pull; do
-								wget http://${pbench_results_locacation}/${1}/${sys}/${tests}/$sdir/run_results/$get_file 2> /dev/null
+								wget http://${pbench_results_location}/${1}/${sys}/${tests}/$sdir/run_results/$get_file 2> /dev/null
 							done
 						fi
 						rm $file_check
@@ -212,7 +212,7 @@ organize_results()
 	#
 	# Get all the csv files present
 	#
-	find ${pbench_results_locacation} -print | grep csv > results_files
+	find ${pbench_results_location} -print | grep csv > results_files
 
 	#
 	# Get the system prefixes. This is generic.
@@ -286,6 +286,6 @@ organize_results()
 	done
 }
 
-pbench_results_locacation=$2
+pbench_results_location=$2
 retrieve_csv_files $1
 organize_results
