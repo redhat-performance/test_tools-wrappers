@@ -186,6 +186,6 @@ $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix 
 cd /tmp
 files=`ls results_*.tar | grep -v pbench`
 for i in $files; do
-	move_to=`echo $files | sed "s/^results_s/results_pbench_/"`
+	move_to=`echo $files | sed "s/^results_/results_pbench_/"`
 	mv $i $move_to
 done
