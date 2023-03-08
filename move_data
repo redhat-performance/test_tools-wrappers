@@ -17,6 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-cp ${1}/meta_data.yml $2
+cp ${1}/meta_data*.yml $2
 cp ${1}/hw_info.out $2
 
