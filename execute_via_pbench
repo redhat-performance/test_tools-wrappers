@@ -53,7 +53,7 @@ usage()
 	echo "  --run_label: the label to associate with the pbench run"
 	echo "  --run_user"
 	echo "  --sys_type"
-	exit
+	exit 0
 }
 
 #
@@ -156,7 +156,15 @@ if [[ $pbench_stats != "default" ]]; then
 fi
 
 echo $times_to_run > ./iteration.lis
-pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis --tool-group=${pbench_stats} -- $cmd_executing ${cmd_options}
+#
+# Assign the pbench args to a varaible, no duplication that way.
+#
+pbench_args="-C ${puser}_${test_name}_test --iteration-list=./iteration.lis --tool-group=${pbench_stats} -- ${cmd_executing} ${cmd_options}"
+pbench-user-benchmark $pbench_args
+if [ $? -ne 0 ]; then
+	echo pbench-user-benchmark $pbench_args
+	exit 1
+fi
 
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
 cp /tmp/${test_name}_tuned.status $dir
@@ -189,3 +197,4 @@ for i in $files; do
 	move_to=`echo $files | sed "s/^results_/results_pbench_/"`
 	mv $i $move_to
 done
+exit 0
