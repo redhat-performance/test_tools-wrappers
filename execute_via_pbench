@@ -156,9 +156,13 @@ if [[ $pbench_stats != "default" ]]; then
 fi
 
 echo $times_to_run > ./iteration.lis
-pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis --tool-group=${pbench_stats} -- ${cmd_executing} ${cmd_options}
+#
+# Assign the pbench args to a varaible, no duplication that way.
+#
+pbench_args="-C ${puser}_${test_name}_test --iteration-list=./iteration.lis --tool-group=${pbench_stats} -- ${cmd_executing} ${cmd_options}"
+pbench-user-benchmark$pbench_args
 if [ $? -ne 0 ]; then
-	echo pbench-user-benchmark -C ${puser}_${test_name}_test --iteration-list=./iteration.lis --tool-group=${pbench_stats} -- $cmd_executing ${cmd_options} failed.
+	echo pbench-user-benchmark $pbench_args
 	exit 1
 fi
 
