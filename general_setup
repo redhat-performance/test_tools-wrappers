@@ -63,7 +63,7 @@ gs_usage_info()
 	echo "  --tuned_setting: used in naming the tar file, default for RHEL is the current active tuned.  For non"
 	echo "    RHEL systems, default is none"
 	echo "  --usage: this usage message"
-	exit
+	exit 1
 }
 
 to_sys_type=`hostname`
@@ -179,3 +179,4 @@ do
 	esac
 done
 set $gen_args_back
+exit 0
