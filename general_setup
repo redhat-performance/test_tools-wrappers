@@ -179,4 +179,3 @@ do
 	esac
 done
 set $gen_args_back
-exit 0
