@@ -155,6 +155,10 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if [ ! -f $config ]; then
+    echo_stderr Cannot access $config, aborting
+    exit 1
+fi
 
 if [ $os_release -eq 1 ]; then
     parse_os_release
