@@ -1,0 +1,16 @@
+on: push
+
+jobs:
+  detect_os_ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Dump /etc/os-release for debug purposes
+        run: cat /etc/os-release
+      - name: Verify that the script detects Ubuntu using os-release file
+        run: test `./detect_os` = "ubuntu"
+      - name: Dump uname -a for debug purposes
+        run: uname -a
+      - name: Verify that the script detects Ubuntu using uname
+        run: test `./detect_os --uname` = "ubuntu"
