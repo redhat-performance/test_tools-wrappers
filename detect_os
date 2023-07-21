@@ -3,13 +3,14 @@
 config="supported_os.yml"
 os_release=1 # /etc/os-release more reliable, so use it by default
 os_release_file="/etc/os-release"
+get_version=0 # Fetch OS name by default
 
 usage()
 {
     echo -e "detect_os"
     echo -e "\t Detects the OS that the system is currently using and prints it out"
     echo -e "Options"
-    
+
     echo -e "\t --uname"
     echo -e "\t\t Determine the current OS using 'uname -a' output"
     echo -e "\t\t Combining this option with --os-release produces undefined behavior"
@@ -17,6 +18,10 @@ usage()
     echo -e "\t --os-release"
     echo -e "\t\t Determine the current OS using the /etc/os-release file"
     echo -e "\t\t Combining this option with --uname produces undefined behavior"
+
+    echo -e "\t --os-version"
+    echo -e "\t\t Determine the current OS version"
+    echo -e "\t\t Works with --uname and --os-release"
 
     echo -e "\t -h/--help/--usage"
     echo -e "\t\t Displays this message"
@@ -28,7 +33,7 @@ echo_stderr() {
     echo ${@:1} > /dev/stderr
 }
 
-parse_os_release_file()
+os_release_get_os_name()
 {
     if [ ! -f $os_release_file ];then
         echo_stderr Could not find file $os_release_file, aborting
@@ -50,7 +55,7 @@ parse_os_release_file()
     echo_stderr Unknown os \"$os_id\", check $config to make sure it exists
 }
 
-parse_uname()
+uname_get_os_name()
 {
     local kinfo=`uname -a`
 
@@ -70,10 +75,34 @@ parse_uname()
     exit 1
 }
 
+os_release_get_version()
+{
+    if [ ! -f $os_release_file ];then
+        echo_stderr Could not find file $os_release_file, aborting
+        exit 1
+    fi
+
+    local os_id=`grep '^ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
+    local version=`grep '^VERSION_ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
+
+    local config_len=`yq '. | length' $config`
+    for i in `seq 0 $config_len`;do
+        local identifier=`yq -r ".[$i].identifier" $config`
+        
+         if [ $identifier = $os_id ]; then
+            echo $version
+            exit 0
+        fi
+    done
+
+    echo_stderr Unknown os \"$os_id\", check $config to make sure it exists
+}
+
 NOARG_OPTS=(
     "uname"
     "h"
     "help"
+    "os-version"
 
     "usage"
     "os-release"
@@ -105,8 +134,12 @@ while [[ $# -gt 0 ]]; do
         os_release=1
         shift 1
     ;;
+    --os-version)
+        get_version=1
+        shift 1
+    ;;
     --)
-        break;
+        break
     ;;
     *)
         echo_stderr Unknown option $1
@@ -116,10 +149,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-if [ $os_release -eq 1 ]; then
-    parse_os_release_file
+if [ $get_version -eq 0 ]; then
+    if [ $os_release -eq 1 ]; then
+        os_release_get_os_name
+    else
+        uname_get_os_name
+    fi
 else
-    parse_uname
+    os_release_get_version
 fi
 
 exit 0
