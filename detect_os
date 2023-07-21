@@ -75,6 +75,29 @@ uname_get_os_name()
     exit 1
 }
 
+uname_get_os_version()
+{
+    local kinfo=`uname -a`
+
+    local config_len=`yq '. | length' $config`
+    for i in `seq 0 $config_len`;do
+        local pattern=`yq -r ".[$i].uname_pattern" $config`
+        local identifier=`yq -r ".[$i].identifier" $config`
+        local ver_pattern=`yq -r ".[$i].uname_version_pattern" $config`
+        
+        local os_match=`echo $kinfo | grep -Eo $pattern`
+
+        if [ ! -z $os_match ]; then
+            echo $os_match | grep -Eo $ver_pattern
+            exit 0
+        fi
+    done
+
+    echo_stderr No known uname pattern matches, check $config to ensure that a pattern matches the following uname line
+    echo_stderr $kinfo
+    exit 1
+}
+
 os_release_get_version()
 {
     if [ ! -f $os_release_file ];then
@@ -156,7 +179,11 @@ if [ $get_version -eq 0 ]; then
         uname_get_os_name
     fi
 else
-    os_release_get_version
+    if [ $os_release -eq 1 ];then
+        os_release_get_version
+    else
+        uname_get_os_version
+    fi
 fi
 
 exit 0

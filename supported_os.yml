@@ -1,15 +1,19 @@
 - name: Ubuntu
-  uname_pattern: Ubuntu
   identifier: ubuntu
+  uname_pattern: Ubuntu
+  uname_version_pattern: bob
 
 - name: RHEL
-  uname_pattern: \.el[0-9]+
   identifier: rhel
+  uname_pattern: \.el[0-9]+
+  uname_version_pattern: "[0-9]+"
 
 - name: Amazon Linux
-  uname_pattern: amzn2(023)?
   identifier: amzn
+  uname_pattern: amzn2(023)?
+  uname_version_pattern: 2(023)?
 
 - name: Fedora
   identifier: fedora
-  os_pattern: \.fc[0-9]+
+  uname_pattern: \.fc[0-9]+\.
+  uname_version_pattern: "[0-9]+"
