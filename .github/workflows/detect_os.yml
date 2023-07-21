@@ -20,8 +20,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Install yq
-        run: pip3 install yq
+      - name: Install yq/jq
+        run: pip3 install yq jq
       - name: Dump /etc/os-release for debug purposes
         run: cat /etc/os-release
       - name: Run tests # Skipping uname since kernel does not change
