@@ -25,7 +25,7 @@ usage()
 
 parse_os_release_file()
 {
-    local os_id=`grep '^ID=' /etc/os-release | cut -d'=' -f2`
+    local os_id=`grep '^ID=' /etc/os-release | cut -d'=' -f2 | sed -e "s/\"\|'//g`
 
     echo $os_id
 }

@@ -84,7 +84,7 @@ fi
 
 if [ $test_os_release -eq 1 ];then
     os_release_result=`./detect_os`
-    echo "os_release detection result: $os_release_result"
+    echo "os_release detection result: '$os_release_result'"
 
     if [  $actual_os != $os_release_result ]; then
         exit 1
@@ -93,7 +93,7 @@ fi
 
 if [ $test_uname -eq 1 ];then
     uname_result=`./detect_os --uname`
-    echo "uname detection result: $uname_result"
+    echo "uname detection result: '$uname_result'"
 
     if [  $actual_os != $uname_result ]; then
         exit 1
