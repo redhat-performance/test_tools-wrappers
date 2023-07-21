@@ -1,7 +1,6 @@
 #!/bin/bash
 
-UNAME_PATTERNS=( "\.el[0-9]+" "Ubuntu" )
-UNAME_MATCHES=( "rhel" "ubuntu" ) #always use lowercase
+config="supported_os.yml"
 
 usage()
 {
@@ -25,24 +24,29 @@ usage()
 
 parse_os_release_file()
 {
-    local os_id=`grep '^ID=' /etc/os-release | cut -d'=' -f2 | sed -e "s/\"\|'//g`
+    local os_id=`grep '^ID=' /etc/os-release | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
 
     echo $os_id
 }
 
 parse_uname()
 {
-    local os="Unknown"
     local kinfo=`uname -a`
 
-    for idx in "${!UNAME_PATTERNS[@]}"; do
-        echo $kinfo | grep -Eq "${UNAME_PATTERNS[$idx]}"
-
-        if [ $? -eq 0 ];then
-            os="${UNAME_MATCHES[$idx]}"
+    local config_len=`yq '. | length' $config`
+    for i in `seq 0 $config_len`;do
+        local pattern=`yq -r ".[$i].uname_pattern" $config`
+        local identifier=`yq -r ".[$i].identifier" $config`
+        
+         if `echo $kinfo | grep -Eq $pattern`; then
+            echo $identifier
+            exit 0
         fi
     done
-    echo $os
+
+    echo "No known uname pattern matches, check $config to ensure that a pattern matches the following uname line" > /dev/stderr
+    echo $kinfo > /dev/stderr
+    exit 1
 }
 
 NOARG_OPTS=(

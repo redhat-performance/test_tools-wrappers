@@ -1,0 +1,15 @@
+- name: Ubuntu
+  uname_pattern: Ubuntu
+  identifier: ubuntu
+
+- name: RHEL
+  uname_pattern: \.el[0-9]+
+  identifier: rhel
+
+- name: Amazon Linux
+  uname_pattern: amzn2(023)?
+  identifier: amzn
+
+- name: Fedora
+  identifier: fedora
+  uname_pattern: \.fc[0-9]+
