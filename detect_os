@@ -1,0 +1,98 @@
+#!/bin/bash
+
+UNAME_PATTERNS=( "\.el[0-9]+" "Ubuntu" )
+UNAME_MATCHES=( "rhel" "ubuntu" ) #always use lowercase
+
+usage()
+{
+    echo -e "detect_os"
+    echo -e "\t Detects the OS that the system is currently using and prints it out"
+    echo -e "Options"
+    
+    echo -e "\t --uname"
+    echo -e "\t\t Determine the current OS using 'uname -a' output"
+    echo -e "\t\t Combining this option with --os-release produces undefined behavior"
+
+    echo -e "\t --os-release"
+    echo -e "\t\t Determine the current OS using the /etc/os-release file"
+    echo -e "\t\t Combining this option with --uname produces undefined behavior"
+
+    echo -e "\t -h/--help/--usage"
+    echo -e "\t\t Displays this message"
+
+    exit 0
+}
+
+parse_os_release_file()
+{
+    local os_id=`grep '^ID=' /etc/os-release | cut -d'=' -f2`
+
+    echo $os_id
+}
+
+parse_uname()
+{
+    local os="Unknown"
+    local kinfo=`uname -a`
+
+    for idx in "${!UNAME_PATTERNS[@]}"; do
+        echo $kinfo | grep -Eq "${UNAME_PATTERNS[$idx]}"
+
+        if [ $? -eq 0 ];then
+            os="${UNAME_MATCHES[$idx]}"
+        fi
+    done
+    echo $os
+}
+
+NOARG_OPTS=(
+    "uname"
+    "h"
+    "help"
+
+    "usage"
+    "os-release"
+)
+
+opts=$(getopt \
+    --longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit 1
+fi
+os_release=1 # /etc/os-release more reliable, so use it by default
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+    -h | --usage | --help)
+        usage
+    ;;
+    --uname)
+        os_release=0
+        shift 1
+    ;;
+    --os-release)
+        os_release=1
+        shift 1
+    ;;
+    --)
+        break;
+    ;;
+    *)
+        echo "Unknown option $1" > /dev/stderr
+        exit 1
+    ;;
+    esac
+done
+
+
+if [ $os_release -eq 1 ]; then
+    parse_os_release_file
+else
+    parse_uname
+fi
