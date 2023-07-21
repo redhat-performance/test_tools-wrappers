@@ -18,7 +18,7 @@ jobs:
   detect_os_rhel_ubi:
     runs-on: ubuntu-latest
     container:
-      image: registry.access.redhat.com/ubi8/ubi-minimal
+      image: registry.access.redhat.com/ubi8/ubi
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
