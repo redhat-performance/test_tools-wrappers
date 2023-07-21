@@ -14,3 +14,20 @@ jobs:
         run: uname -a
       - name: Verify that the script detects Ubuntu using uname
         run: test `./detect_os --uname` = "ubuntu"
+
+  detect_os_rhel_ubi:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.access.redhat.com/ubi8/ubi-minimal
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Dump /etc/os-release for debug purposes
+        run: cat /etc/os-release
+      - name: Verify that the script detects Ubuntu using os-release file
+        run: test `./detect_os` = "rhel"
+      - name: Dump uname -a for debug purposes
+        run: uname -a
+      - name: Verify that the script detects Ubuntu using uname
+        run: test `./detect_os --uname` = "rhel"
+
