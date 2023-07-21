@@ -33,72 +33,7 @@ echo_stderr() {
     echo ${@:1} > /dev/stderr
 }
 
-os_release_get_os_name()
-{
-    if [ ! -f $os_release_file ];then
-        echo_stderr Could not find file $os_release_file, aborting
-        exit 1
-    fi
-
-    local os_id=`grep '^ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
-
-    local config_len=`yq '. | length' $config`
-    for i in `seq 0 $config_len`;do
-        local identifier=`yq -r ".[$i].identifier" $config`
-        
-         if [ $identifier = $os_id ]; then
-            echo $identifier
-            exit 0
-        fi
-    done
-
-    echo_stderr Unknown os \"$os_id\", check $config to make sure it exists
-}
-
-uname_get_os_name()
-{
-    local kinfo=`uname -a`
-
-    local config_len=`yq '. | length' $config`
-    for i in `seq 0 $config_len`;do
-        local pattern=`yq -r ".[$i].uname_pattern" $config`
-        local identifier=`yq -r ".[$i].identifier" $config`
-        
-         if `echo $kinfo | grep -Eq $pattern`; then
-            echo $identifier
-            exit 0
-        fi
-    done
-
-    echo_stderr No known uname pattern matches, check $config to ensure that a pattern matches the following uname line
-    echo_stderr $kinfo
-    exit 1
-}
-
-uname_get_os_version()
-{
-    local kinfo=`uname -a`
-
-    local config_len=`yq '. | length' $config`
-    for i in `seq 0 $config_len`;do
-        local pattern=`yq -r ".[$i].uname_pattern" $config`
-        local identifier=`yq -r ".[$i].identifier" $config`
-        local ver_pattern=`yq -r ".[$i].uname_version_pattern" $config`
-        
-        local os_match=`echo $kinfo | grep -Eo $pattern`
-
-        if [ ! -z $os_match ]; then
-            echo $os_match | grep -Eo $ver_pattern
-            exit 0
-        fi
-    done
-
-    echo_stderr No known uname pattern matches, check $config to ensure that a pattern matches the following uname line
-    echo_stderr $kinfo
-    exit 1
-}
-
-os_release_get_version()
+parse_os_release()
 {
     if [ ! -f $os_release_file ];then
         echo_stderr Could not find file $os_release_file, aborting
@@ -113,12 +48,48 @@ os_release_get_version()
         local identifier=`yq -r ".[$i].identifier" $config`
         
          if [ $identifier = $os_id ]; then
-            echo $version
+            if [ $get_version -eq 0 ];then
+                echo $identifier
+            else
+                echo $version
+            fi
             exit 0
         fi
     done
 
     echo_stderr Unknown os \"$os_id\", check $config to make sure it exists
+}
+
+parse_uname()
+{
+    local kinfo=`uname -a`
+
+    local config_len=`yq '. | length' $config`
+    for i in `seq 0 $config_len`;do
+        local pattern=`yq -r ".[$i].uname_pattern" $config`
+        local identifier=`yq -r ".[$i].identifier" $config`
+        local ver_pattern=`yq -r ".[$i].uname_version_pattern" $config`
+
+        if [ -z ver_pattern ]; then
+            echo $identifier has no uname_version_pattern, skipping
+            continue
+        fi
+        
+        local os_match=`echo $kinfo | grep -Eo $pattern`
+        
+         if [ ! -z $os_match ]; then
+            if [ $get_version -eq 1 ];then
+                echo $os_match | grep -Eo $ver_pattern
+            else
+                echo $identifier
+            fi
+            exit 0
+        fi
+    done
+
+    echo_stderr No known uname pattern matches, check $config to ensure that a pattern matches the following uname line
+    echo_stderr $kinfo
+    exit 1
 }
 
 NOARG_OPTS=(
@@ -172,18 +143,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-if [ $get_version -eq 0 ]; then
-    if [ $os_release -eq 1 ]; then
-        os_release_get_os_name
-    else
-        uname_get_os_name
-    fi
+if [ $os_release -eq 1 ]; then
+    parse_os_release
 else
-    if [ $os_release -eq 1 ];then
-        os_release_get_version
-    else
-        uname_get_os_version
-    fi
+    parse_uname
 fi
 
 exit 0
