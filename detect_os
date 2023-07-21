@@ -11,6 +11,9 @@ usage()
     echo -e "\t Detects the OS that the system is currently using and prints it out"
     echo -e "Options"
 
+    echo -e "\t -c/--config"
+    echo -e "\t\t The YAML configuration file used to help identify an OS (default is ./supported_os.yml)"
+
     echo -e "\t --uname"
     echo -e "\t\t Determine the current OS using 'uname -a' output"
     echo -e "\t\t Combining this option with --os-release produces undefined behavior"
@@ -102,10 +105,16 @@ NOARG_OPTS=(
     "os-release"
 )
 
+ARG_OPTS=(
+    "c"
+    "config"
+)
+
 opts=$(getopt \
     --longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+    --longoptions "$(printf "%s:," "${ARG_OPTS[@]}")" \
     --name "$(basename "$0")" \
-    --options "h" \
+    --options "hc:" \
     -- "$@"
 )
 
@@ -131,6 +140,10 @@ while [[ $# -gt 0 ]]; do
     --os-version)
         get_version=1
         shift 1
+    ;;
+    -c | --config)
+        config=$2
+        shift 2
     ;;
     --)
         break
