@@ -96,3 +96,5 @@ if [ $os_release -eq 1 ]; then
 else
     parse_uname
 fi
+
+exit 0

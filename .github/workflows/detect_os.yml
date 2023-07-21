@@ -8,16 +8,10 @@ jobs:
         uses: actions/checkout@v3
       - name: Dump /etc/os-release for debug purposes
         run: cat /etc/os-release
-      - name: Display output of the script
-        run: ./detect_os
-      - name: Verify that the script detects Ubuntu using os-release file
-        run: test `./detect_os` = "ubuntu"
       - name: Dump uname -a for debug purposes
         run: uname -a
-      - name: Display output of the script
-        run: ./detect_os --uname
-      - name: Verify that the script detects Ubuntu using uname
-        run: test `./detect_os --uname` = "ubuntu"
+      - name: Run tests
+        run: ./tests/test_detect_os --os ubuntu
 
   detect_os_rhel_ubi:
     runs-on: ubuntu-latest
@@ -28,8 +22,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Dump /etc/os-release for debug purposes
         run: cat /etc/os-release
-      - name: Fetch output of the script
-        run: os_name=`./detect_os` && echo $os_name
-      - name: Verify that the script detects RHEL using os-release file
-        run: test $os_name = "rhel"
+      - name: Run tests # Skipping uname since kernel does not change
+        run: ./tests/test_detect_os --skip-uname --os rhel
 

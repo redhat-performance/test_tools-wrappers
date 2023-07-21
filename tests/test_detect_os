@@ -1,0 +1,103 @@
+#!/bin/bash
+
+actual_os=""
+
+test_os_release=1
+test_uname=1
+
+usage()
+{
+    echo -e "test_detect_os --os <ACTUAL OS>"
+    echo -e "\t Tests the detect_os script"
+
+    echo -e "Options:"
+    echo -e "\t --os <string> (required)"
+    echo -e "\t\t Sets the os currently running to validate detect_os's output"
+
+    echo -e "\t --skip-uname"
+    echo -e "\t\t Skips checking the uname output (used in some CI instances where container images are used)"
+    echo -e "\t --skip-os-release"
+    echo -e "\t\t Skips checking the os-release file"
+
+    echo -e "\t -h/--help/--usage"
+    echo -e "\t\t Shows this message"
+
+    exit 0
+}
+
+NOARG_OPTS=(
+    "skip-uname"
+    "skip-os-release"
+
+    "h"
+    "help"
+    "usage"
+)
+
+OPTS=(
+    "os"
+)
+
+opts=$(getopt \
+    --longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+    --longoptions "$(printf "%s:," "${OPTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+    -h | --usage | --help)
+        usage
+    ;;
+    --skip-os-release)
+        test_os_release=0
+        shift 1
+    ;;
+    --skip-uname)
+        test_uname=0
+        shift 1
+    ;;
+    --os)
+        actual_os=$2
+        shift 2
+    ;;
+    --)
+        break;
+    ;;
+    *)
+        echo "Unknown option $1" > /dev/stderr
+        exit 1
+    ;;
+    esac
+done
+
+
+if [ -z $actual_os ];then
+    usage
+fi
+
+if [ $test_os_release -eq 1 ];then
+    os_release_result=`./detect_os`
+    echo "os_release detection result: $os_release_result"
+
+    if [  $actual_os != $os_release_result ]; then
+        exit 1
+    fi
+fi
+
+if [ $test_uname -eq 1 ];then
+    uname_result=`./detect_os --uname`
+    echo "uname detection result: $uname_result"
+
+    if [  $actual_os != $uname_result ]; then
+        exit 1
+    fi
+fi
+
+exit 0
