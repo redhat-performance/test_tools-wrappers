@@ -26,16 +26,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Dump /etc/os-release for debug purposes
-        run: cat /etc/os-release
-      - name: Display output of the script
-        run: ./detect_os
-      - name: Verify that the script detects RHEL using os-release file
-        run: test `./detect_os` = "rhel"
       - name: Dump uname -a for debug purposes
         run: uname -a
       - name: Display output of the script
         run: ./detect_os --uname
       - name: Verify that the script detects RHEL using uname
         run: test `./detect_os --uname` = "rhel"
+      - name: Dump /etc/os-release for debug purposes
+        run: cat /etc/os-release
+      - name: Display output of the script
+        run: ./detect_os
+      - name: Verify that the script detects RHEL using os-release file
+        run: test `./detect_os` = "rhel"
 
