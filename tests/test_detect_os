@@ -1,21 +1,32 @@
 #!/bin/bash
 
 actual_os=""
+os_ver=""
+os_ver_uname=""
 
 test_os_release=1
 test_uname=1
 
 usage()
 {
-    echo -e "test_detect_os --os <ACTUAL OS>"
+    echo -e "test_detect_os --os <ACTUAL OS> --os-version <OS VERSION> --os-version-uname <OS VERSION>"
     echo -e "\t Tests the detect_os script"
 
     echo -e "Options:"
     echo -e "\t --os <string> (required)"
     echo -e "\t\t Sets the os currently running to validate detect_os's output"
 
+    echo -e "\t --os-version <string>"
+    echo -e "\t\t Sets the version of the currently running OS to validate against detect_os's output (os-release mode)"
+    echo -e "\t\t If not set, this test will be skipped"
+
+    echo -e "\t --os-version-uname <string>"
+    echo -e "\t\t Sets the version of the currently running OS to validate against detect_os's output (uname mode)"
+    echo -e "\t\t If not set, this test will be skipped"
+
     echo -e "\t --skip-uname"
     echo -e "\t\t Skips checking the uname output (used in some CI instances where container images are used)"
+
     echo -e "\t --skip-os-release"
     echo -e "\t\t Skips checking the os-release file"
 
@@ -36,6 +47,8 @@ NOARG_OPTS=(
 
 OPTS=(
     "os"
+    "os-version"
+    "os-version-uname"
 )
 
 opts=$(getopt \
@@ -67,6 +80,14 @@ while [[ $# -gt 0 ]]; do
         actual_os=$2
         shift 2
     ;;
+    --os-version)
+        os_ver=$2
+        shift 2
+    ;;
+    --os-version-uname)
+        os_ver_uname=$2
+        shift 2
+    ;;
     --)
         break;
     ;;
@@ -89,6 +110,14 @@ if [ $test_os_release -eq 1 ];then
     if [  $actual_os != $os_release_result ]; then
         exit 1
     fi
+
+    if [ ! -z $os_ver ]; then
+        os_release_ver_result=`./detect_os --os-version`
+        echo "Discovered OS Version (os_release): $os_release_ver_result"
+        if [ $os_ver != $os_release_ver_result ]; then
+            exit 1
+        fi
+    fi
 fi
 
 if [ $test_uname -eq 1 ];then
@@ -97,6 +126,14 @@ if [ $test_uname -eq 1 ];then
 
     if [  $actual_os != $uname_result ]; then
         exit 1
+    fi
+
+    if [ ! -z $os_ver_uname ]; then
+        os_result_uname_ver=`./detect_os --uname --os-version`
+        echo "Discovered OS Version (Uname): $os_result_uname_ver"
+        if [ $os_ver_uname != $os_result_uname_ver ]; then
+            exit 1
+        fi
     fi
 fi
 
