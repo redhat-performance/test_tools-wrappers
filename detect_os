@@ -2,6 +2,7 @@
 
 config="supported_os.yml"
 os_release=1 # /etc/os-release more reliable, so use it by default
+os_release_file="/etc/os-release"
 
 usage()
 {
@@ -29,7 +30,12 @@ echo_stderr() {
 
 parse_os_release_file()
 {
-    local os_id=`grep '^ID=' /etc/os-release | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
+    if [ ! -f $os_release_file ];then
+        echo_stderr Could not find file $os_release_file, aborting
+        exit 1
+    fi
+
+    local os_id=`grep '^ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
 
     local config_len=`yq '. | length' $config`
     for i in `seq 0 $config_len`;do
