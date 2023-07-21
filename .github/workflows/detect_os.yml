@@ -28,8 +28,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Dump /etc/os-release for debug purposes
         run: cat /etc/os-release
-      - name: Display output of the script
-        run: ./detect_os
+      - name: Fetch output of the script
+        run: os_name=`./detect_os` && echo $os_name
       - name: Verify that the script detects RHEL using os-release file
-        run: test `./detect_os` = "rhel"
+        run: test $os_name = "rhel"
 
