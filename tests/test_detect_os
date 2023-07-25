@@ -145,4 +145,13 @@ if [ $test_uname -eq 1 ];then
     fi
 fi
 
+# Ensure combining flags errors out
+cmd=`./detect_os --uname --os-release -c $config`
+rc=$?
+if [ $rc -eq 0 ]; then
+    echo "./detect_os --uname --os-release -c $config returned unexpected code: Expected non-zero, got 0."
+    echo "Ouput: $cmd"
+    return 1
+fi
+
 exit 0

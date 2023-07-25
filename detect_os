@@ -1,4 +1,21 @@
 #!/bin/bash
+#
+# Copyright (C) 2023  Keith Valin kvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
 
 config="supported_os.yml"
 os_release=1 # /etc/os-release more reliable, so use it by default
@@ -16,11 +33,11 @@ usage()
 
     echo -e "\t --uname"
     echo -e "\t\t Determine the current OS using 'uname -a' output"
-    echo -e "\t\t Combining this option with --os-release produces undefined behavior"
+    echo -e "\t\t Cannot be combined with --os-release"
 
     echo -e "\t --os-release"
     echo -e "\t\t Determine the current OS using the /etc/os-release file"
-    echo -e "\t\t Combining this option with --uname produces undefined behavior"
+    echo -e "\t\t Cannot be combined with --uname"
 
     echo -e "\t --os-version"
     echo -e "\t\t Determine the current OS version"
@@ -61,6 +78,7 @@ parse_os_release()
     done
 
     echo_stderr Unknown os \"$os_id\", check $config to make sure it exists
+    exit 1
 }
 
 parse_uname()
@@ -124,16 +142,28 @@ fi
 
 eval set --$opts
 
+flag_set=0
+
 while [[ $# -gt 0 ]]; do
 	case "$1" in
     -h | --usage | --help)
         usage
     ;;
     --uname)
+        if [ $flag_set -eq 1 ];then
+            usage
+            exit 1
+        fi
+        flag_set=1
         os_release=0
         shift 1
     ;;
     --os-release)
+        if [ $flag_set -eq 1 ];then
+            usage
+            exit 1
+        fi
+        flag_set=1
         os_release=1
         shift 1
     ;;
