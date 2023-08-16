@@ -1,0 +1,157 @@
+#!/bin/bash
+
+actual_os=""
+os_ver=""
+os_ver_uname=""
+config=""
+
+test_os_release=1
+test_uname=1
+
+usage()
+{
+    echo -e "test_detect_os --os <ACTUAL OS> --os-version <OS VERSION> --os-version-uname <OS VERSION>"
+    echo -e "\t Tests the detect_os script"
+
+    echo -e "Options:"
+    echo -e "\t --os <string> (required)"
+    echo -e "\t\t Sets the os currently running to validate detect_os's output"
+
+    echo -e "\t --os-version <string>"
+    echo -e "\t\t Sets the version of the currently running OS to validate against detect_os's output (os-release mode)"
+    echo -e "\t\t If not set, this test will be skipped"
+
+    echo -e "\t --os-version-uname <string>"
+    echo -e "\t\t Sets the version of the currently running OS to validate against detect_os's output (uname mode)"
+    echo -e "\t\t If not set, this test will be skipped"
+
+    echo -e "\t --skip-uname"
+    echo -e "\t\t Skips checking the uname output (used in some CI instances where container images are used)"
+
+    echo -e "\t --skip-os-release"
+    echo -e "\t\t Skips checking the os-release file"
+
+    echo -e "\t -h/--help/--usage"
+    echo -e "\t\t Shows this message"
+
+    exit 0
+}
+
+NOARG_OPTS=(
+    "skip-uname"
+    "skip-os-release"
+
+    "h"
+    "help"
+    "usage"
+)
+
+OPTS=(
+    "c"
+    "config"
+
+    "os"
+    "os-version"
+    "os-version-uname"
+)
+
+opts=$(getopt \
+    --longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+    --longoptions "$(printf "%s:," "${OPTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "hc:" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+    -h | --usage | --help)
+        usage
+    ;;
+    --skip-os-release)
+        test_os_release=0
+        shift 1
+    ;;
+    --skip-uname)
+        test_uname=0
+        shift 1
+    ;;
+    -c | --config)
+        config=$2
+        shift 2
+    ;;
+    --os)
+        actual_os=$2
+        shift 2
+    ;;
+    --os-version)
+        os_ver=$2
+        shift 2
+    ;;
+    --os-version-uname)
+        os_ver_uname=$2
+        shift 2
+    ;;
+    --)
+        break;
+    ;;
+    *)
+        echo "Unknown option $1" > /dev/stderr
+        exit 1
+    ;;
+    esac
+done
+
+
+if [ -z $actual_os ];then
+    usage
+fi
+
+if [ $test_os_release -eq 1 ];then
+    os_release_result=`./detect_os -c $config`
+    echo "os_release detection result: '$os_release_result'"
+
+    if [  $actual_os != $os_release_result ]; then
+        exit 1
+    fi
+
+    if [ ! -z $os_ver ]; then
+        os_release_ver_result=`./detect_os --os-version -c $config`
+        echo "Discovered OS Version (os_release): $os_release_ver_result"
+        if [ $os_ver != $os_release_ver_result ]; then
+            exit 1
+        fi
+    fi
+fi
+
+if [ $test_uname -eq 1 ];then
+    uname_result=`./detect_os --uname -c $config`
+    echo "uname detection result: '$uname_result'"
+
+    if [  $actual_os != $uname_result ]; then
+        exit 1
+    fi
+
+    if [ ! -z $os_ver_uname ]; then
+        os_result_uname_ver=`./detect_os --uname --os-version -c $config`
+        echo "Discovered OS Version (Uname): $os_result_uname_ver"
+        if [ $os_ver_uname != $os_result_uname_ver ]; then
+            exit 1
+        fi
+    fi
+fi
+
+# Ensure combining flags errors out
+cmd=`./detect_os --uname --os-release -c $config`
+rc=$?
+if [ $rc -eq 0 ]; then
+    echo "./detect_os --uname --os-release -c $config returned unexpected code: Expected non-zero, got 0."
+    echo "Ouput: $cmd"
+    return 1
+fi
+
+exit 0

@@ -1,0 +1,50 @@
+on: push
+
+jobs:
+  detect_os_ubuntu:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Dump /etc/os-release for debug purposes
+        run: cat /etc/os-release
+      - name: Dump uname -a for debug purposes
+        run: uname -a
+      - name: Run tests
+        run: ./tests/test_detect_os --os ubuntu --os-version 22.04 -c example_configs/detect_os.yml
+
+  detect_os_rhel_ubi8:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.access.redhat.com/ubi8/python-39:1-126
+      options: --user 0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install jq
+        run: dnf install -y jq
+      - name: Install yq
+        run: pip3 install yq
+      - name: Dump /etc/os-release for debug purposes
+        run: cat /etc/os-release
+      - name: Run tests # Skipping uname since kernel does not change
+        run: ./tests/test_detect_os --skip-uname --os rhel --os-version 8.8 -c example_configs/detect_os.yml
+
+  detect_os_rhel_ubi9:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.access.redhat.com/ubi9/python-39:1-125
+      options: --user 0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install jq
+        run: dnf install -y jq
+      - name: Install yq
+        run: pip3 install yq
+      - name: Dump /etc/os-release for debug purposes
+        run: cat /etc/os-release
+      - name: Run tests # Skipping uname since kernel does not change
+        run: ./tests/test_detect_os --skip-uname --os rhel --os-version 9.2 -c example_configs/detect_os.yml
+
+

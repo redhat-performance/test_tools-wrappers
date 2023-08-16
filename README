@@ -29,3 +29,4 @@ pbench_copy_data: Takes the results from a pbench user run and saves the data.  
 pull_data:  Process the csv data for the tests.
 set_pbench_variables
 umount_filesystems: unmounts a series of filesystems.
+detect_os: Determines the currently running OS

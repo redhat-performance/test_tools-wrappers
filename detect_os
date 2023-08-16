@@ -1,0 +1,199 @@
+#!/bin/bash
+#
+# Copyright (C) 2023  Keith Valin kvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+
+config="supported_os.yml"
+os_release=1 # /etc/os-release more reliable, so use it by default
+os_release_file="/etc/os-release"
+get_version=0 # Fetch OS name by default
+
+usage()
+{
+    echo -e "detect_os"
+    echo -e "\t Detects the OS that the system is currently using and prints it out"
+    echo -e "Options"
+
+    echo -e "\t -c/--config"
+    echo -e "\t\t The YAML configuration file used to help identify an OS (default is ./supported_os.yml)"
+
+    echo -e "\t --uname"
+    echo -e "\t\t Determine the current OS using 'uname -a' output"
+    echo -e "\t\t Cannot be combined with --os-release"
+
+    echo -e "\t --os-release"
+    echo -e "\t\t Determine the current OS using the /etc/os-release file"
+    echo -e "\t\t Cannot be combined with --uname"
+
+    echo -e "\t --os-version"
+    echo -e "\t\t Determine the current OS version"
+    echo -e "\t\t Works with --uname and --os-release"
+
+    echo -e "\t -h/--help/--usage"
+    echo -e "\t\t Displays this message"
+
+    exit 0
+}
+
+echo_stderr() {
+    echo ${@:1} > /dev/stderr
+}
+
+parse_os_release()
+{
+    if [ ! -f $os_release_file ];then
+        echo_stderr Could not find file $os_release_file, aborting
+        exit 1
+    fi
+
+    local os_id=`grep '^ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
+    local version=`grep '^VERSION_ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
+
+    local config_len=`yq '. | length' $config`
+    for i in `seq 0 $config_len`;do
+        local identifier=`yq -r ".[$i].identifier" $config`
+        
+         if [ $identifier = $os_id ]; then
+            if [ $get_version -eq 0 ];then
+                echo $identifier
+            else
+                echo $version
+            fi
+            exit 0
+        fi
+    done
+
+    echo_stderr Unknown os \"$os_id\", check $config to make sure it exists
+    exit 1
+}
+
+parse_uname()
+{
+    local kinfo=`uname -a`
+
+    local config_len=`yq '. | length' $config`
+    for i in `seq 0 $config_len`;do
+        local pattern=`yq -r ".[$i].uname_pattern" $config`
+        local identifier=`yq -r ".[$i].identifier" $config`
+        local ver_pattern=`yq -r ".[$i].uname_version_pattern" $config`
+
+        if [ -z ver_pattern ]; then
+            echo $identifier has no uname_version_pattern, skipping
+            continue
+        fi
+        
+        local os_match=`echo $kinfo | grep -Eo $pattern`
+        
+         if [ ! -z $os_match ]; then
+            if [ $get_version -eq 1 ];then
+                echo $os_match | grep -Eo $ver_pattern
+            else
+                echo $identifier
+            fi
+            exit 0
+        fi
+    done
+
+    echo_stderr No known uname pattern matches, check $config to ensure that a pattern matches the following uname line
+    echo_stderr $kinfo
+    exit 1
+}
+
+NOARG_OPTS=(
+    "uname"
+    "h"
+    "help"
+    "os-version"
+
+    "usage"
+    "os-release"
+)
+
+ARG_OPTS=(
+    "c"
+    "config"
+)
+
+opts=$(getopt \
+    --longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+    --longoptions "$(printf "%s:," "${ARG_OPTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "hc:" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit 1
+fi
+
+eval set --$opts
+
+flag_set=0
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+    -h | --usage | --help)
+        usage
+    ;;
+    --uname)
+        if [ $flag_set -eq 1 ];then
+            usage
+            exit 1
+        fi
+        flag_set=1
+        os_release=0
+        shift 1
+    ;;
+    --os-release)
+        if [ $flag_set -eq 1 ];then
+            usage
+            exit 1
+        fi
+        flag_set=1
+        os_release=1
+        shift 1
+    ;;
+    --os-version)
+        get_version=1
+        shift 1
+    ;;
+    -c | --config)
+        config=$2
+        shift 2
+    ;;
+    --)
+        break
+    ;;
+    *)
+        echo_stderr Unknown option $1
+        exit 1
+    ;;
+    esac
+done
+
+if [ ! -f $config ]; then
+    echo_stderr Cannot access $config, aborting
+    exit 1
+fi
+
+if [ $os_release -eq 1 ]; then
+    parse_os_release
+else
+    parse_uname
+fi
+
+exit 0
