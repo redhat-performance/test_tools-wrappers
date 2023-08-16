@@ -1,0 +1,19 @@
+on: push
+
+jobs:
+  generic_test_run:
+    strategy:
+      matrix:
+        image: [ ubuntu:focal, registry.access.redhat.com/ubi8/python-39:1-126, registry.access.redhat.com/ubi9/python-39:1-125]
+        test: [tests/test_detect_numa]
+    runs-on: ubuntu-22.04
+    container:
+      image: ${{ matrix.image }}
+      options: --user 0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run tests
+        run: ./${{ matrix.test }}
+
+  
