@@ -1,0 +1,52 @@
+#!/bin/bash
+
+echo_stderr()
+{
+    echo ${@:1} > /dev/stderr
+    exit 1
+}
+
+test_cmd()
+{
+    local name=$1
+    local command=$2
+    local expected=$3
+    local failed=0
+
+    echo -n "$name... "
+    local actual=`$command`
+
+    if echo "$expected" | grep -Eq "^[0-9]+$"; then
+        if [ $expected -ne $actual ]; then
+            failed=1
+        fi
+    else
+        if [ $expected != $actual ]; then
+            failed=1
+        fi
+    fi
+
+    if [ $failed -eq 1 ]; then
+        echo "Failed"
+        echo_stderr "Expected $expected, got $actual"
+    fi
+    echo "Success"
+}
+
+exec_file="./detect_numa"
+num_nodes=`lscpu | grep "NUMA node(s)" | grep -Eo "[0-9]+"`
+cpu_node=`lscpu | grep -E "NUMA node[0-9]+" | awk '{ print $NF }'`
+
+echo "Start detect_numa tests"
+test_cmd "Test Default Behavior" "$exec_file" $num_nodes
+
+test_cmd "Test behavior with --node-count flag" "$exec_file --node-count" $num_nodes
+
+test_cmd "Test behavior with --cpu-list flag" "$exec_file --cpu-list" $cpu_node
+
+echo "Test behavior with invalid --node value... "
+if $exec_file --node 9999 --cpu-list > /dev/null 2>&1; then
+    echo "Failed"
+    echo_stderr "Program returned 0, while expected was non-zero" 
+fi
+echo "Success"
