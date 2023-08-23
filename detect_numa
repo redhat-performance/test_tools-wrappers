@@ -32,8 +32,9 @@ has_numa()
     local numa_nodes=`lscpu | grep NUMA | grep CPU | wc -l`
     if [ -z "$numa_nodes" ] || [ $numa_nodes -le 0 ]; then
         echo 0
+    else
+        echo 1
     fi
-    echo 1
 }
 
 # Fetches the number of NUMA nodes
