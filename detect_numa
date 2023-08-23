@@ -26,11 +26,21 @@ usage()
     exit 0
 }
 
+# Verifies that NUMA exists on the system
+has_numa()
+{
+    local numa_nodes=`lscpu | grep NUMA | grep CPU | wc -l`
+    if [ -z "$numa_nodes" ] || [ $numa_nodes -le 0 ]; then
+        echo 0
+    fi
+    echo 1
+}
+
 # Fetches the number of NUMA nodes
 get_num_nodes()
 {
     local numa_nodes=`lscpu | grep NUMA | grep CPU | wc -l`
-    if [ -z "$numa_nodes" ] || [ $numa_nodes -le 0 ]; then
+    if [ "`has_numa`" -eq 0 ]; then
         numa_nodes=1
     fi
 
@@ -40,8 +50,13 @@ get_num_nodes()
 #Fetches the CPUs on a NUMA node, if nothing is supplied all CPUs are returned grouped by their node
 fetch_cpus() {
     local node=$1
-    local node_count=`get_num_nodes`    
-    if [ -z "$node" ]; then # Used to filter out "NUMA node(s)" line
+    local node_count=`get_num_nodes`
+    local prefix="NUMA node"
+
+    if [ `has_numa` -eq 0 ]; then # Return all syste
+        prefix="On-line CPU\(s\) list:"
+        node=""
+    elif [ -z "$node" ]; then # Used to filter out "NUMA node(s)" line
         node="[0-9]+"
     elif ! echo "$node" | grep -Eq "^(-)?[0-9]+$"; then # If node is not in numerical format, it must be range/comma separated
         node=`echo "[$node]" | sed -e 's/,/|/g'`
@@ -49,7 +64,7 @@ fetch_cpus() {
         echo "Error: NUMA Node $node does not exist" > /dev/stderr
         exit 1
     fi
-    lscpu | grep -E "NUMA node$node" | sort | awk '{ print $4 }'
+    lscpu | grep -E "$prefix$node" | sort | awk '{ print $4 }'
 }
 
 NOARG_OPTS=(
