@@ -43,9 +43,9 @@ fetch_cpus() {
     local node_count=`get_num_nodes`    
     if [ -z "$node" ]; then # Used to filter out "NUMA node(s)" line
         node="[0-9]+"
-    elif ! echo "$node" | grep -Eq "^[0-9]+$"; then # If node is not in numerical format, it must be range/comma separated
+    elif ! echo "$node" | grep -Eq "^(-)?[0-9]+$"; then # If node is not in numerical format, it must be range/comma separated
         node=`echo "[$node]" | sed -e 's/,/|/g'`
-    elif [ $node -gt $((node_count-1)) ]; then #If a single integer is provided, verify it's within bounds
+    elif [ $node -gt $((node_count-1)) ] || [ $node -lt 0 ]; then #If a single integer is provided, verify it's within bounds
         echo "Error: NUMA Node $node does not exist" > /dev/stderr
         exit 1
     fi
