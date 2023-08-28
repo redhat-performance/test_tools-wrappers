@@ -30,3 +30,4 @@ pull_data:  Process the csv data for the tests.
 set_pbench_variables
 umount_filesystems: unmounts a series of filesystems.
 detect_os: Determines the currently running OS
+detect_numa: Allows fetching NUMA information on a system

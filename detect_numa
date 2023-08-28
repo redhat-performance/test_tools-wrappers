@@ -1,0 +1,138 @@
+#!/bin/bash
+
+get_nodes=0
+get_cpus=0
+node=""
+
+usage()
+{
+    echo -e "$0"
+    echo -e "Fetches NUMA information, such as the number of NUMA nodes, which nodes have what CPUs, etc"
+
+    echo -e "\t-h/--help/--usage"
+    echo -e "\t\tShow this help message"
+
+    echo -e "\t--node-count"
+    echo -e "\t\tDisplay the number of NUMA nodes on the system (default operation)"
+    echo -e "\t\t\tCannot be used with --cpu-list"
+
+    echo -e "\t--cpu-list"
+    echo -e "\t\tList the CPUs on all NUMA nodes if -n/--node-count is not specified"
+    echo -e "\t\t\tCannot be used with --node-count"
+
+    echo -e "\t-n/--node"
+    echo -e "\t\tRestrict CPUs listed by --cpu-list to certain nodes"
+    echo -e "\t\t\tSupports ranges (0-5), comma separated values (0,2,4), and single digits (1)"
+    exit 0
+}
+
+# Verifies that NUMA exists on the system
+has_numa()
+{
+    local numa_nodes=`lscpu | grep NUMA | grep CPU | wc -l`
+    if [ -z "$numa_nodes" ] || [ $numa_nodes -le 0 ]; then
+        echo 0
+    else
+        echo 1
+    fi
+}
+
+# Fetches the number of NUMA nodes
+get_num_nodes()
+{
+    local numa_nodes=`lscpu | grep NUMA | grep CPU | wc -l`
+    if [ "`has_numa`" -eq 0 ]; then
+        numa_nodes=1
+    fi
+
+    echo $numa_nodes
+}
+
+#Fetches the CPUs on a NUMA node, if nothing is supplied all CPUs are returned grouped by their node
+fetch_cpus() {
+    local node=$1
+    local node_count=`get_num_nodes`
+    local prefix="NUMA node"
+
+    if [ `has_numa` -eq 0 ]; then # Return all syste
+        prefix="On-line CPU\(s\) list:"
+        node=""
+    elif [ -z "$node" ]; then # Used to filter out "NUMA node(s)" line
+        node="[0-9]+"
+    elif ! echo "$node" | grep -Eq "^(-)?[0-9]+$"; then # If node is not in numerical format, it must be range/comma separated
+        node=`echo "[$node]" | sed -e 's/,/|/g'`
+    elif [ $node -gt $((node_count-1)) ] || [ $node -lt 0 ]; then #If a single integer is provided, verify it's within bounds
+        echo "Error: NUMA Node $node does not exist" > /dev/stderr
+        exit 1
+    fi
+    lscpu | grep -E "$prefix$node" | sort | awk '{ print $4 }'
+}
+
+NOARG_OPTS=(
+    "h"
+    "help"
+    "usage"
+
+    "cpu-list"
+    "list-cpu"
+    "node-count"
+)
+
+ARG_OPTS=(
+    "node"
+    "n"
+)
+
+opts=$(getopt \
+    --longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+    --longoptions "$(printf "%s:," "${ARG_OPTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "hn:" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit 1
+fi
+
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+    -h | --usage | --help)
+        usage
+    ;;
+    -n | --node)
+        node=$2
+        shift 2
+    ;;
+    --list-cpu | --cpu-list)
+        get_cpus=1
+        shift 1
+    ;;
+    -n | --node-count)
+        get_nodes=1
+        shift 1
+    ;;
+    --)
+        break
+    ;;
+    *)
+        echo_stderr Unknown option $1
+        exit 1
+    ;;
+    esac
+done
+
+if [ $get_nodes -eq 1 ] && [ $get_cpus -eq 1 ];then
+    usage
+fi
+
+# Get nodes by default if nothing is specified
+if [ $get_nodes -eq 1 ] || [ $get_cpus -eq $get_nodes ]; then
+    get_num_nodes
+else
+    fetch_cpus $node
+fi
+
+exit 0
