@@ -56,11 +56,13 @@ install_deps()
         sys_arch="arm64"
     fi
 
-    if [ ! which yq > /dev/null 2>&1 ]; then
-        if [ which dnf > /dev/null 2>&1 ]; then
-            dnf install -y wget
-        else
-            apt install -y wget
+    if ! command -v yq > /dev/null 2>&1; then
+        if ! command -v wget > /dev/null 2>&1; then
+            if command -v dnf > /dev/null 2>&1; then
+                dnf install -y wget
+            else
+                apt install -y wget
+            fi
         fi
 
         version="v4.35.1"
