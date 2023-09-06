@@ -58,8 +58,8 @@ install_deps()
 
     if ! command -v yq > /dev/null 2>&1; then
         if ! command -v wget > /dev/null 2>&1; then
-            if command -v dnf > /dev/null 2>&1; then
-                dnf install -y wget
+            if command -v yum > /dev/null 2>&1; then
+                yum install -y wget
             else
                 apt install -y wget
             fi
