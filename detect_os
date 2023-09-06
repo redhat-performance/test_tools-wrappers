@@ -49,8 +49,24 @@ usage()
 
 install_deps()
 {
+    sys_arch=`arch`
+    if [ "$sys_arch" == "x86_64" ]; then
+        sys_arch="amd64"
+    elif [ "$sys_arch" == "aarch64" ]; then
+        sys_arch="arm64"
+    fi
+
     if [ ! which yq > /dev/null 2>&1 ]; then
-        pip3 install yq
+        if [ which dnf > /dev/null 2>&1 ]; then
+            dnf install -y wget
+        else
+            apt install -y wget
+        fi
+
+        version="v4.35.1"
+        bin_name="yq_linux_$sys_arch"
+        wget https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_arm64 -O /usr/bin/yq
+        chmod +x /usr/bin/yq
     fi
 }
 
@@ -196,6 +212,8 @@ if [ ! -f $config ]; then
     echo_stderr Cannot access $config, aborting
     exit 1
 fi
+
+install_deps
 
 if [ $os_release -eq 1 ]; then
     parse_os_release
