@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-config="supported_os.yml"
+config="$(dirname $(realpath $0))/configs/detect_os.yml"
 os_release=1 # /etc/os-release more reliable, so use it by default
 os_release_file="/etc/os-release"
 get_version=0 # Fetch OS name by default
@@ -29,7 +29,7 @@ usage()
     echo -e "Options"
 
     echo -e "\t -c/--config"
-    echo -e "\t\t The YAML configuration file used to help identify an OS (default is ./supported_os.yml)"
+    echo -e "\t\t The YAML configuration file used to help identify an OS (default is $(dirname $(realpath $0))/configs/detect_os.yml)"
 
     echo -e "\t --uname"
     echo -e "\t\t Determine the current OS using 'uname -a' output"
@@ -45,11 +45,35 @@ usage()
 
     echo -e "\t -h/--help/--usage"
     echo -e "\t\t Displays this message"
-
-    exit 0
 }
 
-echo_stderr() {
+install_deps()
+{
+    sys_arch=`arch`
+    if [ "$sys_arch" == "x86_64" ]; then
+        sys_arch="amd64"
+    elif [ "$sys_arch" == "aarch64" ]; then
+        sys_arch="arm64"
+    fi
+
+    if ! command -v yq > /dev/null 2>&1; then
+        if ! command -v wget > /dev/null 2>&1; then
+            if command -v yum > /dev/null 2>&1; then
+                yum install -y wget
+            else
+                apt install -y wget
+            fi
+        fi
+
+        version="v4.35.1"
+        bin_name="yq_linux_$sys_arch"
+        wget --quiet https://github.com/mikefarah/yq/releases/download/$version/$bin_name -O /usr/bin/yq
+        chmod +x /usr/bin/yq
+    fi
+}
+
+echo_stderr()
+{
     echo ${@:1} > /dev/stderr
 }
 
@@ -148,6 +172,7 @@ while [[ $# -gt 0 ]]; do
 	case "$1" in
     -h | --usage | --help)
         usage
+        exit 0
     ;;
     --uname)
         if [ $flag_set -eq 1 ];then
@@ -189,6 +214,8 @@ if [ ! -f $config ]; then
     echo_stderr Cannot access $config, aborting
     exit 1
 fi
+
+install_deps
 
 if [ $os_release -eq 1 ]; then
     parse_os_release
