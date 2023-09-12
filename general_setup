@@ -40,7 +40,7 @@ source ~/.bashrc
 # to_sys_type: for results info, basically aws, azure or local
 # to_sysname: name of the system
 # to_tuned_setting: tuned setting
-# to_no_pkg_install: Test is not use dnf/yum/apt or other such tools
+# to_no_pkg_install: Test is not to use dnf/yum/apt or other such tools
 
 #
 # Present usage information.
@@ -53,6 +53,7 @@ gs_usage_info()
 	echo "  --home_parent <value>: Our parent home directory.  If not set, defaults to current working directory."
 	echo "  --host_config <value>: default is the current host name."
 	echo "  --iterations <value>: Number of times to run the test, defaults to 1."
+	echo "  --no_pkg_install: Test is not to use dnf/yum/apt or other such tools"
 	echo "  --pbench: use pbench-user-benchmark and place information into pbench, defaults to do not use."
 	echo "  --pbench_user <value>: user who started everything. Defaults to the current user."
 	echo "  --pbench_copy: Copy the pbench data, not move it."
