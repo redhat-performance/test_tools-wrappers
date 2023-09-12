@@ -40,6 +40,7 @@ source ~/.bashrc
 # to_sys_type: for results info, basically aws, azure or local
 # to_sysname: name of the system
 # to_tuned_setting: tuned setting
+# to_no_pkg_install: Test is not use dnf/yum/apt or other such tools
 
 #
 # Present usage information.
@@ -83,6 +84,7 @@ to_run_label=""
 to_user=`whoami`
 to_sysname=`hostname`
 to_pstats="default"
+to_no_pkg_install=0
 
 if [ -f /usr/sbin/tuned-adm ]; then
 	tval=`/usr/sbin/tuned-adm active|awk '{print $4}'`
@@ -124,6 +126,10 @@ do
 			i=$((i + 2))
 			to_times_to_run=$value
 			shift 2
+		;;
+		--no_pkg_install)
+			to_no_pkg_install=1
+			shift 1
 		;;
 		--pbench)
 			to_pbench=1
