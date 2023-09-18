@@ -1,0 +1,132 @@
+#!/bin/bash
+
+usage()
+{
+	echo ${0}:
+	echo "  --no_packages: value 0 install packages, value 1 do not.  Check is here"
+	echo "    so the test wrappers do not have to constantly do the check."
+	echo "  --packages: comma separated list of packages to install"
+	echo "  --update: Update the system."
+	echo "  --usage: This usage message."
+	exit 1
+}
+
+exit_out()
+{
+	echo $1
+	exit $2
+}
+
+update=0
+install_cmd=""
+is_installed=""
+packages=""
+remove_packages=""
+
+ARGUMENT_LIST=(
+	"is_installed"
+	"no_packages"
+        "packages"
+	"remove_packages"
+)
+
+NO_ARGUMENTS=(
+	"update"
+        "usage"
+)
+
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+        case "$1" in
+		--is_installed)
+			is_installed=$2
+                        shift 2
+		;;
+		--no_packages)
+			if [[ $2 == "1" ]]; then
+				exit 0
+			fi
+                        shift 2
+		;;
+                --packages)
+                        packages=$2
+                        shift 2
+                ;;
+                --remove_packages)
+                        remove_packages=$2
+                        shift 2
+                ;;
+                --update)
+			update=1
+                        shift 1
+                ;;
+                --usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break
+		;;
+		*)
+			echo option not found $1
+			usage $0
+		;;
+	esac
+done
+test_tools/detect_os | grep Ubuntu > /dev/null
+
+if [ $? -eq 0 ]; then
+	install_cmd="/bin/apt"
+else
+	if [[ -f "/bin/dnf" ]]; then
+		install_cmd="/bin/dnf"
+	elif [[ -f "/bin/yum" ]]; then
+		install_cmd="/bin/yum"
+	fi
+	if [[ $install_cmd == "" ]]; then
+		exit_out "package_install: Do not know what to use to install packages with" 1
+	fi
+fi
+
+if [[ $is_installed != "" ]]; then
+	$install_cmd list installed | grep -q php-cli.x86_64
+	exit $?
+fi
+
+if [[ $remove_packages != "" ]]; then
+	pkgs_rm=`echo $remove_packages | sed "s/,/ /g"`
+	$install_cmd remove -y $remove_packages
+	if [ $? -ne 0 ]; then
+		exit_out "Failed to remove $packages" 1
+	fi
+fi
+
+if [ $update -ne 0 ]; then
+	$install_cmd update -y
+	if [ $? -ne 0 ]; then
+		exit_out "$install_cmd update failed" 1
+	fi
+fi
+
+if [[ $packages != "" ]]; then
+	package_list=`echo ${packages} | sed "s/,/ /g"`
+	for package in $package_list; do
+		$install_cmd install -y $package
+		if [ $? -ne 0 ]; then
+			 exit_out "$install_cmd install of $package failed" 1
+		fi
+	done
+fi
