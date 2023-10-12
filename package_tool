@@ -26,7 +26,7 @@ remove_packages=""
 ARGUMENT_LIST=(
 	"is_installed"
 	"no_packages"
-        "packages"
+	"packages"
 	"remove_packages"
 )
 
@@ -86,19 +86,23 @@ while [[ $# -gt 0 ]]; do
 		;;
 	esac
 done
-test_tools/detect_os | grep Ubuntu > /dev/null
 
-if [ $? -eq 0 ]; then
-	install_cmd="/bin/apt"
-else
-	if [[ -f "/bin/dnf" ]]; then
-		install_cmd="/bin/dnf"
-	elif [[ -f "/bin/yum" ]]; then
-		install_cmd="/bin/yum"
-	fi
-	if [[ $install_cmd == "" ]]; then
-		exit_out "package_install: Do not know what to use to install packages with" 1
-	fi
+install_cmd=""
+case "`test_tools/detect_os`" in
+	"ubuntu")
+		install_cmd="/bin/apt"
+	;;
+	*)
+		if [[ -f "/bin/dnf" ]]; then
+			install_cmd="/bin/dnf"
+		elif [[ -f "/bin/yum" ]]; then
+			install_cmd="/bin/yum"
+		fi
+	;;
+esac
+
+if [[ $install_cmd == "" ]]; then
+	exit_out "package_install: Do not know what to use to install packages with" 1
 fi
 
 if [[ $is_installed != "" ]]; then
