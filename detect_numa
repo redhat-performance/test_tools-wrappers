@@ -2,6 +2,7 @@
 
 get_nodes=0
 get_cpus=0
+remove_empty_nodes=1
 lscpu_command="lscpu"
 node=""
 
@@ -24,6 +25,9 @@ usage()
     echo -e "\t-n/--node"
     echo -e "\t\tRestrict CPUs listed by --cpu-list to certain nodes"
     echo -e "\t\t\tSupports ranges (0-5), comma separated values (0,2,4), and single digits (1)"
+    
+    echo -e "\t--include-empty"
+    echo -e "\t\tInclude empty NUMA nodes in --node-count output"
 
     echo -e "\t-i/--input"
     echo -e "\t\tProvide a command to gather information in lscpu format"
@@ -45,9 +49,16 @@ has_numa()
 # Fetches the number of NUMA nodes
 get_num_nodes()
 {
-    local numa_nodes=`$lscpu_command | grep NUMA | grep CPU | wc -l`
+    local numa_nodes=1
     if [ "`has_numa`" -eq 0 ]; then
         numa_nodes=1
+    else
+        local numa_node_info=`$lscpu_command | grep NUMA | grep CPU`
+        if [ $remove_empty_nodes -ne 0 ]; then
+            numa_nodes=`echo "$numa_node_info" | awk '{ print $4 }' | grep -v "^$" | wc -l`
+        else
+            numa_nodes=`echo "$numa_node_info" | wc -l`
+        fi
     fi
 
     echo $numa_nodes
@@ -81,6 +92,7 @@ NOARG_OPTS=(
     "cpu-list"
     "list-cpu"
     "node-count"
+    "include-empty"
 )
 
 ARG_OPTS=(
@@ -124,6 +136,10 @@ while [[ $# -gt 0 ]]; do
     -i | --input)
         lscpu_command=$2
         shift 2
+    ;;
+    --include-empty)
+        remove_empty_nodes=0
+        shift 1
     ;;
     --)
         break
