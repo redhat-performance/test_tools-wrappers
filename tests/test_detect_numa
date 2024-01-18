@@ -28,9 +28,9 @@ assert_raises "$exec_file --node $((num_nodes)) --cpu-list" 1 # num_nodes is inv
 assert_raises "$exec_file --node -1 --cpu-list" 1
 
 # Ensure that empty NUMA nodes are not counted by default
-assert "$exec_file -i \"cat tests/resources/empty_numa.txt\"" 1
+assert "$exec_file -i \"cat tests/resources/detect_numa/empty_numa.txt\"" 1
 
 # Ensure that --include-empty works as expected
-assert "$exec_file --include-empty -i \"cat tests/resources/empty_numa.txt\"" 9
+assert "$exec_file --include-empty -i \"cat tests/resources/detect_numa/empty_numa.txt\"" 9
 
 assert_end
