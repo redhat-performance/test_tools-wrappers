@@ -50,9 +50,7 @@ has_numa()
 get_num_nodes()
 {
     local numa_nodes=1
-    if [ "`has_numa`" -eq 0 ]; then
-        numa_nodes=1
-    else
+    if [ "`has_numa`" -eq 1 ]; then
         local numa_node_info=`$lscpu_command | grep NUMA | grep CPU`
         if [ $remove_empty_nodes -ne 0 ]; then
             numa_nodes=`echo "$numa_node_info" | awk '{ print $4 }' | grep -v "^$" | wc -l`
