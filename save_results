@@ -34,6 +34,17 @@ user=""
 
 usage()
 {
+	echo "Usage $1:"
+	echo "  --copy_dir: export the entire directory"
+	echo "  --curdir: the directory we started at before running the wrapper"
+	echo "  --home_root: Running users home directory"
+	echo "  --other_files: comma separated list of files want to export"
+	echo "  --results: results file to export"
+	echo "  --tar_file: tar file that we want to export"
+	echo "  --test_name: name of the test we are saving data for"
+	echo "  --tuned_setting: tuned settings"
+	echo "  --version: Version number of the test."
+	echo "  --user: name of the user who ran the wrapper"
 	exit 1
 }
 
@@ -65,7 +76,7 @@ opts=$(getopt \
 eval set --$opts
 
 if [[ $? -ne 0 ]] || [[ $# -eq 1 ]]; then
-	usage "0"
+	usage  $00
 fi
 
 while [[ $# -gt 0 ]]; do
