@@ -1,0 +1,196 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2024  David Valin dvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+
+#
+# Common code for the test wrappers to call to save the run data.
+#
+curdir=""
+home_root=""
+other_files=""
+copy_dir=""
+results=""
+tar_file=""
+test_name=""
+tuned_setting=""
+version=""
+user=""
+
+usage()
+{
+	echo "Usage $1:"
+	echo "  --copy_dir: export the entire directory"
+	echo "  --curdir: the directory we started at before running the wrapper"
+	echo "  --home_root: Running users home directory"
+	echo "  --other_files: comma separated list of files want to export"
+	echo "  --results: results file to export"
+	echo "  --tar_file: tar file that we want to export"
+	echo "  --test_name: name of the test we are saving data for"
+	echo "  --tuned_setting: tuned settings"
+	echo "  --version: Version number of the test."
+	echo "  --user: name of the user who ran the wrapper"
+	exit 1
+}
+
+ARGUMENT_LIST=(
+	"copy_dir"
+	"curdir"
+	"home_root"
+	"other_files"
+	"results"
+	"tar_file"
+	"test_name"
+	"tuned_setting"
+	"version"
+	"user"
+)
+
+NO_ARGUMENTS=(
+	"usage"
+)
+
+opts=$(getopt \
+	--longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+         --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+	--name "$(basename "$0")" \
+	--options "h" \
+	-- "$@"
+)
+
+eval set --$opts
+
+if [[ $? -ne 0 ]] || [[ $# -eq 1 ]]; then
+	usage  $00
+fi
+
+while [[ $# -gt 0 ]]; do
+        case "$1" in
+		--copy_dir)
+			copy_dir=$2
+			shift 2
+		;;
+		--curdir)
+			curdir=$2
+			shift 2
+		;;
+		--home_root)
+			home_root=$2
+			shift 2
+		;;
+		--other_files)
+			other_files=$2
+			shift 2
+		;;
+		--results)
+			results=$2
+			shift 2
+		;;
+		--tar_file)
+			tar_file=$2
+			shift 2
+		;;
+		--test_name)
+			test_name=$2
+			shift 2
+		;;
+		--tuned_setting)
+			tuned_setting=$2
+			shift 2
+		;;
+		--version)
+			version=$2
+			shift 2
+		;;
+		--user)
+			user=$2
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break
+		;;
+		*)
+			echo option not found $1
+			usage $0
+		;;
+	esac
+done
+
+export_results="$home_root/$user/export_results"
+if [[ ! -d $export_results ]]; then
+	mkdir $export_results
+fi
+
+time_stamp=`date "+%Y.%m.%d-%H.%M.%S"`
+results_dir=${test_name}_${time_stamp}
+RESULTS_PATH=${export_results}/${results_dir}
+mkdir -p ${RESULTS_PATH}
+if [[ $results != "" ]]; then
+	cp $results $RESULTS_PATH
+	lines=0
+	if [[ $test_name == "coremark" ]] || [[ $test_name == "phoronix" ]]; then
+		lines=`wc -l $results | cut -d' ' -f1`
+		if [ $lines -lt 2 ]; then
+			echo Failed > $RESULTS_PATH/test_results_report
+		else
+			echo Ran > $RESULTS_PATH/test_results_report
+		fi
+	fi
+	if [[ $test_name == "coremark_pro" ]]; then
+		grep -q ":::" $results
+		if [ $? -ne 0 ]; then
+			echo Failed > $RESULTS_PATH/test_results_report
+		else
+			echo Ran > $RESULTS_PATH/test_results_report
+		fi
+	fi
+fi
+
+if [[ $other_files != "" ]]; then
+	echo other_files :${other_files}:
+	file_list=`echo $other_files | sed "s/,/ /g"`
+	for i in $file_list; do
+		cp $i $RESULTS_PATH
+	done
+fi
+
+if [[ $tar_file != "" ]]; then
+	pushd $RESULTS_PATH 
+	tar xf $tar_file
+	popd
+fi
+if [[ $copy_dir != "" ]]; then
+	echo cp -R $copy_dir $RESULTS_PATH
+	cp -R $copy_dir $RESULTS_PATH
+fi
+if [[ $version == "" ]]; then
+	echo tag: No version provided > $RESULTS_PATH/version
+else
+	echo commit: ${version} > $RESULTS_PATH/version
+fi
+pushd $export_results > /dev/null
+cp ${curdir}/meta_data*.yml ${RESULTS_PATH}
+tar hcf results_${test_name}_${tuned_setting}.tar ${results_dir}
+ln -s results_${test_name}_${tuned_setting}.tar results_pbench_${test_name}_${tuned_setting}.tar
+popd > /dev/null
