@@ -35,16 +35,16 @@ user=""
 usage()
 {
 	echo "Usage $1:"
-	echo "  --copy_dir: export the entire directory"
-	echo "  --curdir: the directory we started at before running the wrapper"
-	echo "  --home_root: Running users home directory"
-	echo "  --other_files: comma separated list of files want to export"
-	echo "  --results: results file to export"
-	echo "  --tar_file: tar file that we want to export"
-	echo "  --test_name: name of the test we are saving data for"
-	echo "  --tuned_setting: tuned settings"
-	echo "  --version: Version number of the test."
-	echo "  --user: name of the user who ran the wrapper"
+	echo "  --copy_dir <dir>: export the entire directory"
+	echo "  --curdir <dir> : the directory we started at before running the wrapper"
+	echo "  --home_root <dir>: Running users home directory"
+	echo "  --other_files <file,file,...>: comma separated list of files want to export"
+	echo "  --results <file>: results file to export"
+	echo "  --tar_file <tar ball>: tar file that we want to export"
+	echo "  --test_name <name>: name of the test we are saving data for"
+	echo "  --tuned_setting <tuned setting>: tuned settings"
+	echo "  --version <version # or None>: Version number of the test."
+	echo "  --user <name>: name of the user who ran the wrapper"
 	exit 1
 }
 
@@ -67,7 +67,7 @@ NO_ARGUMENTS=(
 
 opts=$(getopt \
 	--longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
-         --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+        --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
 	--name "$(basename "$0")" \
 	--options "h" \
 	-- "$@"
@@ -76,7 +76,7 @@ opts=$(getopt \
 eval set --$opts
 
 if [[ $? -ne 0 ]] || [[ $# -eq 1 ]]; then
-	usage  $00
+	usage  $0
 fi
 
 while [[ $# -gt 0 ]]; do
@@ -137,35 +137,18 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-export_results="$home_root/$user/export_results"
-if [[ ! -d $export_results ]]; then
-	mkdir $export_results
+if [[ $curdir == "" ]]; then
+	curdir=`pwd`
 fi
+if [[ $user == "" ]] && [[ $home_root == "" ]]; then
+	$home_root=$curdir
+fi
+export_results="$home_root/$user/export_results"
 
 time_stamp=`date "+%Y.%m.%d-%H.%M.%S"`
 results_dir=${test_name}_${time_stamp}
 RESULTS_PATH=${export_results}/${results_dir}
 mkdir -p ${RESULTS_PATH}
-if [[ $results != "" ]]; then
-	cp $results $RESULTS_PATH
-	lines=0
-	if [[ $test_name == "coremark" ]] || [[ $test_name == "phoronix" ]]; then
-		lines=`wc -l $results | cut -d' ' -f1`
-		if [ $lines -lt 2 ]; then
-			echo Failed > $RESULTS_PATH/test_results_report
-		else
-			echo Ran > $RESULTS_PATH/test_results_report
-		fi
-	fi
-	if [[ $test_name == "coremark_pro" ]]; then
-		grep -q ":::" $results
-		if [ $? -ne 0 ]; then
-			echo Failed > $RESULTS_PATH/test_results_report
-		else
-			echo Ran > $RESULTS_PATH/test_results_report
-		fi
-	fi
-fi
 
 if [[ $other_files != "" ]]; then
 	echo other_files :${other_files}:
