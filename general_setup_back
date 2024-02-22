@@ -75,6 +75,7 @@ to_home_root=`echo $HOME | rev | cut -d'/' -f 2- | rev`
 if [[ $to_home_root == "" ]]; then
 	to_home_root="/"
 fi
+TOOLS_BIN=`pwd`/test_tools
 to_pbench=0
 to_pbench_copy="0"
 
@@ -193,10 +194,6 @@ do
 		;;
 	esac
 done
-TOOLS_BIN=`pwd`/test_tools
-if [ ! -d $TOOLS_BIN ]; then
-	TOOLS_BIN=${to_home_root}/${to_user}/test_tools
-fi
 if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
 fi

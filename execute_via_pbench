@@ -22,6 +22,7 @@
 source ~/.bashrc
 chars=`echo $0 | awk -v RS='/' 'END{print NR-1}'`
 TOOLS_BIN=`echo $0 | cut -d'/' -f 1-${chars}`
+top_dir=`echo $TOOLS_BIN | rev | cut -d'/' -f2- | rev`
 
 cmd_executing=""
 configuration=""
@@ -166,35 +167,25 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
+if [[ -f /tmp/results_${test_name}_${tuned_setting}.tar ]]; then
+	copy_from=/tmp
+else
+	copy_from=$top_dir/export_results
+fi
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
-cp /tmp/${test_name}_tuned.status $dir
-echo completed
 pushd $dir > /dev/null
-tar xf /tmp/results_pbench.tar
 
-for csv in `ls *csv`; do
+tar_file=`ls -rt $copy_from/results*${test_name}*tar | tail -1`
+csv_file=`tar xvf $tar_file | grep csv`
+
+for csv in $csv_file; do
 	new_file=`echo $csv | sed "s/csv//g"`
 	echo ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out ${new_file}txt
 	${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out ${new_file}txt
 done
 
-cd /tmp
-mv_tar_to=`echo $last_tar | sed "s/results_${test_name}/results_pbench_${test_name}/"`
-mv $last_tar $mv_tar_to
 value=`$TOOLS_BIN/set_pbench_variables --host_config $configuration --sys_type $sys_type --test ${test_name} --pbench_user $puser --run_label $run_label`
 results_prefix=`echo $value | cut -d: -f 2`
 hostname=`echo $value | cut -d: -f 1`
-echo $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy 0>> /tmp/debugging
 $TOOLS_BIN/pbench_copy_data --hostname "${hostname}" --user "${puser}" --prefix ${results_prefix} --copy 0
-
-#
-# Move results in /tmp to be results_pbench.....
-# Keeps Zathras happy, and matches with what was run.
-#
-cd /tmp
-files=`ls results_*.tar | grep -v pbench`
-for i in $files; do
-	move_to=`echo $files | sed "s/^results_/results_pbench_/"`
-	mv $i $move_to
-done
 exit 0
