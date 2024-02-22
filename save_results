@@ -144,14 +144,20 @@ if [[ $user == "" ]] && [[ $home_root == "" ]]; then
 	$home_root=$curdir
 fi
 export_results="$home_root/$user/export_results"
+if [[ ! -d $export_results ]]; then
+	mkdir $export_results
+fi
 
 time_stamp=`date "+%Y.%m.%d-%H.%M.%S"`
 results_dir=${test_name}_${time_stamp}
 RESULTS_PATH=${export_results}/${results_dir}
 mkdir -p ${RESULTS_PATH}
 
+if [[ $results != "" ]]; then
+	cp $results $RESULTS_PATH
+fi
+
 if [[ $other_files != "" ]]; then
-	echo other_files :${other_files}:
 	file_list=`echo $other_files | sed "s/,/ /g"`
 	for i in $file_list; do
 		cp $i $RESULTS_PATH
