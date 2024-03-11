@@ -120,6 +120,10 @@ do
 			test_name=${2}
 			shift 2
 		;;
+		--tuned_setting)
+			tuned_setting=${2}
+			shift 2
+		;;
 		--)
 			break; 
 		;;
@@ -167,10 +171,10 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-if [[ -f /tmp/results_${test_name}_${tuned_setting}.tar ]]; then
-	copy_from=/tmp
-else
+if [[ -d $top_dir/export_results ]]; then
 	copy_from=$top_dir/export_results
+else
+	copy_from=/tmp
 fi
 dir=`ls -rtd /var/lib/pbench-agent/pben*${test_name}* | tail -1`
 pushd $dir > /dev/null
@@ -178,11 +182,16 @@ pushd $dir > /dev/null
 tar_file=`ls -rt $copy_from/results*${test_name}*tar | tail -1`
 csv_file=`tar xvf $tar_file | grep csv`
 
+pbench_dir=`ls -rdt /var/lib/pbench-agent/pbench-user-benchmark_* | tail -1`
 for csv in $csv_file; do
 	new_file=`echo $csv | sed "s/csv//g"`
 	echo ${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out ${new_file}txt
 	${TOOLS_BIN}/convert_csv_to_txt --field_seper : --field_size ${spacing} --results_in $csv --results_out ${new_file}txt
+	cp $csv_file ${new_file}txt $pbench_dir
 done
+pushd $pbench_dir 2> /dev/null
+tar xf $tar_file --strip=1
+popd 2> /dev/null
 
 value=`$TOOLS_BIN/set_pbench_variables --host_config $configuration --sys_type $sys_type --test ${test_name} --pbench_user $puser --run_label $run_label`
 results_prefix=`echo $value | cut -d: -f 2`
