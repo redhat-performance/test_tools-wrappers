@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -f /usr/sbin/tuned-adm ]; then
+        tval=`/usr/sbin/tuned-adm active|awk '{print $4}'`
+        if [[ $tval == "profile." ]]; then
+                tval=tuned_none
+        fi
+else
+        tval="tuned_none"
+fi
+echo $tval

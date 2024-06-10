@@ -88,16 +88,8 @@ to_sysname=`hostname`
 to_pstats="default"
 to_no_pkg_install=0
 
-if [ -f /usr/sbin/tuned-adm ]; then
-	tval=`/usr/sbin/tuned-adm active|awk '{print $4}'`
-	if [[ $tval == "profile." ]]; then
-		tval=tuned_none
-	fi
-else
-	tval="tuned_none"
-fi
-
-to_tuned_setting=$tval
+top_dir=`echo $0 | sed "s/workloads/:/g" | cut -d':' -f 1`
+to_tuned_setting=`${top_dir}/test_tools/get_tuned_setting`
 
 i=1
 j=$#
@@ -174,7 +166,14 @@ do
 		;;
 		--tuned_setting)
 			i=$((i + 2))
-			to_tuned_setting="${value}"
+			if [[ $value != "none" ]]; then
+				to_tuned_setting="${value}"
+				if [ -f /usr/sbin/tuned-adm ]; then
+					tuned-adm active ${value}
+				else
+					echo Warning: asking for tuned setting $value, but tuned-adm is not installed.
+				fi
+			fi
 			shift 2
 		;;
 		--usage)
