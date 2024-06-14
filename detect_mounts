@@ -1,4 +1,12 @@
 #!/bin/bash
+
+if [[ $1 == "-h" ]] || [[ $# -lt 1 ]]; then
+	echo usage $1
+	echo "  -h: usage message"
+	echo "  <device,device....>:  List of devices to check to see if they are mounted"
+	exit 1
+fi
+
 mount_tmp=`mktemp /tmp/mount_temp.XXXXX`
 mount | cut -d' ' -f1 > $mount_tmp
 #
@@ -7,9 +15,10 @@ mount | cut -d' ' -f1 > $mount_tmp
 if [[ -d /dev/mapper ]]; then
 	pushd /dev/mapper > /dev/null
 	for i in `ls | grep -v control`; do
-		value=`lvdisplay --maps /dev/mapper/rhel_n42--h08--000--r960-home | grep "Physical volume" | cut -d'/' -f2-`
+		value=`lvdisplay --maps $i | grep "Physical volume" | cut -d'/' -f2-`
 		echo /$value >> $mount_tmp
 	done
+	popd > /dev/null
 fi
 #
 # Now check for mounted
