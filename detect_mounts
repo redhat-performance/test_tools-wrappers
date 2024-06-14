@@ -1,0 +1,27 @@
+#!/bin/bash
+mount_tmp=`mktemp /tmp/mount_temp.XXXXX`
+mount | cut -d' ' -f1 > $mount_tmp
+#
+# Now lvms
+#
+if [[ -d /dev/mapper ]]; then
+	pushd /dev/mapper > /dev/null
+	for i in `ls | grep -v control`; do
+		value=`lvdisplay --maps /dev/mapper/rhel_n42--h08--000--r960-home | grep "Physical volume" | cut -d'/' -f2-`
+		echo /$value >> $mount_tmp
+	done
+fi
+#
+# Now check for mounted
+#
+for var in "$@"
+do
+	grep -qx $var $mount_tmp
+	if [ $? -eq 0 ]; then
+		rm $mount_tmp
+		exit 1
+	fi
+done
+rm $mount_tmp
+exit 0
+
