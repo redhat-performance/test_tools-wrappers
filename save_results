@@ -183,6 +183,7 @@ cp ${curdir}/meta_data*.yml ${RESULTS_PATH}
 cp ${curdir}/hw_info.out ${RESULTS_PATH}
 
 tar hcf results_${test_name}_${tuned_setting}.tar ${results_dir}
+cp -R ${results_dir}/* .
 ln -s results_${test_name}_${tuned_setting}.tar results_pbench_${test_name}_${tuned_setting}.tar
 tardir=`pwd`
 ln -s ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_${test_name}_${tuned_setting}.tar
