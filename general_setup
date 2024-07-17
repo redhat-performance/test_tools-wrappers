@@ -89,7 +89,7 @@ to_pstats="default"
 to_no_pkg_install=0
 
 top_dir=`echo $0 | sed "s/workloads/:/g" | cut -d':' -f 1`
-to_tuned_setting=`${top_dir}/test_tools/get_tuned_setting`
+to_tuned_setting="none"
 
 i=1
 j=$#
