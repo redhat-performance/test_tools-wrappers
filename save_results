@@ -188,4 +188,14 @@ ln -s results_${test_name}_${tuned_setting}.tar results_pbench_${test_name}_${tu
 tardir=`pwd`
 ln -s ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_${test_name}_${tuned_setting}.tar
 ln -s ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_pbench_${test_name}_${tuned_setting}.tar
+
+cd /tmp
+#
+# Provide a common pull for Zathra.
+#
+if [[ -f  zathras_${test}.zip ]]; then
+	rm zathras_${test}.zip zathras_pbench_${test}.zip
+fi
+zip zathras_${test_name}.zip  results_pbench_${test_name}_${tuned_setting}.tar
+ln -s zathras_${test_name}.zip zathras_pbench_${test_name}.zip
 popd > /dev/null
