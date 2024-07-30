@@ -166,7 +166,7 @@ do
 		;;
 		--tuned_setting)
 			i=$((i + 2))
-			if [[ $value != "none" ]]; then
+			if [[ $value != *"none"* ]]; then
 				to_tuned_setting="${value}"
 				if [ -f /usr/sbin/tuned-adm ]; then
 					tuned-adm active ${value}
