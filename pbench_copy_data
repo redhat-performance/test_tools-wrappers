@@ -102,17 +102,17 @@ done
 
 controller=${fhost}_${user}
 if [[ "$controller" == *"--"* ]]; then
-	echo Error controller $controller contains "--"! >> /tmp/debugging
+	echo Error controller $controller contains "--"!
 	exit 1
 fi
 
 if [[ "$user" == *"--"* ]]; then
-	echo Error user $user contains "--"! >> /tmp/debugging
+	echo Error user $user contains "--"! 
 	exit 1
 fi
 
 if [[ "$results_prefix" == *"--"* ]]; then
-	echo Error results_prefix $results_prefix contains "--"! >> /tmp/debugging
+	echo Error results_prefix $results_prefix contains "--"!
 	exit 1
 fi
 
@@ -122,10 +122,8 @@ fi
 controller_name=`echo ${controller} | sed "s/_/-/g"`
 
 if [ $copy -eq 0 ]; then
-	echo pbench-move-results --controller="\"${controller_name}\"" --user="\"${user}\"" --prefix="\"${results_prefix}\"" >> /tmp/debugging
 	pbench-move-results --controller="${controller_name}" --user="${user}" --prefix="${results_prefix}"
 else
-	echo pbench-copy-results --controller="\"${controller_name}\"" --user="\"${user}\"" --prefix="\"${results_prefix}\"" >> /tmp/debugging
 	pbench-copy-results --controller="${controller_name}" --user="${user}" --prefix="${results_prefix}"
 fi
 exit $?
