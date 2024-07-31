@@ -32,6 +32,20 @@ tuned_setting=""
 version=""
 user=""
 
+copy_file()
+{
+	if [[ $1 != "" ]] && [[ $2 != "" ]] && [[ ! -f $2 ]]; then
+		cp -R $1 $2
+	fi
+}
+
+link_files()
+{
+	if [[ -f $1 ]] && [[ ! -f $2 ]]; then
+		ln -s $1 $2
+	fi
+}
+
 usage()
 {
 	echo "Usage $1:"
@@ -153,14 +167,12 @@ results_dir=${test_name}_${time_stamp}
 RESULTS_PATH=${export_results}/${results_dir}
 mkdir -p ${RESULTS_PATH}
 
-if [[ $results != "" ]]; then
-	cp $results $RESULTS_PATH
-fi
+copy_file $results $RESULTS_PATH
 
 if [[ $other_files != "" ]]; then
 	file_list=`echo $other_files | sed "s/,/ /g"`
 	for i in $file_list; do
-		cp $i $RESULTS_PATH
+		copy_file $i $RESULTS_PATH
 	done
 fi
 
@@ -170,7 +182,6 @@ if [[ $tar_file != "" ]]; then
 	popd
 fi
 if [[ $copy_dir != "" ]]; then
-	echo cp -R $copy_dir $RESULTS_PATH
 	cp -R $copy_dir $RESULTS_PATH
 fi
 if [[ $version == "" ]]; then
@@ -179,15 +190,16 @@ else
 	echo commit: ${version} > $RESULTS_PATH/version
 fi
 pushd $export_results > /dev/null
-cp ${curdir}/meta_data*.yml ${RESULTS_PATH}
-cp ${curdir}/hw_info.out ${RESULTS_PATH}
+
+copy_file ${curdir}/meta_data*.yml ${RESULTS_PATH}
+copy_file ${curdir}/hw_info.out ${RESULTS_PATH}
 
 tar hcf results_${test_name}_${tuned_setting}.tar ${results_dir}
-cp -R ${results_dir}/* .
-ln -s results_${test_name}_${tuned_setting}.tar results_pbench_${test_name}_${tuned_setting}.tar
+copy_file ${results_dir}/* .
+link_files results_${test_name}_${tuned_setting}.tar results_pbench_${test_name}_${tuned_setting}.tar
 tardir=`pwd`
-ln -s ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_${test_name}_${tuned_setting}.tar
-ln -s ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_pbench_${test_name}_${tuned_setting}.tar
+link_files ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_${test_name}_${tuned_setting}.tar
+link_files ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_pbench_${test_name}_${tuned_setting}.tar
 
 cd /tmp
 #
@@ -197,5 +209,5 @@ if [[ -f  test_wrapper_results_${test}.zip ]]; then
 	rm test_wrapper_results_${test}.zip test_wrapper_results_pbench_${test}.zip
 fi
 zip results_${test_name}.zip  results_pbench_${test_name}_${tuned_setting}.tar
-ln -s results_${test_name}.zip results_pbench_${test_name}.zip
+link_files results_${test_name}.zip results_pbench_${test_name}.zip
 popd > /dev/null
