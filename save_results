@@ -34,8 +34,8 @@ user=""
 
 copy_file()
 {
-	if [[ $1 != "" ]] && [[ -f $1 ]] && [[ ! -f $2 ]]; then
-		cp $1 $2
+	if [[ $1 != "" ]] && [[ $2 != "" ]] && [[ ! -f $2 ]]; then
+		cp -R $1 $2
 	fi
 }
 
@@ -196,7 +196,7 @@ copy_file ${curdir}/meta_data*.yml ${RESULTS_PATH}
 copy_file ${curdir}/hw_info.out ${RESULTS_PATH}
 
 tar hcf results_${test_name}_${tuned_setting}.tar ${results_dir}
-copy_file -R ${results_dir}/* .
+copy_file ${results_dir}/* .
 link_files results_${test_name}_${tuned_setting}.tar results_pbench_${test_name}_${tuned_setting}.tar
 tardir=`pwd`
 link_files ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_${test_name}_${tuned_setting}.tar
