@@ -182,7 +182,6 @@ if [[ $tar_file != "" ]]; then
 	popd
 fi
 if [[ $copy_dir != "" ]]; then
-	echo cp -R $copy_dir $RESULTS_PATH
 	cp -R $copy_dir $RESULTS_PATH
 fi
 if [[ $version == "" ]]; then
