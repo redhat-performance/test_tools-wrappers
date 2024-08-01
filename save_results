@@ -208,6 +208,6 @@ cd /tmp
 if [[ -f  test_wrapper_results_${test}.zip ]]; then
 	rm test_wrapper_results_${test}.zip test_wrapper_results_pbench_${test}.zip
 fi
-zip results_${test_name}.zip  results_pbench_${test_name}_${tuned_setting}.tar
+zip results_${test_name}.zip  results_${test_name}_${tuned_setting}.tar
 link_files results_${test_name}.zip results_pbench_${test_name}.zip
 popd > /dev/null
