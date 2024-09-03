@@ -1,0 +1,199 @@
+#!/bin/bash
+#
+#                         License
+#
+# Copyright (C) 2021  David Valin dvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+configuration="None"
+sys_type="None"
+results_version="None"
+tuned_setting="None"
+info_in_dir_name=""
+front_matter=0
+results_file=""
+test_name="ND"
+declare -a output
+passed_meta=""
+output_index=0
+field_separ='_'
+
+TOOLS_BIN=`echo $0 | rev | cut -d'/' -f2- | rev`
+print_general_header_info()
+{
+	out_file=$1
+	echo "# Test general meta start" >> $out_file
+	echo "# Test: ${test_name}" >> $out_file
+	echo "# Results version: $results_version" >> $out_file
+	echo "# Host: $configuration" >> $out_file
+	echo "# Sys environ: $sys_type" >> $out_file
+	echo "# Tuned: $tuned_setting" >> $out_file
+	printf "# OS: " >> $out_file
+	uname -r >> $out_file
+	printf "# Numa nodes: " >> $out_file
+	$TOOLS_BIN/detect_numa --node-count >> $out_file
+	if [ $? -ne 0 ]; then
+		echo "Unknown" >> $out_file
+	fi
+	printf "# CPU family: " >> $out_file
+	lscpu | grep "Model name" | grep -v BIOS | cut -d':' -f 2- | awk '{$1=$1;print}' >> $out_file
+	printf "# Number cpus: " >> $out_file
+	lscpu | grep "CPU(s):" | grep -v NUMA | cut -d':' -f2 | awk '{$1=$1;print}' >> $out_file
+	printf "# Memory: " >> $out_file
+	cat /proc/meminfo | grep MemTotal:  | awk '{print $2 $3}' >> $out_file
+	echo "# Test general meta end" >> $out_file
+}
+#
+# Place run info in header file.
+#
+print_test_meta()
+{
+	out_file=$1
+	tdir=$2
+	fields="$3"
+	op=$4
+	size=$5
+
+	echo "# Test meta data start" >> $out_file
+	#
+	# Only if passed meta data was provided.
+	#
+	if [[ "$passed_meta" != "" ]]; then
+		printf "$passed_meta" >> $out_file
+	fi
+	#
+	# Only if the dir nameis provided.
+	#
+	if [[ $info_in_dir_name != "" ]]; then
+		tdir=`echo "$info_in_dir_name" | cut -d' ' -f1`
+		fields=`echo "$info_in_dir_name" | cut -d' ' -f2-`
+		for i in $fields; do
+			value=`echo $tdir | cut -d $field_separ -f $i | sed "s/_/ /g" | sed "s/ /: /"`
+			echo "# $value" >> $out_file
+		done
+	fi
+	echo "# Test meta data end" >> $out_file
+}
+
+usage()
+{
+	echo "Usage: $0"
+	echo "--field_separ <char>: the field separator character in the directgory used"
+	echo "  by --info_in_dir_name.  Default is '_'"
+	echo "--front_matter:  Place system info in the results file"
+	echo "--info_in_dir_name \"<dir> <fields>\":  If directory contains info on test"
+	echo "  parameters, then we want to pull that info from the directory.  Expected"
+	echo "  field seperator is '_'.  Example"
+        echo "  dir=fio_ndisks_1_disksize_1.95_TiB_njobs_1_ioengine_libaio_iodepth_1_2024.08.23T11.38.53"
+	echo "  --info_in_dir_name \"\$dir 2,3 4,5,6 7,8 9,10\""
+	echo "--meta_output <output>:  String to place in meta section"
+	echo "--results_file <file>:  Results file working with"
+	echo "--results_version <version #>:  Results format version number"
+	echo "--test_name <test name>:  Name of test"
+	exit 0
+}
+
+ARGUMENT_LIST=(
+	"field_separ"
+	"host"
+	"info_in_dir_name"
+	"meta_output"
+	"results_file"
+	"results_version"
+	"sys_type"
+	"test_name"
+	"tuned"
+)
+
+NO_ARGUMENTS=(
+	"front_matter"
+	"usage"
+)
+
+opts=$(getopt \
+        --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+        --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+        --name "$(basename "$0")" \
+        --options "h" \
+        -- "$@"
+)
+
+eval set --$opts
+separ=""
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--host)
+			configuration=$2
+			shift 2
+		;;
+		--field_separ)
+			field_separ=${2}
+			shift 2
+		;;
+		--front_matter)
+			front_matter=1
+			shift 1
+		;;
+		--info_in_dir_name)
+			info_in_dir_name=${2}
+			shift 2
+		;;
+		--meta_output)
+			passed_meta="${passed_meta}# ${2}\n"
+			shift 2
+		;;
+		--results_file)
+			results_file=${2}
+			shift 2
+		;;
+		--results_version)
+			results_version=${2}
+			shift 2
+		;;
+		--sys_type)
+			sys_type=${2}
+			shift 2
+		;;
+		--test_name)
+			test_name=${2}
+			shift 2
+		;;
+		--tuned)
+			tuned_setting=${2}
+			shift 2
+		;;
+		-h)
+			usage $0
+		;;
+		--usage)
+			usage $0
+		;;
+		--)
+		break;
+		;;
+		*)
+			echo "option not found ${1}"
+			usage $0
+		;;
+	esac
+done
+
+if [ $front_matter -eq 1 ]; then
+	print_general_header_info $results_file
+else
+	print_test_meta $results_file
+fi
