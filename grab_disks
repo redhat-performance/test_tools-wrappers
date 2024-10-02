@@ -89,7 +89,7 @@ fi
 # to make sure the disk exist.
 #
 if [ $numb_disks -eq 0 ]; then
-	echo  "Need to have disks to perform disks, non provided."
+	echo  "Need to have disks to perform disks, none provided."
 	exit 1
 fi
 echo  $disks:$numb_disks
