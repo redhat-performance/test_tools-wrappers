@@ -1,0 +1,140 @@
+#!/bin/bash
+
+base_results_file=""
+
+usage()
+{
+	echo later
+	exit 0
+}
+
+error_out()
+{
+	echo $4
+	echo $3
+	echo field index checking: $field_index
+	echo field type: $field_type
+	exit 1
+}
+
+validate_line()
+{
+	re='^[0-9]+$'
+	line=$1
+	field_index=`echo $2 | cut -d':' -f 1`
+	field_type=`echo $2 | cut -d':' -f 2`
+
+	value=`echo $1 | cut -d':' -f $field_index | sed "s/ //g"`
+	if [[ $value == "" ]]; then
+		error_out $field_index $field_type $line "Either field is not present, or has no value."
+	fi
+	if [[ $field_type == "n" ]]; then
+		#
+		# Handle floats also.
+		#
+		check_value=`echo $value | sed "s/\./0/g"`
+		if ! [[ $check_value =~ $re ]] ; then
+			error_out $field_index $field_type $line "Non numerical field"
+		fi
+	fi
+	if [[ $field_type == "sm" ]]; then
+		#
+		# String, needs to match.
+		#
+		grep -q ^${value}: $base_results_file
+		if [ $? -ne 0 ]; then
+			error_out $field_index $field_type $line "Does not have match in the results file"
+		fi
+	fi
+	if [[ $field_type == "s" ]]; then
+		#
+		# Just a simple string.
+		#
+		grep -q ^${value}: $base_results_file
+		if [[ $value == "" ]]; then
+			error_out $field_index $field_type $line "Should be string value in the results file"
+		fi
+	fi
+}
+
+ARGUMENT_LIST=(
+	"fields"
+	"header_lines"
+	"results_file"
+	"base_results_file"
+)
+NO_ARGUMENTS=(
+	"usage"
+)
+# read arguments
+opts=$(getopt \
+  --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+  --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+  --name "$(basename "$0")" \
+  --options "h" \
+  -- "$@"
+)
+
+eval set --$opts
+
+results_file=""
+fields=""
+header_lines=0
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--base_results_file)
+			base_results_file=$2
+			shift 2
+		;;
+		--fields)
+			fields=`echo $2 | sed "s/,/ /g"`
+			shift 2
+		;;
+		--header_lines)
+			header_lines=$2
+			shift 2
+		;;
+		--results_file)
+			results_file=$2
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo "option not found ${1}"
+			usage $0
+		;;
+	esac
+done
+
+meta_head=0
+actual_lines=0
+while IFS= read -r test_info
+do
+	#
+	# Skip over meta head
+	#
+	if [ $meta_head -eq 0 ]; then
+		if [[ $test_info == *"# Test general meta end"* ]]; then
+			meta_head=1
+		fi
+		continue
+	fi
+	let "actual_lines=${actual_lines}+1"
+	if [ $actual_lines -le $header_lines ]; then
+		continue;
+	fi
+	for field in $fields; do
+		validate_line $test_info $field
+	done
+done < "$results_file"
+
+exit 0

@@ -23,6 +23,7 @@
 #
 # Source .bashrc to keep pbench happy.
 # 
+test_cmd=$0
 source ~/.bashrc
 
 # Values setting for test wrappers to use.
@@ -39,13 +40,13 @@ source ~/.bashrc
 # to_user: User on the test system running the test
 # to_sys_type: for results info, basically aws, azure or local
 # to_sysname: name of the system
+# to_test_verify_file: name of test verification file
 # to_tuned_setting: tuned setting
 # to_no_pkg_install: Test is not to use dnf/yum/apt or other such tools
 
 #
 # Present usage information.
 #
-
 
 gs_usage_info()
 {
@@ -63,12 +64,14 @@ gs_usage_info()
 	echo "  --run_user: user that is actually running the test on the test system. Defaults to user running wrapper."
 	echo "  --sys_type: Type of system working with, aws, azure, hostname.  Defaults to hostname."
 	echo "  --sysname: name of the system running, used in determining config files.  Defaults to hostname."
+	echo "  --test_verification: Runs the test verification.  Information is in the test_verify file in the tests github"
 	echo "  --tuned_setting: used in naming the tar file, default for RHEL is the current active tuned.  For non"
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."
 	exit 1
 }
 
+to_test_verify_file=""
 to_sys_type=`hostname`
 to_configuration=`hostname`
 to_home_root=`echo $HOME | rev | cut -d'/' -f 2- | rev`
@@ -88,8 +91,7 @@ to_sysname=`hostname`
 to_pstats="default"
 to_no_pkg_install=0
 
-top_dir=`echo $0 | sed "s/workloads/:/g" | cut -d':' -f 1`
-to_tuned_setting=`${top_dir}/test_tools/get_tuned_setting`
+to_tuned_setting=""
 
 i=1
 j=$#
@@ -164,6 +166,11 @@ do
 			to_sysname=$value
 			shift 2
 		;;
+		--test_verification)
+			i=$((i + 2))
+			to_test_verify_file=$2
+			shift 2
+		;;
 		--tuned_setting)
 			i=$((i + 2))
 			if [[ $value != *"none"* ]]; then
@@ -192,9 +199,17 @@ do
 		;;
 	esac
 done
-TOOLS_BIN=`pwd`/test_tools
-if [ ! -d $TOOLS_BIN ]; then
+
+if [[ ! -d $TOOLS_BIN ]]; then
 	TOOLS_BIN=${to_home_root}/${to_user}/test_tools
+fi
+
+if [[ $to_tuned_setting == "" ]]; then
+	to_tuned_setting=`${TOOLS_BIN}/get_tuned_setting`
+fi
+if [[ $to_test_verify_file != "" ]]; then
+	$TOOLS_BIN/verification --test_cmd $test_cmd --verify_file $to_test_verify_file
+	exit $?
 fi
 if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default

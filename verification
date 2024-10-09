@@ -1,0 +1,111 @@
+#!/bin/bash
+#
+# Using a set of known results files, verify the test is still correct.
+#
+TOOLS_BIN=`echo $0 | rev | cut -d/ -f2- | rev`
+test_cmd=""
+verify_file=""
+curdir=`pwd`
+
+verification_run()
+{
+	verify_res_before=`mktemp wrapper_verify.XXXXX`
+	verify_res_after=`mktemp wrapper_verify.XXXXX`
+	test_descript=$verify_file
+	required_systems=`grep "^Required_Systems:" $test_descript | cut -d: -f2`
+	fields=`grep ^fields $test_descript | cut -d: -f2-`
+	header_lines=`grep ^header_lines $test_descript | cut -d: -f2`
+	grep "^test:" $test_descript | cut -d: -f 2,3 > tests_to_run
+	while IFS= read -r test_entry
+	do
+		if [[ -d "export_results" ]]; then
+			ls -d export_results/* > $verify_res_before
+		else
+			echo "" > $verify_res_before
+		fi
+		test_args=`echo $test_entry | cut -d':' -f1`
+		test_base_results=`echo $test_entry | cut -d':' -f2`
+		$test_cmd $test_args
+		ls -d export_results/* > $verify_res_after
+#		exit
+		file_to_check=`diff $verify_res_after $verify_res_before | grep export_results | grep -v tar | sed "s/< //g" | cut -d':' -f 1`
+		#
+		# Check dir contents first
+		#
+		ls -R $file_to_check/* | cut -d'/' -f 3- > $verify_res_before
+		res_dir=`echo $file_to_check | cut -d'/' -f 1,2`
+		rdir=`pwd`
+		pushd $test_base_results > /dev/null
+		ls -R * | cut -d'/' -f 3- > $rdir/$verify_res_after
+		popd > /dev/null
+		diff -q $verify_res_before $verify_res_after
+		if [ $? -ne 0 ]; then
+			echo There are different files/file names between the results.
+			diff $verify_res_before $verify_res_after
+			rm -rf $verify_res_after $verify_res_before
+			exit 1
+		fi
+		base_res_file=`find $test_base_results -print | grep results | grep csv | tail -1`
+		new_res_file=`find $res_dir -print | grep csv | grep results | tail -1`
+		echo $TOOLS_BIN/validate_line --results_file $new_res_file --fields $fields --header_lines $header_lines --base_results_file $base_res_file > /tmp/dave
+		$TOOLS_BIN/validate_line --results_file $new_res_file --fields $fields --header_lines $header_lines --base_results_file $base_res_file
+		if [ $? -ne 0 ]; then
+			exit 1
+		fi
+#		exit
+	done < "tests_to_run"
+#	rm -rf $verify_res_after $verify_res_before
+}
+
+usage()
+{
+	echo later
+	exit 0
+}
+
+
+ARGUMENT_LIST=(
+	"test_cmd"
+	"verify_file"
+)
+NO_ARGUMENTS=(
+	"usage"
+)
+# read arguments
+opts=$(getopt \
+  --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+  --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+  --name "$(basename "$0")" \
+  --options "h" \
+  -- "$@"
+)
+
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--verify_file)
+			verify_file=$2
+			shift 2
+		;;
+		--test_cmd)
+			test_cmd=$2
+			shift 2
+		;;
+		--usage)
+			usage $0
+		;;
+		-h)
+			usage $0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo "option not found ${1}"
+			usage $0
+		;;
+	esac
+done
+verification_run
+exit 0
