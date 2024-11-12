@@ -6,11 +6,15 @@ TOOLS_BIN=`echo $0 | rev | cut -d/ -f2- | rev`
 test_cmd=""
 verify_file=""
 curdir=`pwd`
+home_parent=""
+run_user=""
+vdir=""
 
 verification_run()
 {
-	verify_res_before=`mktemp wrapper_verify.XXXXX`
-	verify_res_after=`mktemp wrapper_verify.XXXXX`
+	tmp_dir=`pwd`
+	verify_res_before=`mktemp ${tmp_dir}/wrapper_verify.XXXXX`
+	verify_res_after=`mktemp ${tmp_dir}wrapper_verify.XXXXX`
 	test_descript=$verify_file
 	required_systems=`grep "^Required_Systems:" $test_descript | cut -d: -f2`
 	fields=`grep ^fields $test_descript | cut -d: -f2-`
@@ -18,43 +22,44 @@ verification_run()
 	grep "^test:" $test_descript | cut -d: -f 2,3 > tests_to_run
 	while IFS= read -r test_entry
 	do
+		pushd ${home_parent}/${run_user} > /dev/null
 		if [[ -d "export_results" ]]; then
-			ls -d export_results/* > $verify_res_before
+			cd export_results
+			ls -d * > $verify_res_before
 		else
 			echo "" > $verify_res_before
 		fi
+		popd > /dev/null
 		test_args=`echo $test_entry | cut -d':' -f1`
 		test_base_results=`echo $test_entry | cut -d':' -f2`
-		$test_cmd $test_args
-		ls -d export_results/* > $verify_res_after
-#		exit
-		file_to_check=`diff $verify_res_after $verify_res_before | grep export_results | grep -v tar | sed "s/< //g" | cut -d':' -f 1`
+		$test_cmd $test_args --home_parent $home_parent --run_user $run_user
+		pushd ${home_parent}/${run_user}/export_results > /dev/null
+		ls -d * > $verify_res_after
+		popd >/dev/null
+		file_to_check=`diff $verify_res_after $verify_res_before | grep -v tar | grep '<' |  sed "s/< //g"`
 		#
 		# Check dir contents first
 		#
-		ls -R $file_to_check/* | cut -d'/' -f 3- > $verify_res_before
-		res_dir=`echo $file_to_check | cut -d'/' -f 1,2`
-		rdir=`pwd`
-		pushd $test_base_results > /dev/null
-		ls -R * | cut -d'/' -f 3- > $rdir/$verify_res_after
+		files_present=$verify_res_before
+		pushd ${home_parent}/${run_user}/export_results
+		ls -R ${home_parent}/${run_user}/export_results/$file_to_check/* | cut -d'/' -f 6- > $verify_res_before
+		res_dir=${home_parent}/${run_user}/export_results/$file_to_check
 		popd > /dev/null
-		diff -q $verify_res_before $verify_res_after
+		pushd $vdir/$test_base_results > /dev/null
+		ls -R * | cut -d'/' -f 3- > $verify_res_after
+		tfile=`ls *csv`
+		base_res_file=$vdir/$test_base_results/tfile
+		popd > /dev/null
+		diff -q $verify_res_before $verify_res_after > /dev/null
 		if [ $? -ne 0 ]; then
 			echo There are different files/file names between the results.
+			echo Files may still be valid as things like threads etc can be different.
 			diff $verify_res_before $verify_res_after
-			rm -rf $verify_res_after $verify_res_before
-			exit 1
 		fi
-		base_res_file=`find $test_base_results -print | grep results | grep csv | tail -1`
 		new_res_file=`find $res_dir -print | grep csv | grep results | tail -1`
-		echo $TOOLS_BIN/validate_line --results_file $new_res_file --fields $fields --header_lines $header_lines --base_results_file $base_res_file > /tmp/dave
-		$TOOLS_BIN/validate_line --results_file $new_res_file --fields $fields --header_lines $header_lines --base_results_file $base_res_file
-		if [ $? -ne 0 ]; then
-			exit 1
-		fi
-#		exit
+		$TOOLS_BIN/validate_line --results_file $new_res_file --fields "$fields" --header_lines $header_lines --base_results_file $base_res_file
 	done < "tests_to_run"
-#	rm -rf $verify_res_after $verify_res_before
+	rm -rf $verify_res_after $verify_res_before
 }
 
 usage()
@@ -65,6 +70,8 @@ usage()
 
 
 ARGUMENT_LIST=(
+	"home_parent"
+	"run_user"
 	"test_cmd"
 	"verify_file"
 )
@@ -84,6 +91,14 @@ eval set --$opts
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
+		--home_parent)
+			home_parent=$2
+			shift 2
+		;;
+		--run_user)
+			run_user=$2
+			shift 2
+		;;
 		--verify_file)
 			verify_file=$2
 			shift 2
@@ -107,5 +122,6 @@ while [[ $# -gt 0 ]]; do
 		;;
 	esac
 done
+vdir=`echo $verify_file | rev | cut -d / -f 3- | rev`
 verification_run
 exit 0
