@@ -17,6 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-cp ${1}/meta_data*.yml $2
-cp ${1}/hw_info.out $2
+copy_file()
+{
+	ls $1 &> /dev/null
+	if [[ $? -eq 0 ]]; then
+		cp ${1} $2
+	fi
+}
+
+copy_file ${1}/meta_data*.yml $2
+copy_file ${1}/hw_info.out $2
 
