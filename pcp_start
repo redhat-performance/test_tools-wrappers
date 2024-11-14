@@ -1,0 +1,82 @@
+#!/bin/bash
+
+pcp_install()
+{
+	#
+	# Make sure PCP is installed.
+	#
+	if [ $to_pcp -eq 1 ]; then
+        	#
+        	# Make sure pcp is installed.
+        	# We will have to handle different OS's eventually.
+        	# For some reason we can not use pcp-zerconf itself.
+		echo here
+		dnf list installed pcp-zeroconf.x86_64 &> /dev/null
+		if [ $? -ne 0 ]; then
+			echo here 1
+        		dnf install -y  pcp-zeroconf.x86_64
+		fi
+	fi
+}
+
+pcp_verify()
+{       
+	cfg_file="$1"
+
+	# Verify PMCD is running (pcp-zeroconf is installed)
+	pgrep pmcd > /dev/null
+	if [ $? != 0 ]; then
+		echo "PCP pmcd is not running. Is PCP installed?"
+		echo "Suggested syntax: sudo dnf install pcp-zeroconf"
+		exit 2
+	fi          
+
+	# Verify primary pmlogger is not running
+	pgrep pmlogger > /dev/null
+	if [ $? == 0 ]; then
+		echo "Primary PCP pmlogger is running. Stopping it."
+		sudo systemctl stop pmlogger
+	fi
+
+	# Verify user provided pmlogger.conf file exists
+	if [ ! -f "$cfg_file" ]; then
+		echo "File $cfg_file not found!"
+		exit 2
+	fi
+}
+
+pcp_start()
+{
+	echo "PCP Start"
+
+	cfg_file="$1"
+	pcp_archive_dir="$2"
+	pcp_archive_name="$3"
+
+	mkdir -p ${pcp_archive_dir}  
+
+# Run PCP logger
+# JTH - VERIFY success, ensure pmlogger starts 
+	pmlogger -c ${cfg_file} -t 1 -l "${pcp_archive_dir}/pmlogger.log" "${pcp_archive_name}" &
+
+	# Sleep 3 seconds prior to starting workload 
+    	sleep 3 
+
+	# JTH - VERIFY success, ensure pmlogger starts 
+    	pgrep pmlogger > /dev/null
+    	if [ $? != 0 ]; then
+        	echo "FAILED to Start PCP pmlogger. Aborting test."
+        	exit 2
+    	fi
+}
+
+DATE=$(date -u +"%Y%m%dT%H%M%S")
+ARCHIVE_DIR=$curdir/"ARCHIVE.${DATE}"
+PCPARCHIVE_NAME="$ARCHIVE_DIR/coremark_archive"
+to_pcp_args="--mv_dir $ARCHIVE_DIR"
+
+CONF_FILE="/var/lib/pcp/config/pmlogger/config.default"
+
+pcp_install
+pcp_verify $CONF_FILE
+pcp_start $CONF_FILE $ARCHIVE_DIR $PCPARCHIVE_NAME

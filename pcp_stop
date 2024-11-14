@@ -1,0 +1,19 @@
+#!/bin/bash
+pcp_stop()
+{
+	echo "PCP Stop"
+
+# Sleep 3 seconds to have system calm down
+	    sleep 3
+
+# Stop PCP logger and pause for pmlogger to write archive
+	pkill -USR1 pmlogger
+    	sleep 3
+
+# JTH - VERIFY success, ensure pmlogger stops 
+	pid=$(pgrep pmlogger)
+	if [ $? == 0 ]; then
+		echo "FAILED to Stop PCP pmlogger. PID $pid should be manually stopped"
+	fi
+}
+

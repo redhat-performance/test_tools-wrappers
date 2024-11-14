@@ -25,6 +25,7 @@ curdir=""
 home_root=""
 other_files=""
 copy_dir=""
+mv_dir=""
 results=""
 tar_file=""
 test_name=""
@@ -66,6 +67,7 @@ ARGUMENT_LIST=(
 	"copy_dir"
 	"curdir"
 	"home_root"
+	"mv_dir"
 	"other_files"
 	"results"
 	"tar_file"
@@ -105,6 +107,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--home_root)
 			home_root=$2
+			shift 2
+		;;
+		--mv_dir)
+			mv_dir=$2
 			shift 2
 		;;
 		--other_files)
@@ -183,6 +189,9 @@ if [[ $tar_file != "" ]]; then
 fi
 if [[ $copy_dir != "" ]]; then
 	cp -R $copy_dir $RESULTS_PATH
+fi
+if [[ $mv_dir != "" ]]; then
+	mv $mv_dir $RESULTS_PATH
 fi
 if [[ $version == "" ]]; then
 	echo tag: No version provided > $RESULTS_PATH/version
