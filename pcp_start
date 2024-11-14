@@ -73,11 +73,11 @@ pcp_start()
 DATE=$(date -u +"%Y%m%dT%H%M%S")
 ARCHIVE_DIR=$curdir/"ARCHIVE.${DATE}"
 PCPARCHIVE_NAME="$ARCHIVE_DIR/coremark_archive"
-to_pcp_args="--mv_dir $ARCHIVE_DIR"
 
 CONF_FILE="/var/lib/pcp/config/pmlogger/config.default"
 
 if [ $to_pcp -eq 1 ]; then
+	to_pcp_args="--mv_dir $ARCHIVE_DIR"
 	pcp_install
 	pcp_verify $CONF_FILE
 	pcp_start $CONF_FILE $ARCHIVE_DIR $PCPARCHIVE_NAME
