@@ -77,6 +77,8 @@ to_pcp_args="--mv_dir $ARCHIVE_DIR"
 
 CONF_FILE="/var/lib/pcp/config/pmlogger/config.default"
 
-pcp_install
-pcp_verify $CONF_FILE
-pcp_start $CONF_FILE $ARCHIVE_DIR $PCPARCHIVE_NAME
+if [ $to_pcp -eq 1 ]; then
+	pcp_install
+	pcp_verify $CONF_FILE
+	pcp_start $CONF_FILE $ARCHIVE_DIR $PCPARCHIVE_NAME
+fi

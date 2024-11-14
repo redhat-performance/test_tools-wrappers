@@ -17,3 +17,6 @@ pcp_stop()
 	fi
 }
 
+$if [ $to_pcp -eq 1 ]; then
+	pcp_stop
+fi
