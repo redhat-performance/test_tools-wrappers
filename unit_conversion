@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+#                         License
+#
+# Copyright (C) 2024  David Valin dvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Convert various time and memory units.
+
+usage()
+{
+	echo "usage $1 <unit>"
+	echo "Known time units"
+	echo "	hour/hr/h, minute/min/m, sec, msec, ms, usec, us, nsec, ns"
+	echo "Known memory units"
+	echo "	byte, B, Kib, KB, MiB, MB, GiB, GB"
+	exit 1
+}
+
+#
+# Coverts units to base units.
+# In case of time, that will be nanoseconds
+# In case of throughput, that will be bytes.
+
+convert_unit_to_base()
+{
+	unit=$2
+	rval=""
+	base=$1
+
+	case "$unit" in
+		"byte" | "B")
+			rval = 1
+		;;
+		"KiB" | "KB")
+			rval=`echo 2^10 | bc`
+		;;
+		"MiB" | "MB")
+			rval=`echo 2^20 | bc`
+		;;
+		"GiB" | "GB")
+			rval=`echo 2^30 | bc`
+		;;
+		"hour" | "hr" | "h")
+			rval=`echo 3600*1000^3 | bc`
+		;;
+		"min" | "minute" | "m")
+			rval=`echo 60*1000^3 | bc`
+		;;
+		"sec" | "s")
+			rval=`echo 1000^3 | bc`
+		;;
+		"msec" | "ms")
+			rval=`echo 1000^2 | bc`
+		;;
+		"usec" | "us")
+			rval=1000
+		;;
+		"nsec" | "ns")
+			rval=1
+		;;
+		*)
+			usage $1
+		;;
+	esac
+	echo $rval
+}
+
+
+if [[ $1 == "" ]]; then
+	usage $0
+fi
+
+convert_unit=`echo $1 | cut -d'/' -f1`
+convert_unit_to_base $0 $convert_unit
