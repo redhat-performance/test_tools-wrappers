@@ -1,0 +1,177 @@
+#!/bin/bash
+#
+#                         License
+#
+# Copyright (C) 2024  David Valin dvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Convert various time and memory units.
+
+usage()
+{
+	echo "usage $1 <unit>"
+	echo "-h --help --usage: This help message"
+	echo "--cnv_unit <u>: Unit to convert to."
+	echo "--value <value>: Value to be concerted."
+	echo "--unit <u>: Unit of value or to be converted."
+	echo "If just --unit is passed, program returns the unit value.  EG.  --unit k will return 1000"
+	echo "If --value and --unit, program returns the value in the base unit."
+	echo "If --value, --unit and --cnvt unit is passed, then the program will converty <value><unit> to"
+	echo "   the unit designated in --cnv_unit"
+	exit 1
+}
+
+if [[ $1 == "" ]]; then
+	usage $0
+fi
+
+NOARG_OPTS=(
+	"help"
+	"usage"
+)
+
+ARG_OPTS=(
+	"cnv_unit"
+	"value"
+	"unit"
+)
+
+opts=$(getopt \
+	--longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+	--longoptions "$(printf "%s:," "${ARG_OPTS[@]}")" \
+	--name "$(basename "$0")" \
+	--options "hc:" \
+	-- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit 1
+fi
+
+eval set --$opts
+
+cnv_unit=""
+value=1
+unit=""
+unit_val=""
+cnv_to=""
+rval=""
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		-h | --usage | --help)
+			usage $0
+			exit 0
+		;;
+		--cnv_unit)
+			cnv_unit=$2
+			shift 2
+		;;
+		--value)
+			value=$2
+			shift 2
+		;;
+		--unit)
+			unit=$2
+			shift 2
+		;;
+		--)
+			break
+    		;;
+		*)
+			echo Unknown option $1
+			usage $0
+		;;
+	esac
+done
+
+
+if [[ $unit == "" ]] || [[ $cnv_unit == "" ]]; then
+	echo Must designate the unit
+	usage $0
+fi
+
+cnvt_to_bytes()
+{
+	lunit=$1
+	if [[ $lunit == "B" ]] || [[ $lunit == "b" ]]; then
+		base_value=1
+	else
+		if [[ $lunit =~ [K,M,G,T] ]] && [[ $lunit != *"i"* ]]; then
+			base_value=`numfmt --from=si 1${lunit}`
+			if [[ $? -ne 0 ]]; then
+				echo Error: Invalid unit $lunit
+				exit -1
+			fi
+		else
+			# 
+			# Assumption is iec and convert to appropriate value
+			#
+			lunit=`echo "${lunit^^}" | sed "s/I//g"`
+			base_value=`numfmt --from=iec 1${lunit}`
+			if [[ $? -ne 0 ]]; then
+				echo Error: Invalid unit $lunit
+			fi
+		fi
+	fi
+	echo $base_value
+}
+
+cnvt_unit_to_nsec()
+{
+	in_unit=$1
+
+	if [[ $in_unit == "h"* ]]; then
+		echo 3600000000000
+	elif [[ $in_unit == "ms"* ]]; then
+		echo 1000000
+	elif [[ $in_unit == "m"* ]]; then
+		echo 60000000000
+	elif [[ $in_unit == "s"* ]]; then
+		echo 1000000000
+	elif [[ $in_unit == "u"* ]]; then
+		echo 1000000
+	elif [[ $in_unit == "n"* ]]; then
+		echo 1
+	else
+		echo Error: Invalid unit $in_unit
+	fi
+}
+
+error_check()
+{
+	if [[ $1 == "Error"* ]]; then
+		echo $1
+		exit 1
+	fi
+}
+
+if [[ $0 == *"convert_numeric"* ]]; then
+	to_base_unit=$(cnvt_to_bytes $unit)
+	error_check "$to_base_unit"
+	converting_to=$(cnvt_to_bytes $cnv_unit)
+	error_check "$converting_to"
+	cnv_value=`echo \(${value}*${to_base_unit}\)/$converting_to | bc`
+	echo ${cnv_value}${cnv_unit}
+else
+	time_base_unit=$(cnvt_unit_to_nsec $unit)
+	error_check "$time_base_unit"
+	time_cnvt_to=$(cnvt_unit_to_nsec $cnv_unit)
+	error_check "$time_cnvt_to"
+	cnv_value=`echo \(${value}*${time_base_unit}\)/$time_cnvt_to | bc`
+	echo ${cnv_value}${cnv_unit}
+fi
+exit 0
