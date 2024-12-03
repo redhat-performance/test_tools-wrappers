@@ -45,6 +45,8 @@ source ~/.bashrc
 #
 # Present usage information.
 #
+to_pcp=1
+to_pcp_args=""
 
 
 gs_usage_info()
@@ -149,6 +151,11 @@ do
 			to_puser=$value
 			shift 2
 		;;
+		--pcp)
+			i=$((i + 2))
+			to_pcp=$value
+			shift 2
+		;;
 		--run_label)
 			i=$((i + 2))
 			to_run_label=$value
@@ -202,4 +209,5 @@ fi
 if [[ $to_tuned_setting == "" ]]; then
 	to_tuned_setting=`./test_tools/get_tuned_setting`
 fi
+
 set $gen_args_back
