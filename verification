@@ -64,8 +64,12 @@ verification_run()
 
 usage()
 {
-	echo later
-	exit 0
+	echo Usage: $1
+	echo "home_parent <dir>: Parent of the users home directory."
+	echo "run_user <user>:  Name of user running the test."
+	echo "test_cmd <command>: Test wrapper that is being executed."
+	echo "verify_file <file>: Path to the test verification file."
+	exit $2
 }
 
 
@@ -108,17 +112,17 @@ while [[ $# -gt 0 ]]; do
 			shift 2
 		;;
 		--usage)
-			usage $0
+			usage $0 0
 		;;
 		-h)
-			usage $0
+			usage $0 0
 		;;
 		--)
 			break;
 		;;
 		*)
 			echo "option not found ${1}"
-			usage $0
+			usage $0 1
 		;;
 	esac
 done
