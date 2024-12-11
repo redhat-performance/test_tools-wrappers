@@ -52,7 +52,7 @@ usage()
 	echo "$ ./convert_time --unit s --value 60 --cnv_unit m"
 	echo "1m"
 	echo "$ ./convert_time --unit s"
-	echo "1000000000ns
+	echo "1000000000ns"
 	exit 1
 }
 
