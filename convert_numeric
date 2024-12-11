@@ -25,12 +25,34 @@ usage()
 	echo "usage $1 <unit>"
 	echo "-h --help --usage: This help message"
 	echo "--cnv_unit <u>: Unit to convert to."
-	echo "--value <value>: Value to be concerted."
-	echo "--unit <u>: Unit of value or to be converted."
-	echo "If just --unit is passed, program returns the unit value.  EG.  --unit k will return 1000"
+	echo "--value <value>: Value to be converted."
+	echo "--unit <u>: Unit of value to be converted."
+	if [[ $1 == *"convert_numeric"* ]]; then
+		echo "If just --unit is passed, program returns the unit value.  EG.  --unit K will return 1000B"
+	else
+		echo "If just --unit is passed, program returns the unit value.  EG.  --unit us will return 1000ns"
+	fi
 	echo "If --value and --unit, program returns the value in the base unit."
-	echo "If --value, --unit and --cnvt unit is passed, then the program will converty <value><unit> to"
+	echo "If --value, --unit and --cnvt unit is passed, then the program will convert <value><unit> to"
 	echo "   the unit designated in --cnv_unit"
+	echo ""
+	echo "Example usage:"
+	echo "$ ./convert_numeric --unit M --value 1024 --cnv_unit G"
+	echo "1G"
+	echo "$ ./convert_numeric --unit M --value 1024 --cnv_unit K"
+	echo "1024000K"
+	echo "$ ./convert_numeric --unit Mi --value 1024 --cnv_unit Ki"
+	echo "1048576Ki"
+	echo "./convert_numeric --unit Mi --value 1024 --cnv_unit Gi"
+	echo "1Gi"
+	echo "./convert_numeric --unit Mi"
+	echo "1000000B"
+	echo "$ ./convert_time --unit s --value 10 --cnv_unit ms"
+	echo "10000ms"
+	echo "$ ./convert_time --unit s --value 60 --cnv_unit m"
+	echo "1m"
+	echo "$ ./convert_time --unit s"
+	echo "1000000000ns
 	exit 1
 }
 
@@ -57,15 +79,24 @@ opts=$(getopt \
 	-- "$@"
 )
 
+eval set --$opts
+
 if [ $? -ne 0 ]; then
         exit 1
 fi
 
-eval set --$opts
+#
+# Set the unit defaults.
+#
+if [[ $0 == *"convert_numeric"* ]]; then
+	cnv_unit="B"
+	unit="K"
+else
+	cnv_unit="ns"
+	unit="s"
+fi
 
-cnv_unit=""
 value=1
-unit=""
 unit_val=""
 cnv_to=""
 rval=""
@@ -98,12 +129,6 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-
-if [[ $unit == "" ]] || [[ $cnv_unit == "" ]]; then
-	echo Must designate the unit
-	usage $0
-fi
-
 cnvt_to_bytes()
 {
 	lunit=$1
@@ -114,7 +139,7 @@ cnvt_to_bytes()
 			base_value=`numfmt --from=si 1${lunit}`
 			if [[ $? -ne 0 ]]; then
 				echo Error: Invalid unit $lunit
-				exit -1
+				exit 1
 			fi
 		else
 			# 
@@ -124,6 +149,7 @@ cnvt_to_bytes()
 			base_value=`numfmt --from=iec 1${lunit}`
 			if [[ $? -ne 0 ]]; then
 				echo Error: Invalid unit $lunit
+				exit 1
 			fi
 		fi
 	fi
@@ -143,34 +169,23 @@ cnvt_unit_to_nsec()
 	elif [[ $in_unit == "s"* ]]; then
 		echo 1000000000
 	elif [[ $in_unit == "u"* ]]; then
-		echo 1000000
+		echo 1000
 	elif [[ $in_unit == "n"* ]]; then
 		echo 1
 	else
 		echo Error: Invalid unit $in_unit
-	fi
-}
-
-error_check()
-{
-	if [[ $1 == "Error"* ]]; then
-		echo $1
 		exit 1
 	fi
 }
 
 if [[ $0 == *"convert_numeric"* ]]; then
 	to_base_unit=$(cnvt_to_bytes $unit)
-	error_check "$to_base_unit"
 	converting_to=$(cnvt_to_bytes $cnv_unit)
-	error_check "$converting_to"
 	cnv_value=`echo \(${value}*${to_base_unit}\)/$converting_to | bc`
 	echo ${cnv_value}${cnv_unit}
 else
 	time_base_unit=$(cnvt_unit_to_nsec $unit)
-	error_check "$time_base_unit"
 	time_cnvt_to=$(cnvt_unit_to_nsec $cnv_unit)
-	error_check "$time_cnvt_to"
 	cnv_value=`echo \(${value}*${time_base_unit}\)/$time_cnvt_to | bc`
 	echo ${cnv_value}${cnv_unit}
 fi
