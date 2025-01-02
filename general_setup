@@ -64,7 +64,7 @@ gs_usage_info()
 	echo "  --run_user: user that is actually running the test on the test system. Defaults to user running wrapper."
 	echo "  --sys_type: Type of system working with, aws, azure, hostname.  Defaults to hostname."
 	echo "  --sysname: name of the system running, used in determining config files.  Defaults to hostname."
-	echo "  --test_verification: Runs the test verification.  Information is in the test_verify file in the tests github"
+	echo "  --test_verification <test_verify_file>: Runs the test verification.  Information is in the test_verify file in the tests github"
 	echo "  --tuned_setting: used in naming the tar file, default for RHEL is the current active tuned.  For non"
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."

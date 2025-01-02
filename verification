@@ -52,7 +52,7 @@ verification_run()
 		popd > /dev/null
 		diff -q $verify_res_before $verify_res_after > /dev/null
 		if [ $? -ne 0 ]; then
-			echo There are different files/file names between the results.
+			echo Warning: There are different files/file names between the results.
 			echo Files may still be valid as things like threads etc can be different.
 			diff $verify_res_before $verify_res_after
 		fi
