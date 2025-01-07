@@ -27,6 +27,7 @@ usage()
 	echo "--to_unit <u>: Unit to convert to."
 	echo "--value <value>: Value to be converted."
 	echo "--from_unit <u>: Unit of value to be converted."
+	echo "--time_val: Units being worked with are time vals"
 	echo "If just --from_unit is passed, program returns the unit value.  EG.  --from_unit K will return 1000B"
 	echo "If --value and --from_unit, program returns the value in the base unit."
 	echo "If --value, --from_unit and --cnvt unit is passed, then the program will convert <value><unit> to"
