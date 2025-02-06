@@ -1,0 +1,87 @@
+------
+run_dir //root/workloads//autohpl-wrapper-1.19/auto_hpl
+nodes 2
+numl3s 2
+cpulist 0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108,110,112,114,116,118,120,122,124,126
+threadspl3 64
+corespl3 32
+NS 273408
+2 1
+arch x86_64
+vendor |Intel|
+model |143|
+stepping 8
+nodes 2
+totcpus 128
+thpcore 2
+corespskt 32
+corespnode 32
+threadspl3 64
+corespl3 32
+NUM_MPI_PROCESS_MT 2
+NUM_MPI_PROCESS_ST 64
+NOMP 32
+totmem 754
+NBS 256
+NP 1
+NQ 2
+/usr/bin/which: no mpirun in (/root/.local/bin:/root/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin)
+Using system OpenBLAS
+Updating Subscription Management repositories.
+Unable to read consumer identity
+
+This system is not registered with an entitlement server. You can use subscription-manager to register.
+
+Last metadata expiration check: 1:07:31 ago on Thu Sep 19 11:14:21 2024.
+Package openblas-devel-0.3.21-2.el9.x86_64 is already installed.
+Dependencies resolved.
+Nothing to do.
+Complete!
+Get xHPL code. Change the HPL_LINK and HPL_VER variables suitably for required version
+URL transformed to HTTPS due to an HSTS policy
+--2024-09-19 12:21:52--  https://www.netlib.org/benchmark/hpl/hpl-2.3.tar.gz
+Resolving www.netlib.org (www.netlib.org)... 160.36.239.231
+Connecting to www.netlib.org (www.netlib.org)|160.36.239.231|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 660871 (645K) [application/x-gzip]
+Saving to: 'hpl-2.3.tar.gz'
+
+     0K .......... .......... .......... .......... ..........  7%  849K 1s
+    50K .......... .......... .......... .......... .......... 15% 1.67M 0s
+   100K .......... .......... .......... .......... .......... 23% 99.6M 0s
+   150K .......... .......... .......... .......... .......... 30% 1.71M 0s
+   200K .......... .......... .......... .......... .......... 38% 83.1M 0s
+   250K .......... .......... .......... .......... .......... 46%  104M 0s
+   300K .......... .......... .......... .......... .......... 54%  121M 0s
+   350K .......... .......... .......... .......... .......... 61% 1.73M 0s
+   400K .......... .......... .......... .......... .......... 69%  140M 0s
+   450K .......... .......... .......... .......... .......... 77%  107M 0s
+   500K .......... .......... .......... .......... .......... 85%  114M 0s
+   550K .......... .......... .......... .......... .......... 92%  115M 0s
+   600K .......... .......... .......... .......... .....     100%  134M=0.1s
+
+2024-09-19 12:21:53 (4.24 MB/s) - 'hpl-2.3.tar.gz' saved [660871/660871]
+
+sed s,TOPDIR,//root/workloads//autohpl-wrapper-1.19/auto_hpl, //root/workloads//autohpl-wrapper-1.19/auto_hpl/Make.Linux_Intel_openblas > Make.Linux_Intel_openblas
+ar: creating //root/workloads//autohpl-wrapper-1.19/auto_hpl/hpl/hpl-2.3/lib/Linux_Intel_openblas/libhpl.a
+../HPL_packL.c: In function 'HPL_packL':
+../HPL_packL.c:204:7: warning: this 'for' clause does not guard... [-Wmisleading-indentation]
+  204 |       for( i = 1; i < nbufs; i++ ) disp[i] -= disp[0]; disp[0] = 0;
+      |       ^~~
+../HPL_packL.c:204:56: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'for'
+  204 |       for( i = 1; i < nbufs; i++ ) disp[i] -= disp[0]; disp[0] = 0;
+      |                                                        ^~~~
+../HPL_packL.c:206:43: warning: '*bufs' may be used uninitialized [-Wmaybe-uninitialized]
+  206 |       PANEL->buffers[IBUF] = (void *)(bufs[0]); PANEL->counts [IBUF] = 1;
+      |                                      ~~~~~^~~~
+../HPL_pdtest.c: In function 'HPL_pdtest':
+../HPL_pdtest.c:334:7: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
+  334 |       if( vptr ) free( vptr ); return;
+      |       ^~
+../HPL_pdtest.c:334:32: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+  334 |       if( vptr ) free( vptr ); return;
+      |                                ^~~~~~
+bind_settings=--map-by l3cache -x OMP_NUM_THREADS=32
+/usr/lib64/openmpi/bin/mpirun --allow-run-as-root -np 2 --mca btl self,vader --report-bindings --map-by l3cache -x OMP_NUM_THREADS=32 ./xhpl
+[host] MCW rank 1 bound to socket 1[core 32[hwt 0-1]], socket 1[core 33[hwt 0-1]], socket 1[core 34[hwt 0-1]], socket 1[core 35[hwt 0-1]], socket 1[core 36[hwt 0-1]], socket 1[core 37[hwt 0-1]], socket 1[core 38[hwt 0-1]], socket 1[core 39[hwt 0-1]], socket 1[core 40[hwt 0-1]], socket 1[core 41[hwt 0-1]], socket 1[core 42[hwt 0-1]], socket 1[core 43[hwt 0-1]], socket 1[core 44[hwt 0-1]], socket 1[core 45[hwt 0-1]], socket 1[core 46[hwt 0-1]], socket 1[core 47[hwt 0-1]], socket 1[core 48[hwt 0-1]], socket 1[core 49[hwt 0-1]], socket 1[core 50[hwt 0-1]], socket 1[core 51[hwt 0-1]], socket 1[core 52[hwt 0-1]], socket 1[core 53[hwt 0-1]], socket 1[core 54[hwt 0-1]], socket 1[core 55[hwt 0-1]], socket 1[core 56[hwt 0-1]], socket 1[core 57[hwt 0-1]], socket 1[core 58[hwt 0-1]], socket 1[core 59[hwt 0-1]], socket 1[core 60[hwt 0-1]], socket 1[core 61[hwt 0-1]], socket 1[core 62[hwt 0-1]], socket 1[core 63[hwt 0-1]]: [../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../..][BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB]
+[host] MCW rank 0 bound to socket 0[core 0[hwt 0-1]], socket 0[core 1[hwt 0-1]], socket 0[core 2[hwt 0-1]], socket 0[core 3[hwt 0-1]], socket 0[core 4[hwt 0-1]], socket 0[core 5[hwt 0-1]], socket 0[core 6[hwt 0-1]], socket 0[core 7[hwt 0-1]], socket 0[core 8[hwt 0-1]], socket 0[core 9[hwt 0-1]], socket 0[core 10[hwt 0-1]], socket 0[core 11[hwt 0-1]], socket 0[core 12[hwt 0-1]], socket 0[core 13[hwt 0-1]], socket 0[core 14[hwt 0-1]], socket 0[core 15[hwt 0-1]], socket 0[core 16[hwt 0-1]], socket 0[core 17[hwt 0-1]], socket 0[core 18[hwt 0-1]], socket 0[core 19[hwt 0-1]], socket 0[core 20[hwt 0-1]], socket 0[core 21[hwt 0-1]], socket 0[core 22[hwt 0-1]], socket 0[core 23[hwt 0-1]], socket 0[core 24[hwt 0-1]], socket 0[core 25[hwt 0-1]], socket 0[core 26[hwt 0-1]], socket 0[core 27[hwt 0-1]], socket 0[core 28[hwt 0-1]], socket 0[core 29[hwt 0-1]], socket 0[core 30[hwt 0-1]], socket 0[core 31[hwt 0-1]]: [BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB/BB][../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../..]
