@@ -34,8 +34,11 @@ user=""
 
 copy_file()
 {
-	if [[ $1 != "" ]] && [[ $2 != "" ]] && [[ ! -f $2 ]]; then
-		cp -R $1 $2
+	ls $1 &> /dev/null
+	if [[ $? -eq 0 ]]; then
+		if [[ $1 != "" ]] && [[ $2 != "" ]] && [[ ! -f $2 ]]; then
+			cp -R $1 $2
+		fi
 	fi
 }
 

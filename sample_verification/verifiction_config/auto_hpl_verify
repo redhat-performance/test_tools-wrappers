@@ -1,0 +1,8 @@
+Required_Systems: intel,amd,arm
+Via_Zathras: No
+fileds: T/V:s,N:2,NB:n,P:n,Q:n:Time:n,Gflops:n
+test:--iterations 1:base_test_results/base_line
+test:--iterations 1 --use_mkl:base_test_results/auto_mkl_results_file
+test:--iterations 1 --blis_lib:base_test_results/auto_hpl_base/blis
+test:--iterations 1 --resgression:base_test_results/auto_hpl_base/regression
+

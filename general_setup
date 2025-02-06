@@ -199,7 +199,6 @@ do
 		;;
 	esac
 done
-
 if [[ ! -d $TOOLS_BIN ]]; then
 	TOOLS_BIN=${to_home_root}/${to_user}/test_tools
 fi

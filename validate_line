@@ -6,7 +6,7 @@ usage()
 {
 	echo Usage: $1
 	echo "  --fields <string>: Contains a list in the following format"
-	echo "       name:type,name,type"
+	echo "       name:type,name:type"
 	echo "    Valid types are"
 	echo "     n: field is a numeric value"
 	echo "     s: field is a string of some sort"
