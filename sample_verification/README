@@ -24,7 +24,7 @@ Example of test verification file
 ============================================================
 Required_Systems: intel,amd,arm
 Via_Zathras: No
-fileds: T/V:s,N:n,NB:n,P:n,Q:n:Time:n,Gflops:n
+fields: T/V:s,N:n,NB:n,P:n,Q:n:Time:n,Gflops:n
 test:--iterations 1:base_test_results/base_line
 ============================================================
 
