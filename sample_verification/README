@@ -1,0 +1,35 @@
+The contents of this directory is an example of what is required for creating a test
+verification environment.  The files are expected to be in in the test wrapper github
+in the following 2 directories
+verification_config: contains the file that designates the test, parameters and results location
+base_test_results: contains the various test results directories
+
+Option passed to general_setup from the test wrapper: --test_verification <file>
+
+Test verification file
+	1) Used to run a series of verification tests
+	2) To ensure consistency across all wrappers the accepted format is
+	   verification_config/<test_name>_verify
+Format of file
+Required_Systems: Systems test needs to be executed on
+fields: Name of fields in the results file, and type of field.
+test:<options>:<directory where to find the results>
+
+Valid field types are
+	s string
+	sm  string, must match exactly
+        n numeric:
+
+Example of test verification file
+============================================================
+Required_Systems: intel,amd,arm
+Via_Zathras: No
+fields: T/V:s,N:n,NB:n,P:n,Q:n:Time:n,Gflops:n
+test:--iterations 1:base_test_results/base_line
+============================================================
+
+base_test_results/base_line is a directory of the expected results
+and csv file
+
+# ls
+auto_hpl.out  hpl-Intel_openblas-2024.09.20-12.12.54.csv  hw_info.out  test_results_report  version

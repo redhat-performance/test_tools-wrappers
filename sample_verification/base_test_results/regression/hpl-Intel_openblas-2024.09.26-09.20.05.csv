@@ -1,0 +1,17 @@
+# Test general meta start
+# Test: auto_hpl
+# Results version: 1.0
+# Host: host
+# Sys environ: host
+# Tuned: throughput-performance
+# OS: 5.14.0-284.11.1.el9_2.x86_64
+# Numa nodes: 2
+# CPU family: Intel(R) Xeon(R) Gold 6430
+# Number cpus: 128
+# Memory: 791563240kB
+# Test general meta end
+# Test meta data start
+# /usr/lib64/openmpi/bin/mpirun --allow-run-as-root -np 2 --mca btl self,vader --report-bindings --map-by l3cache -x OMP_NUM_THREADS=32 ./xhpl
+# Test meta data end
+T/V:N:NB:P:Q:Time:Gflops
+WR12R2R4:68352:256:1:2:77.46:2.7485e+03
