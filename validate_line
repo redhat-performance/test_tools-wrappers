@@ -51,7 +51,7 @@ validate_line()
 		#
 		# String, needs to match.
 		#
-		grep -Fq "^${value}:" $base_results_file
+		grep -q "^${value}:" $base_results_file
 		if [ $? -ne 0 ]; then
 			error_out $field_index $field_type $line "Does not have match in the results file"
 		fi

@@ -36,28 +36,11 @@ verification_run()
 		pushd ${home_parent}/${run_user}/export_results > /dev/null
 		ls -d * > $verify_res_after
 		popd >/dev/null
-		file_to_check=`diff $verify_res_after $verify_res_before | grep -v tar | grep '<' |  sed "s/< //g"`
-		#
-		# Check dir contents first
-		#
-		files_present=$verify_res_before
-		pushd ${home_parent}/${run_user}/export_results
-		ls -R ${home_parent}/${run_user}/export_results/$file_to_check/* | cut -d'/' -f 6- > $verify_res_before
-		res_dir=${home_parent}/${run_user}/export_results/$file_to_check
-		popd > /dev/null
-		pushd $vdir/$test_base_results > /dev/null
-		ls -R * | cut -d'/' -f 3- > $verify_res_after
-		tfile=`ls *csv`
-		base_res_file=$vdir/$test_base_results/tfile
-		popd > /dev/null
-		diff -q $verify_res_before $verify_res_after > /dev/null
-		if [ $? -ne 0 ]; then
-			echo Warning: There are different files/file names between the results.
-			echo Files may still be valid as things like threads etc can be different.
-			diff $verify_res_before $verify_res_after
-		fi
+		base_res_file=`ls $vdir/$test_base_results/*csv`
+		rdir=`diff $verify_res_after $verify_res_before | grep -v tar | grep '<' |  sed "s/< //g"`
+		res_dir=${home_parent}/${run_user}/export_results/$rdir
 		new_res_file=`find $res_dir -print | grep csv | grep results | tail -1`
-		$TOOLS_BIN/validate_line --results_file $new_res_file --fields "$fields" --header_lines $header_lines --base_results_file $base_res_file
+		$TOOLS_BIN/validate_line --results_file $new_res_file --fields "$fields" --base_results_file $base_res_file
 	done < "tests_to_run"
 	rm -rf $verify_res_after $verify_res_before
 }
