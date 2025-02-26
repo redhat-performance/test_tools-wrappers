@@ -9,6 +9,7 @@ curdir=`pwd`
 home_parent=""
 run_user=""
 vdir=""
+ertc=0
 
 verification_run()
 {
@@ -39,12 +40,16 @@ verification_run()
 		base_res_file=`ls $vdir/$test_base_results/*csv`
 		if [[ $? -ne 0 ]]; then
 			echo "Error, did not find a csv file in $vdir/$test_base_results"
+			ertc=1
 			continue
 		fi
 		rdir=`diff $verify_res_after $verify_res_before | grep -v tar | grep '<' |  sed "s/< //g"`
 		res_dir=${home_parent}/${run_user}/export_results/$rdir
 		new_res_file=`find $res_dir -print | grep csv | grep results | tail -1`
 		$TOOLS_BIN/validate_line --results_file $new_res_file --fields "$fields" --base_results_file $base_res_file
+		if [[ $? -ne 0 ]]; then
+			ertc=1
+		fi
 	done < "tests_to_run"
 	rm -rf $verify_res_after $verify_res_before
 }
@@ -115,4 +120,7 @@ while [[ $# -gt 0 ]]; do
 done
 vdir=`echo $verify_file | rev | cut -d / -f 3- | rev`
 verification_run
-exit 0
+if [[ $ertc -ne 0 ]]; then
+	echo Error verification of one or more items failed.
+fi
+exit $ertc
