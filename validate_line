@@ -1,5 +1,6 @@
 #!/bin/bash
 
+exit_rtc=0
 base_results_file=""
 
 usage()
@@ -27,43 +28,18 @@ error_out()
 	exit 1
 }
 
-validate_line()
+validate_lines()
 {
-	re='^[0-9]+$'
-	line=$1
-	field_index=`echo $2 | cut -d':' -f 1`
-	field_type=`echo $2 | cut -d':' -f 2`
-
-	value=`echo $1 | cut -d':' -f $field_index | sed "s/ //g"`
-	if [[ $value == "" ]]; then
-		error_out $field_index $field_type $line "Either field is not present, or has no value."
-	fi
-	if [[ $field_type == "n" ]]; then
-		#
-		# Handle floats also.
-		#
-		check_value=`echo $value | sed "s/\./0/g"`
-		if ! [[ $check_value =~ $re ]] ; then
-			error_out $field_index $field_type $line "Non numerical field"
+	while IFS= read -r test_info
+	do
+		regexp=`echo "$test_info" |  cut  -f 1`
+		string=`echo "$test_info" |  cut  -f 2`
+		echo $string | grep -E -q "$regexp"
+		if [[ $? -ne 0 ]]; then
+			echo "Error: Field regex mismatch, $regexp we have $string"
+			exit_rtc=1
 		fi
-	fi
-	if [[ $field_type == "sm" ]]; then
-		#
-		# String, needs to match.
-		#
-		grep -q "^${value}:" $base_results_file
-		if [ $? -ne 0 ]; then
-			error_out $field_index $field_type $line "Does not have match in the results file"
-		fi
-	fi
-	if [[ $field_type == "s" ]]; then
-		#
-		# Just a simple string.
-		#
-		if [[ $value == "" ]]; then
-			error_out $field_index $field_type $line "Should be string value in the results file"
-		fi
-	fi
+	done < "$1"
 }
 
 ARGUMENT_LIST=(
@@ -125,40 +101,39 @@ while [[ $# -gt 0 ]]; do
 done
 
 meta_head=0
+meta_test=0
 header_line=""
 field_location=""
 separ=""
 field_index=1
+rm -f tmp_results compare_file
 while IFS= read -r test_info
 do
 	#
 	# Skip over meta head
 	#
-	if [ $meta_head -eq 0 ]; then
-		if [[ $test_info == *"# Test general meta end"* ]]; then
-			meta_head=1
-		fi
+	if [[ $test_info == *"# Test general meta start"* ]]; then
+		meta_head=1
 		continue
 	fi
-	if [[ $header_line == "" ]]; then
-		header_line=`echo $test_info | sed "s/ /_/g" | sed "s/:/ /g"`
-		for field in $header_line; do
-			for find_field in $fields; do
-				value=`echo $find_field | cut -d':' -f 1`
-				type=`echo $find_field | cut -d':' -f 2`
-				if [[ $value == $field ]]; then
-					field_location=${field_location}${separ}${field_index}:${type}
-					let "field_index=${field_index}+1"
-					separ=" "
-					break
-				fi
-			done
-		done
+	if [[ $test_info == *"Test general meta end"* ]] then
+		meta_head=0
 		continue
 	fi
-	for field in $field_location; do
-		validate_line "$test_info" $field
-	done
+	if [[ $test_info == *"Test meta data start"* ]] then
+		meta_test=1
+		continue
+	fi
+	if [[ $test_info == *"Test meta data end"* ]] then
+		meta_test=0
+		continue
+	fi
+	if  [[ $meta_test -eq 1 ]] || [[ $meta_head -eq 1 ]]; then
+		continue
+	fi
+	echo $test_info >> tmp_results
 done < "$results_file"
-
-exit 0
+paste $base_results_file tmp_results > compare_file
+validate_lines compare_file
+rm compare_file
+exit $exit_rtc

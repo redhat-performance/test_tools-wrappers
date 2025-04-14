@@ -212,7 +212,7 @@ if [[ $to_tuned_setting == "" ]]; then
 	to_tuned_setting=`${TOOLS_BIN}/get_tuned_setting`
 fi
 if [[ $to_test_verify_file != "" ]]; then
-	$TOOLS_BIN/verification --test_cmd $test_cmd --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
+	$TOOLS_BIN/verification --test_cmd $test_cmd --test_name $test_name --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
 	exit $?
 fi
 if [ $to_times_to_run -eq 0 ]; then
