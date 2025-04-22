@@ -169,6 +169,10 @@ do
 		--test_verification)
 			i=$((i + 2))
 			to_test_verify_file=$2
+			#
+			# If the path is relative, than we make it absolute by
+			# using the the path of general_setup, minus the test_tools dir.
+			#
 			echo $to_test_verify_file |grep -q "^/" 
 			if [[ $? -ne 0 ]]; then
 				tdir=`echo $test_cmd | rev | cut -d'/' -f2- | rev`

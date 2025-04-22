@@ -56,9 +56,15 @@ verification_run()
 		pushd ${home_parent}/${run_user}/export_results > /dev/null
 		ls -d * > $verify_res_after
 		popd >/dev/null
+		#
+		# Determine what directory is new.
+		#
 		base_res_file=$vdir/$test_base_results
 		rdir=`diff $verify_res_after $verify_res_before | grep -v tar | grep '<' |  sed "s/< //g"`
 		res_dir=${home_parent}/${run_user}/export_results/$rdir
+		#
+		# Locate the test csv file
+		#
 		new_res_file=`find $res_dir -print | grep results_${test_name}.csv`
 		$TOOLS_BIN/validate_line --results_file $new_res_file --fields "$fields" --base_results_file $base_res_file
 		if [[ $? -ne 0 ]]; then
