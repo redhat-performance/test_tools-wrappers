@@ -169,6 +169,15 @@ do
 		--test_verification)
 			i=$((i + 2))
 			to_test_verify_file=$2
+			#
+			# If the path is relative, then we make it absolute by
+			# using the the path of general_setup, minus the test_tools dir.
+			#
+			echo $to_test_verify_file |grep -q "^/" 
+			if [[ $? -ne 0 ]]; then
+				tdir=`echo $test_cmd | rev | cut -d'/' -f2- | rev`
+				to_test_verify_file=${tdir}/${to_test_verify_file}
+			fi
 			shift 2
 		;;
 		--tuned_setting)
@@ -207,7 +216,7 @@ if [[ $to_tuned_setting == "" ]]; then
 	to_tuned_setting=`${TOOLS_BIN}/get_tuned_setting`
 fi
 if [[ $to_test_verify_file != "" ]]; then
-	$TOOLS_BIN/verification --test_cmd $test_cmd --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
+	$TOOLS_BIN/verification --test_cmd $test_cmd --test_name $test_name --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
 	exit $?
 fi
 if [ $to_times_to_run -eq 0 ]; then

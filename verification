@@ -1,14 +1,34 @@
 #!/bin/bash
 #
+# Copyright (C) 2025  David Valin dvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+
+#
 # Using a set of known results files, verify the test is still correct.
 #
 TOOLS_BIN=`echo $0 | rev | cut -d/ -f2- | rev`
 test_cmd=""
+test_name=""
 verify_file=""
 curdir=`pwd`
 home_parent=""
 run_user=""
 vdir=""
+exit_rtc=0
 
 verification_run()
 {
@@ -36,30 +56,26 @@ verification_run()
 		pushd ${home_parent}/${run_user}/export_results > /dev/null
 		ls -d * > $verify_res_after
 		popd >/dev/null
-		file_to_check=`diff $verify_res_after $verify_res_before | grep -v tar | grep '<' |  sed "s/< //g"`
 		#
-		# Check dir contents first
+		# Determine what directory is new.
 		#
-		files_present=$verify_res_before
-		pushd ${home_parent}/${run_user}/export_results
-		ls -R ${home_parent}/${run_user}/export_results/$file_to_check/* | cut -d'/' -f 6- > $verify_res_before
-		res_dir=${home_parent}/${run_user}/export_results/$file_to_check
-		popd > /dev/null
-		pushd $vdir/$test_base_results > /dev/null
-		ls -R * | cut -d'/' -f 3- > $verify_res_after
-		tfile=`ls *csv`
-		base_res_file=$vdir/$test_base_results/tfile
-		popd > /dev/null
-		diff -q $verify_res_before $verify_res_after > /dev/null
-		if [ $? -ne 0 ]; then
-			echo Warning: There are different files/file names between the results.
-			echo Files may still be valid as things like threads etc can be different.
-			diff $verify_res_before $verify_res_after
+		base_res_file=$vdir/$test_base_results
+		rdir=`diff $verify_res_after $verify_res_before | grep -v tar | grep '<' |  sed "s/< //g"`
+		res_dir=${home_parent}/${run_user}/export_results/$rdir
+		#
+		# Locate the test csv file
+		#
+		new_res_file=`find $res_dir -print | grep results_${test_name}.csv`
+		$TOOLS_BIN/validate_line --results_file $new_res_file --fields "$fields" --base_results_file $base_res_file
+		if [[ $? -ne 0 ]]; then
+			exit_rtc=1
 		fi
-		new_res_file=`find $res_dir -print | grep csv | grep results | tail -1`
-		$TOOLS_BIN/validate_line --results_file $new_res_file --fields "$fields" --header_lines $header_lines --base_results_file $base_res_file
 	done < "tests_to_run"
-	rm -rf $verify_res_after $verify_res_before
+	if [[ $? -eq 0 ]]; then
+		rm -rf $verify_res_after $verify_res_before
+	else
+		echo $verify_res_after $verify_res_before
+	fi
 }
 
 usage()
@@ -68,6 +84,7 @@ usage()
 	echo "home_parent <dir>: Parent of the users home directory."
 	echo "run_user <user>:  Name of user running the test."
 	echo "test_cmd <command>: Test wrapper that is being executed."
+	echo "test_name <name>: Name of test being run."
 	echo "verify_file <file>: Path to the test verification file."
 	exit $2
 }
@@ -77,6 +94,7 @@ ARGUMENT_LIST=(
 	"home_parent"
 	"run_user"
 	"test_cmd"
+	"test_name"
 	"verify_file"
 )
 NO_ARGUMENTS=(
@@ -111,6 +129,10 @@ while [[ $# -gt 0 ]]; do
 			test_cmd=$2
 			shift 2
 		;;
+		--test_name)
+			test_name=$2
+			shift 2
+		;;
 		--usage)
 			usage $0 0
 		;;
@@ -128,4 +150,4 @@ while [[ $# -gt 0 ]]; do
 done
 vdir=`echo $verify_file | rev | cut -d / -f 3- | rev`
 verification_run
-exit 0
+exit $exit_rtc
