@@ -38,3 +38,9 @@ start_pcp() {
 stop_pcp() {
 	printf "Stop\n" > $FIFO
 }
+
+#Shut the services down
+shutdown_pcp() {
+	systemctl stop PCPrecord.service
+	systemctl stop pmcd
+}
