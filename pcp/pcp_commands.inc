@@ -23,15 +23,25 @@ setup_pcp() {
 }
 
 #Starts PCP 
+#Resets openmetrics
 #Sends "Start" command to PCPrecord_actions
 #Takes three args:
 #1: Directory for PCP data, should be with the workload's own data
 #2: Test name
 #3: PMLogger config file to use
 start_pcp() {
+        printf "Reset\n" > $FIFO
+        echo "PCP metrics reset"
+	#Without the sleep the "Start" will be missed
+	sleep 2
 	echo "Start ${1} ${2} ${3}\n" 
 	printf "Start ${1} ${2} ${3}\n" > $FIFO
 }
+
+#Sends value to PCP archive as "throughput"
+#Uses openmetrics
+result2pcp() {
+        printf "throughput ${1}\n" > $FIFO
 
 #Stops PCP
 #Sends "Stop" command to PCPrecord_actions
@@ -43,4 +53,11 @@ stop_pcp() {
 shutdown_pcp() {
 	systemctl stop PCPrecord.service
 	systemctl stop pmcd
+}
+
+#Reset the openmetrics file
+reset_pcp_om () {
+        printf "Reset\n" > $FIFO
+        echo "PCP metrics reset"
+        sleep 2
 }
