@@ -179,7 +179,7 @@ do
 			#
 			# Iteration number will be added later.
 			#
-			output=`echo $verif_info | cut -d:' -f2-`
+			output=`echo $verif_info | cut -d: -f2-`
 			echo $output >> $verification_base
 		else 
 			header=$verif_info
