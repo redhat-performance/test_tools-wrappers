@@ -195,7 +195,6 @@ header_processed=0
 
 grep -q "Test general meta end" $results_file
 meta_head=$?
-echo meta_head $meta_head
 while IFS= read -r test_info
 do
 	if [ $meta_head -eq 0 ]; then
@@ -272,7 +271,7 @@ done < "$results_file"
 # Create the compare file  by pasting the base results (reg exp) against the tmp_results
 # file which is minus all the meta documentation.
 #
-paste $base_results_file $test_results > $compare_file
+paste $verification_base $test_results > $compare_file
 validate_lines $compare_file
 rm -f $compare_file $verification_base $verify_template $test_results
 if [[ $exit_rtc -ne 0 ]]; then
