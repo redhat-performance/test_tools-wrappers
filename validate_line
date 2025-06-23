@@ -267,6 +267,9 @@ do
 	fi
 	echo $test_info >> $test_results
 done < "$results_file"
+if [[ $multiple_entries -eq 1 ]]; then
+	mv $verify_template $verification_base
+fi
 #
 # Create the compare file  by pasting the base results (reg exp) against the tmp_results
 # file which is minus all the meta documentation.
