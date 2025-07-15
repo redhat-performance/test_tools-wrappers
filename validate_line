@@ -21,6 +21,7 @@ exit_rtc=0
 base_results_file=""
 header=""
 compare_file=`mktemp /tmp/validate_compare.XXXXX`
+filter_file=`mktemp /tmp/validate_filter.XXXXX`
 verification_base=`mktemp /tmp/validate_veri_base.XXXXX`
 verify_template=`mktemp /tmp/validate_veri_temp.XXXXX`
 test_results=`mktemp /tmp/validate_test_res.XXXXX`
@@ -146,6 +147,8 @@ multiple_search=""
 header_next=0
 grouping=0
 
+
+grep -v "^# " $base_results_file | grep -v "^#$" > $filter_file
 while IFS= read -r verif_info
 do
 	if [[ $header_next -eq 1 ]]; then
@@ -187,7 +190,7 @@ do
 	else
 		echo $verif_info >> $verification_base
 	fi
-done < "$base_results_file"
+done < "$filter_file"
 
 lines=0
 iterations=1
@@ -276,7 +279,7 @@ fi
 #
 paste $verification_base $test_results > $compare_file
 validate_lines $compare_file
-rm -f $compare_file $verification_base $verify_template $test_results
+rm -f $compare_file $verification_base $verify_template $test_results $filter_file
 if [[ $exit_rtc -ne 0 ]]; then
 	echo Failed
 else
