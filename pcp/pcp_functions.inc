@@ -106,7 +106,8 @@ pcp_stop()
     fi
 }
 
-mark_ms() {
+mark_ms()
+{
     read up rest </proc/uptime; marker="${up%.*}${up#*.}"
     echo "$marker"                 # return value
 }

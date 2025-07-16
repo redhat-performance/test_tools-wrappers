@@ -2,7 +2,8 @@ FIFO="/tmp/pcpFIFO"
 timeout_long=10             # wait-time for Start and Stop actions
 timeout_short=2             # wait-time for other actions
 
-fail_exit() {
+fail_exit()
+{
     if [ "$?" != "0" ]; then
         echo "ERROR: $1"
         # Additional error handling logic can be added here
@@ -13,7 +14,8 @@ fail_exit() {
 # Wait for the PCPrecord.SVC to report Status='READY'
 # This appears to be CPU time heavy
 # Timing can be quite finicky
-check_svc() {
+check_svc()
+{
     wait_to=$1
     # Wait for the PCPrecord.SVC to report Status='READY'
     # This appears to be CPU time heavy
@@ -29,7 +31,8 @@ check_svc() {
 }
 
 #Sets up and starts the PCP service
-setup_pcp() {
+setup_pcp()
+{
 	working_dir="/usr/local/src/PCPrecord"
 
 	mkdir -p "${working_dir}"
@@ -62,7 +65,8 @@ setup_pcp() {
 #$1: Directory for PCP data, should be with the workload's own data
 #$2: Test name
 #$3: PMLogger config file to use
-start_pcp() {
+start_pcp()
+{
 	printf "Reset\n" > $FIFO
 	echo "PCP metrics reset"
 	sleep 2
@@ -72,7 +76,8 @@ start_pcp() {
 
 #Stops PCP
 #Sends "Stop" command to PCPrecord_actions
-stop_pcp() {
+stop_pcp()
+{
 	printf "Stop\n" > $FIFO
 	sleep 2
 }
@@ -80,7 +85,8 @@ stop_pcp() {
 #Sends value to OpenMetrics file to be added to PCP archive
 #$1: metric
 #$2: value
-result2pcp() {
+result2pcp()
+{
 	echo "Logging results ${1} ${2}"
 	#Do we know about the metric?
 	check_svc $timeout_short
@@ -98,13 +104,15 @@ result2pcp() {
 }
 
 #Shut the services down
-shutdown_pcp() {
+shutdown_pcp()
+{
 	systemctl stop PCPrecord.service
 	systemctl stop pmcd
 }
 
 #Reset the openmetrics file
-reset_pcp_om() {
+reset_pcp_om()
+{
 	check_svc $timeout_short
         printf "Reset\n" > $FIFO
         echo "PCP metrics reset"
@@ -114,7 +122,8 @@ reset_pcp_om() {
 
 #Start a data subset if we're doing one big archive for the entire run
 #Resets OpenMetrics and sets the "running" flag so graphs will show the times we care about
-start_pcp_subset() {
+start_pcp_subset()
+{
 	reset_pcp_om
 	echo "Starting PCP subset"
 	printf "running 1" > $FIFO
@@ -123,7 +132,8 @@ start_pcp_subset() {
 }
 
 #Stop a data subset if we're doing one big archive for the entire run
-stop_pcp_subset() {
+stop_pcp_subset()
+{
 	echo "Stopping PCP subset"
 	printf "running 0" > $FIFO
 	check_svc $timeout_short

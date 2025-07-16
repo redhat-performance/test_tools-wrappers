@@ -16,12 +16,14 @@ om_workload_file_reset="/tmp/openmetrics_workload_reset.txt"
 #############################
 # Functions #################
 
-reset_om_metrics() {
+reset_om_metrics()
+{
     echo "Reset OpenMetrics values"
     cp ${om_workload_file_reset} ${om_workload_file}
 }
 
-error_exit() {
+error_exit()
+{
     if [ "$?" != "0" ]; then
         systemd-notify --status="ERROR: $1"
         # Additional error handling logic can be added here
