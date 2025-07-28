@@ -96,6 +96,7 @@ pcp_stop()
 # Stop PCP logger and pause for pmlogger to write archive
     pkill -USR1 pmlogger
 # Now check that PMLOGGER has stopped logging
+# 5 seconds seems okay for now. We may increase or change the method after some soak time
     timeout 5 bash -c \
       "until ! pgrep pmlogger>/dev/null; do sleep 0.5; done"
     # Trap timeout condition
