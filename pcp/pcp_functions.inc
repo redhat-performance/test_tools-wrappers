@@ -75,7 +75,7 @@ pcp_start()
     mkdir -p "${archive_dir}"
 
 # Run PCP pmlogger
-# JTH - VERIFY success, ensure pmlogger starts
+# VERIFY success, ensure pmlogger starts
     pmlogger -c "${cfg_file}" -t "$sample_rate" -l "${pmlogger_log}"\
       "${archive_loc}" &
 
@@ -87,14 +87,6 @@ pcp_start()
         echo "Timed out waiting for PMLOGGER to Start1"
         exit 30
     fi
-# Now check that PMLOGGER has started logging
-#    timeout 5 bash -c \
-#      "until grep -q "Starting logger " ${pmlogger_log}; do sleep 0.5; done"
-#    # Trap timeout condition
-#    if [ $? -eq 124 ]; then
-#        echo "Timed out waiting for PMLOGGER to Start2"
-#        exit 31
-#    fi
 }
 
 pcp_stop()
