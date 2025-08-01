@@ -58,7 +58,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 cpus=`nproc`
-separ=","
 
 #
 # Make sure requested intervals is valid.
@@ -88,7 +87,7 @@ if [[ $interval -ne 1 ]]; then
 	do
 		cpu_oper=${cpu_oper},${cpu}
 	done
-	cpu_oper=$cpu_oper$separ$cpus
+	cpu_oper=${cpu_oper},${cpus}
 else
 	cpu_oper=$cpus
 fi
