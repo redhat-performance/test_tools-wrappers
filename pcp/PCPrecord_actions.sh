@@ -41,7 +41,7 @@ reset_om_metrics()
 
 error_exit()
 {
-    if [ "$?" != "0" ]; then
+    if [[ "$?" != "0" ]]; then
         systemd-notify --status="ERROR: $1"
         # Additional error handling logic can be added here
         rm -f "$FIFO"
@@ -93,7 +93,7 @@ while : ; do
             archive_name="${action_arr[2]}"
             conf_file="${action_arr[3]}"
             # Start PMLOGGER to create ARCHIVE
-            if [ "$pmlogger_running" = "false" ]; then
+            if [[ "$pmlogger_running" = "false" ]]; then
                 # Signal Processing this $action
                 systemd-notify --status="DEBUG: $action PMLOGGER Request"
                 # These functions attempt to catch errors and verify success
@@ -106,7 +106,7 @@ while : ; do
             ;;
         Stop)      # artifacts_dir="${action_arr[1]}"
             # Terminate PMLOGGER 
-            if [ "$pmlogger_running" = "true" ]; then
+            if [[ "$pmlogger_running" = "true" ]]; then
                 # Will ZATHRAS Store PCP Archive related artifacts ?
                 #  - Currently Missing from PCPSTOP logic
                 ##pcp_stop "${artifacts_dir}"
@@ -123,7 +123,7 @@ while : ; do
             ;;
         throughput|latency|numthreads|runtime)      # Workload Metrics
             # metric="${action_arr[1]}"  om_workload_file=$2
-            if [ "$pmlogger_running" = "true" ]; then
+            if [[ "$pmlogger_running" = "true" ]]; then
                 # Forward workload metric to openmetrics_workload.txt
                 # Change only one metric line at a time
                 # Replaces the entire line using sed
@@ -133,7 +133,7 @@ while : ; do
             ;;
         running|iteration)                          # Workload States
             # state="${action_arr[1]}"  om_workload_file=$2
-            if [ "$pmlogger_running" = "true" ]; then
+            if [[ "$pmlogger_running" = "true" ]]; then
                 sed -i "s/^.*${action_arr[0]}.*$/${action}/" "$om_workload_file"
             fi
             ;;

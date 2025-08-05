@@ -35,7 +35,7 @@ pcp_verify()
 {
     local cfg_file="$1"          # PMLOGGER Configuration File
 # Verify user provided pmlogger.conf file exists. If not abort.
-    if [ ! -f "$cfg_file" ]; then
+    if [[ ! -f "$cfg_file" ]]; then
         echo "File $cfg_file not found!"; echo
         exit 20
     fi
@@ -44,7 +44,7 @@ pcp_verify()
 
 # Verify PMCD is running (pcp-zeroconf is installed)
     systemctl is-active --quiet pmcd
-    if [ $? != 0 ]; then
+    if [[ $? != 0 ]]; then
         echo "PCP pmcd is not running. Is PCP installed?"
         echo "Suggested syntax: sudo dnf install pcp-zeroconf"; echo
         exit 21
@@ -53,7 +53,7 @@ pcp_verify()
 # Manage primary pmlogger. STOP if it is running.
 # Check if primary pmlogger is running
     systemctl is-active --quiet pmlogger
-    if [ $? == 0 ]; then
+    if [[ $? == 0 ]]; then
         echo "Primary PCP pmlogger is running. Being stopped to run script"
         systemctl stop pmlogger
         # Flag indicates primary pmlogger should be restarted by 'pcp_stop'
@@ -83,7 +83,7 @@ pcp_start()
     timeout 5 bash -c \
       "until pgrep pmlogger>/dev/null; do sleep 0.5; done"
     # Trap timeout condition
-    if [ $? -eq 124 ]; then
+    if [[ $? -eq 124 ]]; then
         echo "Timed out waiting for PMLOGGER to Start1"
         exit 30
     fi
@@ -100,7 +100,7 @@ pcp_stop()
     timeout 5 bash -c \
       "until ! pgrep pmlogger>/dev/null; do sleep 0.5; done"
     # Trap timeout condition
-    if [ $? -eq 124 ]; then
+    if [[ $? -eq 124 ]]; then
         echo "Timed out waiting for PMLOGGER to Stop"
         pmlogger_killed="failed"        # Not used -yet
         exit 40
@@ -108,8 +108,8 @@ pcp_stop()
     pmlogger_killed="success"
 
 # Restore primary pmlogger, if it was previously running
-    if [ "$primary_pmlogger" == "true" ]; then
-        if [ "$pmlogger_killed" == "success" ]; then
+    if [[ "$primary_pmlogger" == "true" ]]; then
+        if [[ "$pmlogger_killed" == "success" ]]; then
 #DEBUG      echo "Primary PCP pmlogger being restored to original run state"
             systemctl start pmlogger
 #DEBUG  else

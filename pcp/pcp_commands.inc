@@ -23,7 +23,7 @@ timeout_short=2             # wait-time for other actions
 
 fail_exit()
 {
-    if [ "$?" != "0" ]; then
+    if [[ "$?" != "0" ]]; then
         echo "ERROR: $1"
         # Additional error handling logic can be added here
         exit 1
@@ -42,7 +42,7 @@ check_svc()
       "until systemctl status PCPrecord.service | grep -q "READY:" \
       ; do sleep 0.1; done"
     # Trap timeout condition
-    if [ $? -eq 124 ]; then
+    if [[ $? -eq 124 ]]; then
         echo "Timed out waiting $wait_to sec for systemd status=READY: \
           Request=$request_str"
         exit 2
