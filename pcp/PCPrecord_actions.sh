@@ -151,3 +151,5 @@ echo "Cleaning up"
 
 # Reset openmetric.workload metric values prior to leaving
 reset_om_metrics
+
+exit 0
