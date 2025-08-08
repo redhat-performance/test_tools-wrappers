@@ -186,6 +186,9 @@ do
 				to_tuned_setting="${value}"
 				if [ -f /usr/sbin/tuned-adm ]; then
 					tuned-adm active ${value}
+					if [[ $? -ne 0 ]]; then
+						echo Warning:  Unable to set tuned profile $value.
+					fi
 				else
 					echo Warning: asking for tuned setting $value, but tuned-adm is not installed.
 				fi
