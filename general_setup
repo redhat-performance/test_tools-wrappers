@@ -185,7 +185,7 @@ do
 			if [[ $value != *"none"* ]]; then
 				to_tuned_setting="${value}"
 				if [ -f /usr/sbin/tuned-adm ]; then
-					tuned-adm active ${value}
+					tuned-adm profile ${value}
 					if [[ $? -ne 0 ]]; then
 						echo Warning:  Unable to set tuned profile $value.
 					fi
