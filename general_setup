@@ -201,6 +201,7 @@ do
  			i=$((i + 1))
  			to_use_pcp=1
  			shift 1
+	    ;;
 		--)
 			break; 
 		;;
