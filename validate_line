@@ -70,7 +70,7 @@ validate_lines()
 		#
 		# Check to see if the string matches the regular expression.
 		#
-		echo $string | grep -E -q "$regexp"
+		echo "$string" | grep -E -q "$regexp"
 		if [[ $? -ne 0 ]]; then
 			echo "Error: Field regex mismatch, $regexp we have $string"
 			exit_rtc=1
