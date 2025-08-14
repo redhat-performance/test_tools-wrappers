@@ -60,8 +60,10 @@ install_deps()
         if ! command -v wget > /dev/null 2>&1; then
             if command -v yum > /dev/null 2>&1; then
                 yum install -y wget
-            else
+            elif command -v apt > /dev/null 2>&1; then
                 apt install -y wget
+            else
+		zypper install -y wget
             fi
         fi
 
@@ -119,6 +121,11 @@ parse_uname()
             echo $identifier has no uname_version_pattern, skipping
             continue
         fi
+
+	if [ -z pattern ]; then
+	    echo $identifier has no uname_pattern, skipping
+	    continue
+	fi
         
         local os_match=`echo $kinfo | grep -Eo $pattern`
         

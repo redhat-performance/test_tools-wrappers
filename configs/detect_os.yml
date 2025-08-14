@@ -20,5 +20,3 @@
 
 - name: SLES
   identifier: sles
-  #uname_pattern:
-  uname_version_pattern: "[0-0]*"
