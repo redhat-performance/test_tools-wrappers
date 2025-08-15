@@ -122,10 +122,10 @@ parse_uname()
             continue
         fi
 
-	if [ -z "$pattern" ]; then
-	    echo $identifier has no uname_pattern, skipping
-	    continue
-	fi
+        if [ -z "$pattern" ]; then
+            echo $identifier has no uname_pattern, skipping
+            continue
+        fi
         
         local os_match=`echo $kinfo | grep -Eo $pattern`
         
