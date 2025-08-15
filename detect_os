@@ -63,7 +63,7 @@ install_deps()
             elif command -v apt > /dev/null 2>&1; then
                 apt install -y wget
             else
-		zypper install -y wget
+                zypper install -y wget
             fi
         fi
 
@@ -117,12 +117,12 @@ parse_uname()
         local identifier=`yq -r ".[$i].identifier" $config`
         local ver_pattern=`yq -r ".[$i].uname_version_pattern" $config`
 
-        if [ -z ver_pattern ]; then
+        if [ -z "$ver_pattern" ]; then
             echo $identifier has no uname_version_pattern, skipping
             continue
         fi
 
-	if [ -z pattern ]; then
+	if [ -z "$pattern" ]; then
 	    echo $identifier has no uname_pattern, skipping
 	    continue
 	fi
