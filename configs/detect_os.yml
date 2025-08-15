@@ -17,3 +17,6 @@
   identifier: fedora
   uname_pattern: \.fc[0-9]+\.
   uname_version_pattern: "[0-9]+"
+
+- name: SLES
+  identifier: sles
