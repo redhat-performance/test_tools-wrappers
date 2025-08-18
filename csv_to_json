@@ -1,0 +1,98 @@
+#!/bin/bash
+
+#
+#                         License
+#
+# Copyright (C) 2025  Keith Valin kvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Convert CSV files to JSON.
+
+usage()
+{
+	echo "usage $1" >&2
+	echo -e "\t-h --help --usage: This help message" >&2
+	echo -e "\t--csv_file <file>: CSV file to convert to JSON." >&2
+	echo -e "\t--output_file <file>: file to write output to, default is stdout." >&2
+	echo -e "\t--json_skip: Skip conversion process, effectively turns this into a noop" >&2
+}
+
+ARGUMENT_LIST=(
+        "csv_file"
+        "output_file"
+)
+
+NO_ARGUMENTS=(
+        "usage"
+        "h"
+		"help"
+)
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
+    --name "$(basename "$0")" \
+    --options "h" \
+    -- "$@"
+)
+
+if [ $? -ne 0 ]; then
+        exit
+fi
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--csv_file)
+			csv_file=${2}
+			shift 2
+		;;
+		--output_file)
+			output_file=${2}
+			shift 2
+		;;
+		--usage | -h | --help)
+			usage $0
+			exit 0
+		;;
+		--json_skip)
+			exit 0
+		;;
+		--)
+			break;
+		;;
+		*)
+			echo option not found $1 >&2
+			usage $0
+			exit 1
+		;;
+	esac
+done
+
+if ! command -v csvjson &> /dev/null; then
+	echo "csvjson could not be found, please install python3-csvkit" >&2
+	exit 1
+fi
+
+# grep commands are used to remove the metadata lines
+# these lines are not valid CSV and will cause problems
+# all metadata lines start with a # character
+if [ -z "$csv_file" ]; then
+	grep -v '^#' $csv_file | csvjson
+else
+	grep -v '^#' $csv_file | csvjson > $output_file
+fi
