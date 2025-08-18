@@ -75,6 +75,7 @@ to_test_verify_file=""
 to_sys_type=`hostname`
 to_configuration=`hostname`
 to_home_root=`echo $HOME | rev | cut -d'/' -f 2- | rev`
+to_script_dir=`dirname $(realpath $0)`
 if [[ $to_home_root == "" ]]; then
 	to_home_root="/"
 fi
