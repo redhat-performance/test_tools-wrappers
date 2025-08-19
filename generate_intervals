@@ -35,10 +35,10 @@ usage()
 }
 
 interval=0
-mx_valueax=0
+max_value=0
 
 ARGUMENT_LIST=(
-        "interval"
+	"interval"
 	"max_value"
 )
 
@@ -92,7 +92,7 @@ done
 #
 if [[ $max_value -lt 1 ]] || [[ $interval  -lt 1 ]]; then
 	echo Need to designate a positive non-zero value for
-	echo "-max_value and --interval"
+	echo "--max_value and --interval"
 	exit 1
 fi
 
