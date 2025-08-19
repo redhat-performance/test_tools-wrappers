@@ -62,8 +62,11 @@ install_deps()
                 yum install -y wget
             elif command -v apt > /dev/null 2>&1; then
                 apt install -y wget
-            else
+	    elif command -v zypper > /dev/null 2>&1; then
                 zypper install -y wget
+	    else
+		echo "Missing wget, and do not know what package manager is being used, exiting out"
+		exit 1
             fi
         fi
 
