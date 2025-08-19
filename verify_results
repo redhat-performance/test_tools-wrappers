@@ -23,6 +23,9 @@ def verify_schema(file: TextIO, class_name: BaseModel):
 
 if __name__ == "__main__":
 	import argparse
+	import importlib.util
+	import re
+
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--file", type=str, default=None, help="JSON file to verify, default is to read from stdin")
 	parser.add_argument("--schema_file", type=str, help="Schema file used to validate JSON file")
@@ -44,14 +47,19 @@ if __name__ == "__main__":
 		args.file = open(args.file, "r")
 
 	try:
-		importedClass = __import__(args.schema_file.replace(".py", ""), fromlist=[args.class_name])
+		# Get the file name (minus the extension), since it is the module name
+		module_name = re.sub(r".py$", "", args.schema_file).split("/")[-1]
+		
+		# Import the class from the schema file
+		spec = importlib.util.spec_from_file_location(module_name, args.schema_file)
+		importedClass = importlib.util.module_from_spec(spec)
+		spec.loader.exec_module(importedClass)
+		
 		baseModel = getattr(importedClass, args.class_name)
-	except ImportError as e:
-		print(f"Could not read schema file {args.schema_file}", file=sys.stderr)
-		print(f"Error: {e}", file=sys.stderr)
-		sys.exit(1)
-	except AttributeError:
+	# Handle file issues and if the class is not found (attribute error)
+	except (FileNotFoundError, AttributeError) as e:
 		print(f"Class {args.class_name} not found in {args.schema_file}", file=sys.stderr)
+		print(f"Error: {e}", file=sys.stderr)
 		sys.exit(1)
 	except Exception as e:
 		print(f"Error: {e}", file=sys.stderr)
