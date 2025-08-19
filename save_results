@@ -177,12 +177,12 @@ which tuned-adm >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
         echo tuned-adm not available > ~/tuned_after
 else
-        tuned-adm list | grep active | cut -d:  -f 2 | sed "s/^  //g" > ~/tuned_after
+        tuned-adm active | cut -d:  -f 2 | sed "s/ //g" > ~/tuned_after
 fi
 diff ~/tuned_before ~/tuned_after > $RESULTS_PATH/tuned_setting
 
 if [[ $? -ne -0 ]]; then
-	echo Tuned settings have changed!!!!
+	echo "Tuned settings have changed!!!!"
 	echo Start of run
 	cat ~/tuned_before
 	echo  End of run
