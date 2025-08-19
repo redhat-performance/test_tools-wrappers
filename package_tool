@@ -134,3 +134,4 @@ if [[ $packages != "" ]]; then
 		fi
 	done
 fi
+exit 0
