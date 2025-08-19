@@ -165,7 +165,6 @@ if [[ ! -d $export_results ]]; then
 	mkdir $export_results
 fi
 
-
 time_stamp=`date "+%Y.%m.%d-%H.%M.%S"`
 results_dir=${test_name}_${time_stamp}
 RESULTS_PATH=${export_results}/${results_dir}
