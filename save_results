@@ -181,12 +181,12 @@ fi
 diff ~/tuned_before ~/tuned_after > $RESULTS_PATH/tuned_setting
 
 if [[ $? -ne -0 ]]; then
-	echo "Tuned settings have changed!!!!"
+	echo 'Tuned settings have changed!!!!'
 	echo Start of run
 	cat ~/tuned_before
 	echo  End of run
 	cat ~/tuned_after
-	echo "Tuned settings have changed!!!!" >> $RESULTS_PATH/tuned_setting
+	echo 'Tuned settings have changed!!!!' >> $RESULTS_PATH/tuned_setting
 else
 	echo "Tuned stayed the same." >> $RESULTS_PATH/tuned_setting
 fi
