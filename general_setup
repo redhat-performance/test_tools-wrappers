@@ -228,7 +228,7 @@ which tuned-adm >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
 	echo tuned-adm not available > ~/tuned_before
 else
-	tuned-adm list | grep active | cut -d:  -f 2 | sed "s/^ //g" > ~/tuned_before
+	tuned-adm active | cut -d:  -f 2 | sed "s/ //g" > ~/tuned_before
 fi
 
 if [[ $to_test_verify_file != "" ]]; then
