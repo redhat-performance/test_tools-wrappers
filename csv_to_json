@@ -30,7 +30,7 @@ def main(csv_file: TextIO, output: TextIO, separator: str):
     Convert a CSV file to JSON.
     """
     import pandas as pd
-    df = pd.read_csv(csv_file, sep=separator)
+    df = pd.read_csv(csv_file, sep=separator, comment='#')
     df.to_json(output, orient='records', lines=False, indent=4)
 
 if __name__ == "__main__":
