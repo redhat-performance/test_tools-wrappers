@@ -68,6 +68,7 @@ gs_usage_info()
 	echo "  --tuned_setting: used in naming the tar file, default for RHEL is the current active tuned.  For non"
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."
+	echo "  --use_pcp: Enables use of Performance Co-Pilot in wrappers, defaults to 0."
 	exit 1
 }
 
@@ -94,6 +95,7 @@ to_no_pkg_install=0
 to_verify_flags=""
 to_json_flags=""
 to_tuned_setting=""
+to_use_pcp=0
 
 i=1
 j=$#
@@ -187,7 +189,10 @@ do
 			if [[ $value != *"none"* ]]; then
 				to_tuned_setting="${value}"
 				if [ -f /usr/sbin/tuned-adm ]; then
-					tuned-adm active ${value}
+					tuned-adm profile ${value}
+					if [[ $? -ne 0 ]]; then
+						echo Warning:  Unable to set tuned profile $value.
+					fi
 				else
 					echo Warning: asking for tuned setting $value, but tuned-adm is not installed.
 				fi
@@ -205,6 +210,11 @@ do
 			to_json_flags="$1"
 			shift 1
 		;;
+		--use_pcp)
+ 			i=$((i + 1))
+ 			to_use_pcp=1
+ 			shift 1
+	    ;;
 		--)
 			break; 
 		;;
@@ -225,6 +235,19 @@ fi
 if [[ $to_tuned_setting == "" ]]; then
 	to_tuned_setting=`${TOOLS_BIN}/get_tuned_setting`
 fi
+
+#
+#  Get the actual setting of the tuned for future comparison,
+#  Do not depend on $to_tuned_setting. It might not have set 
+#  properly to start with.
+#
+which tuned-adm >> /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+	echo tuned-adm not available > ~/tuned_before
+else
+	tuned-adm active | cut -d:  -f 2 | sed "s/ //g" > ~/tuned_before
+fi
+
 if [[ $to_test_verify_file != "" ]]; then
 	$TOOLS_BIN/verification --test_cmd $test_cmd --test_name $test_name --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
 	exit $?

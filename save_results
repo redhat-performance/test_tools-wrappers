@@ -172,6 +172,26 @@ mkdir -p ${RESULTS_PATH}
 
 copy_file $results $RESULTS_PATH
 
+which tuned-adm >> /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+        echo tuned-adm not available > ~/tuned_after
+else
+        tuned-adm active | cut -d:  -f 2 | sed "s/ //g" > ~/tuned_after
+fi
+diff ~/tuned_before ~/tuned_after > $RESULTS_PATH/tuned_setting
+
+if [[ $? -ne -0 ]]; then
+	echo 'Tuned settings have changed!!!!'
+	echo Start of run
+	cat ~/tuned_before
+	echo  End of run
+	cat ~/tuned_after
+	echo 'Tuned settings have changed!!!!' >> $RESULTS_PATH/tuned_setting
+else
+	echo "Tuned stayed the same." >> $RESULTS_PATH/tuned_setting
+fi
+
+
 if [[ $other_files != "" ]]; then
 	file_list=`echo $other_files | sed "s/,/ /g"`
 	for i in $file_list; do

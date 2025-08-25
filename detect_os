@@ -60,8 +60,13 @@ install_deps()
         if ! command -v wget > /dev/null 2>&1; then
             if command -v yum > /dev/null 2>&1; then
                 yum install -y wget
-            else
+            elif command -v apt > /dev/null 2>&1; then
                 apt install -y wget
+	    elif command -v zypper > /dev/null 2>&1; then
+                zypper install -y wget
+	    else
+                echo "Missing wget, and do not know what package manager is being used, exiting out"
+                exit 1
             fi
         fi
 
@@ -115,8 +120,13 @@ parse_uname()
         local identifier=`yq -r ".[$i].identifier" $config`
         local ver_pattern=`yq -r ".[$i].uname_version_pattern" $config`
 
-        if [ -z ver_pattern ]; then
+        if [ -z "$ver_pattern" ]; then
             echo $identifier has no uname_version_pattern, skipping
+            continue
+        fi
+
+        if [ -z "$pattern" ]; then
+            echo $identifier has no uname_pattern, skipping
             continue
         fi
         
