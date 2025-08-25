@@ -47,6 +47,6 @@ if __name__ == "__main__":
         sys.exit(0)
 
     args.csv_file = open(args.csv_file, 'r') if args.csv_file else sys.stdin
-    args.output = open(args.output, 'w') if args.output else sys.stdout
+    args.output = open(args.output_file, 'w') if args.output_file else sys.stdout
 
-    main(args.csv_file, args.output, args.separator)
+    main(args.csv_file, args.output_file, args.separator)
