@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python3
 
 #
 #                         License
@@ -21,78 +21,32 @@
 #
 # Convert CSV files to JSON.
 
-usage()
-{
-	echo "usage $1" >&2
-	echo -e "\t-h --help --usage: This help message" >&2
-	echo -e "\t--csv_file <file>: CSV file to convert to JSON." >&2
-	echo -e "\t--output_file <file>: file to write output to, default is stdout." >&2
-	echo -e "\t--json_skip: Skip conversion process, effectively turns this into a noop" >&2
-}
+import argparse
+import sys
+from typing import TextIO
 
-ARGUMENT_LIST=(
-        "csv_file"
-        "output_file"
-)
+def main(csv_file: TextIO, output: TextIO, separator: str):
+    """
+    Convert a CSV file to JSON.
+    """
+    import pandas as pd
+    df = pd.read_csv(csv_file, sep=separator)
+    df.to_json(output, orient='records', lines=False, indent=4)
 
-NO_ARGUMENTS=(
-        "usage"
-        "h"
-		"help"
-)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Convert CSV files to JSON')
+    parser.add_argument('--csv_file', type=str, help='The CSV file to convert', default="")
+    parser.add_argument('--output_file', type=str, help='The JSON file to write', default="")
+    parser.add_argument('--json_skip', action='store_true', help='Skip processing the CSV to JSON, effectively makes this a no-op')
+    
+    # Colon is used as the default separator since most wrappers use it.
+    parser.add_argument('--separator', type=str, help='The separator to use for the CSV file', default=":")
+    args = parser.parse_args()
 
-# read arguments
-opts=$(getopt \
-    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
-    --longoptions "$(printf "%s," "${NO_ARGUMENTS[@]}")" \
-    --name "$(basename "$0")" \
-    --options "h" \
-    -- "$@"
-)
+    if args.json_skip:
+        sys.exit(0)
 
-if [ $? -ne 0 ]; then
-        exit
-fi
-eval set --$opts
+    args.csv_file = open(args.csv_file, 'r') if args.csv_file else sys.stdin
+    args.output = open(args.output, 'w') if args.output else sys.stdout
 
-while [[ $# -gt 0 ]]; do
-	case "$1" in
-		--csv_file)
-			csv_file=${2}
-			shift 2
-		;;
-		--output_file)
-			output_file=${2}
-			shift 2
-		;;
-		--usage | -h | --help)
-			usage $0
-			exit 0
-		;;
-		--json_skip)
-			exit 0
-		;;
-		--)
-			break;
-		;;
-		*)
-			echo option not found $1 >&2
-			usage $0
-			exit 1
-		;;
-	esac
-done
-
-if ! command -v csvjson &> /dev/null; then
-	echo "csvjson could not be found, please install python3-csvkit" >&2
-	exit 1
-fi
-
-# grep commands are used to remove the metadata lines
-# these lines are not valid CSV and will cause problems
-# all metadata lines start with a # character
-if [ -z "$csv_file" ]; then
-	grep -v '^#' $csv_file | csvjson
-else
-	grep -v '^#' $csv_file | csvjson > $output_file
-fi
+    main(args.csv_file, args.output, args.separator)
