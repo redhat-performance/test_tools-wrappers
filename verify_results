@@ -29,8 +29,15 @@ if __name__ == "__main__":
 	import re
 
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--file", type=str, default=None, help="JSON file to verify, default is to read from stdin")
-	parser.add_argument("--schema_file", type=str, help="Schema file used to validate JSON file")
+	parser.add_argument("--file",
+		type=argparse.FileType("r"),
+		help="JSON file to verify, default is to read from stdin",
+		default=sys.stdin
+	)
+	parser.add_argument("--schema_file",
+		type=argparse.FileType("r"),
+		help="Schema file used to validate JSON file"
+	)
 	parser.add_argument("--class_name", type=str, help="Class name used to validate JSON file", default="Results")
 	parser.add_argument("--usage", action="store_true", help="Show usage")
 	parser.add_argument("--verify_skip", action="store_true", help="Skip verification process")
@@ -42,11 +49,6 @@ if __name__ == "__main__":
 
 	if args.verify_skip:
 		sys.exit(0)
-
-	if args.file is None:
-		args.file = sys.stdin
-	else:
-		args.file = open(args.file, "r")
 
 	try:
 		# Get the file name (minus the extension), since it is the module name

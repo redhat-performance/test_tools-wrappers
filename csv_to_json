@@ -42,8 +42,8 @@ def main(csv_file: TextIO, output: TextIO, separator: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert CSV files to JSON')
-    parser.add_argument('--csv_file', type=str, help='The CSV file to convert', default="")
-    parser.add_argument('--output_file', type=str, help='The JSON file to write', default="")
+    parser.add_argument('--csv_file', type=argparse.FileType("r"), help='The CSV file to convert', default=sys.stdin)
+    parser.add_argument('--output_file', type=argparse.FileType("w"), help='The JSON file to write', default=sys.stdout)
     parser.add_argument('--json_skip', action='store_true', help='Skip processing the CSV to JSON, effectively makes this a no-op')
     
     # Colon is used as the default separator since most wrappers use it.
@@ -52,8 +52,5 @@ if __name__ == "__main__":
 
     if args.json_skip:
         sys.exit(0)
-
-    args.csv_file = open(args.csv_file, 'r') if args.csv_file else sys.stdin
-    args.output = open(args.output_file, 'w') if args.output_file else sys.stdout
 
     main(args.csv_file, args.output_file, args.separator)
