@@ -35,7 +35,7 @@ if __name__ == "__main__":
 		default=sys.stdin
 	)
 	parser.add_argument("--schema_file",
-		type=argparse.FileType("r"),
+		type=str,
 		help="Schema file used to validate JSON file"
 	)
 	parser.add_argument("--class_name", type=str, help="Class name used to validate JSON file", default="Results")
