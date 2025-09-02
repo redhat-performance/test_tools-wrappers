@@ -76,6 +76,7 @@ to_test_verify_file=""
 to_sys_type=`hostname`
 to_configuration=`hostname`
 to_home_root=`echo $HOME | rev | cut -d'/' -f 2- | rev`
+to_script_dir=`dirname $(realpath $0)`
 if [[ $to_home_root == "" ]]; then
 	to_home_root="/"
 fi
@@ -91,7 +92,8 @@ to_user=`whoami`
 to_sysname=`hostname`
 to_pstats="default"
 to_no_pkg_install=0
-
+to_verify_flags=""
+to_json_flags=""
 to_tuned_setting=""
 to_use_pcp=0
 
@@ -199,6 +201,14 @@ do
 		;;
 		--usage)
 			gs_usage_info
+		;;
+		--verify_skip)
+			to_verify_flags="$1"
+			shift 1
+		;;
+		--json_skip)
+			to_json_flags="$1"
+			shift 1
 		;;
 		--use_pcp)
  			i=$((i + 1))
