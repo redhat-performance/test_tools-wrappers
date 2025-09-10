@@ -22,12 +22,14 @@ install_cmd=""
 is_installed=""
 packages=""
 remove_packages=""
+wrapper_config=""
 
 ARGUMENT_LIST=(
 	"is_installed"
 	"no_packages"
 	"packages"
 	"remove_packages"
+	"wrapper_config"
 )
 
 NO_ARGUMENTS=(
@@ -60,7 +62,11 @@ while [[ $# -gt 0 ]]; do
                         shift 2
 		;;
                 --packages)
-                        packages=$2
+						if [[ -z "$packages" ]]; then
+							packages=$2
+						else
+							packages="$packages,$2"
+						fi
                         shift 2
                 ;;
                 --remove_packages)
@@ -73,6 +79,10 @@ while [[ $# -gt 0 ]]; do
                 ;;
                 --usage)
 			usage $0
+		;;
+		--wrapper_config)
+			wrapper_config=$2
+			shift 2
 		;;
 		-h)
 			usage $0
@@ -88,7 +98,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 install_cmd=""
-case "`test_tools/detect_os`" in
+base_dir=$(dirname $(realpath $0))
+running_os=$($base_dir/detect_os)
+case "$running_os" in
 	"ubuntu")
 		install_cmd="/bin/apt"
 	;;
@@ -122,6 +134,15 @@ if [ $update -ne 0 ]; then
 	$install_cmd update -y
 	if [ $? -ne 0 ]; then
 		exit_out "$install_cmd update failed" 1
+	fi
+fi
+
+if [[ -n "$wrapper_config" ]]; then
+	wrapper_pkgs=$(jq -r ".dependencies.$running_os | @csv" $wrapper_config | tr -d '"')
+	if [[ -z "$packages" ]]; then
+		packages=$wrapper_pkgs
+	else
+		packages="$packages,$wrapper_pkgs"
 	fi
 fi
 
