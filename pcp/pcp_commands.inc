@@ -56,7 +56,7 @@ setup_pcp()
 	pcp_present=$(which pmlogger)
 	if [[ $? -ne 0 ]]; then 
 		dnf install -y dnf install -y --setopt=tsflags=nodocs \
-  		pcp-zeroconf pcp-pmda-openmetrics pcp-pmda-denki sysbench
+  		pcp-zeroconf pcp-pmda-openmetrics pcp-pmda-denki
 	fi
 
 	working_dir="/usr/local/src/PCPrecord"
