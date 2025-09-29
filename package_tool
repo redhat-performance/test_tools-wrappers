@@ -34,7 +34,7 @@ ARGUMENT_LIST=(
 
 NO_ARGUMENTS=(
 	"update"
-        "usage"
+	"usage"
 )
 
 
@@ -53,31 +53,31 @@ while [[ $# -gt 0 ]]; do
         case "$1" in
 		--is_installed)
 			is_installed=$2
-                        shift 2
+			shift 2
 		;;
 		--no_packages)
 			if [[ $2 == "1" ]]; then
 				exit 0
 			fi
-                        shift 2
+			shift 2
 		;;
-                --packages)
-						if [[ -z "$packages" ]]; then
-							packages=$2
-						else
-							packages="$packages,$2"
-						fi
-                        shift 2
-                ;;
-                --remove_packages)
-                        remove_packages=$2
-                        shift 2
-                ;;
-                --update)
+		--packages)
+			if [[ -z "$packages" ]]; then
+				packages=$2
+			else
+				packages="$packages,$2"
+			fi
+			shift 2
+		;;
+		--remove_packages)
+			remove_packages=$2
+			shift 2
+		;;
+		--update)
 			update=1
-                        shift 1
-                ;;
-                --usage)
+			shift 1
+		;;
+		--usage)
 			usage $0
 		;;
 		--wrapper_config)
