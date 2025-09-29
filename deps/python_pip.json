@@ -1,0 +1,16 @@
+{
+    "dependencies": {
+        "rhel": [
+            "python3-pip"
+        ],
+        "ubuntu": [
+            "python3-pip"
+        ],
+        "suse": [
+            "python3-pip"
+        ],
+        "fedora": [
+            "python3-pip"
+        ]
+    }
+}

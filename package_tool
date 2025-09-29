@@ -23,6 +23,7 @@ is_installed=""
 packages=""
 remove_packages=""
 wrapper_config=""
+pip_packages=""
 
 base_dir=$(dirname $(realpath $0))
 running_os=$($base_dir/detect_os)
@@ -63,12 +64,26 @@ append_packages()
 	fi
 }
 
+# Installs pip packages
+# No args, no return
+# Will exit_out if unable to install a pip package
+install_pip_pkgs() {
+	install_cmd="python3 -m pip install --quiet"
+	for pip_pkg in $(echo $pip_packages | sed -e 's/,/ /g'); do
+		$install_cmd $pip_pkg
+		if [[ $? -ne 0 ]]; then
+			exit_out "$install_cmd failed to install $pip_pkg" 1
+		fi
+	done
+}
+
 ARGUMENT_LIST=(
 	"is_installed"
 	"no_packages"
 	"packages"
 	"remove_packages"
 	"wrapper_config"
+	"pip_packages"
 )
 
 NO_ARGUMENTS=(
@@ -102,6 +117,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--packages)
 			packages=$(append_packages $packages $2)
+			shift 2
+		;;
+		--pip_packages)
+			pip_packages=$(append_packages $pip_packages $2)
 			shift 2
 		;;
 		--remove_packages)
@@ -172,8 +191,16 @@ fi
 
 if [[ -n "$wrapper_config" ]]; then
 	wrapper_pkgs=$(parse_json $wrapper_config $running_os)
+	wrapper_pip=$(parse_json $wrapper_config pip)
 	
 	packages=$(append_packages $packages $wrapper_pkgs)
+	pip_packages=$(append_packages $pip_packages $wrapper_pip)
+fi
+
+# Ensure pip is available for the python3 interpreter.
+if [[ -n "$pip_packages" ]]; then
+	pip_os_pkg=$(parse_json $base_dir/deps/python_pip.json $running_os)
+	packages=$(append_packages $packages $pip_os_pkg)
 fi
 
 if [[ $packages != "" ]]; then
@@ -184,5 +211,9 @@ if [[ $packages != "" ]]; then
 			 exit_out "$install_cmd install of $package failed" 1
 		fi
 	done
+fi
+
+if [[ -n "$pip_packages" ]]; then
+	install_pip_pkgs
 fi
 exit 0
