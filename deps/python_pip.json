@@ -11,6 +11,9 @@
         ],
         "fedora": [
             "python3-pip"
+        ],
+        "amzn": [
+            "python3-pip"
         ]
     }
 }
