@@ -24,6 +24,7 @@ packages=""
 remove_packages=""
 wrapper_config=""
 pip_packages=""
+python_exec="python3"
 
 base_dir=$(dirname $(realpath $0))
 running_os=$($base_dir/detect_os)
@@ -68,7 +69,7 @@ append_packages()
 # No args, no return
 # Will exit_out if unable to install a pip package
 install_pip_pkgs() {
-	install_cmd="python3 -m pip install --quiet"
+	install_cmd="$python_exec -m pip install --quiet"
 	for pip_pkg in $(echo $pip_packages | sed -e 's/,/ /g'); do
 		$install_cmd $pip_pkg
 		if [[ $? -ne 0 ]]; then
@@ -84,6 +85,7 @@ ARGUMENT_LIST=(
 	"remove_packages"
 	"wrapper_config"
 	"pip_packages"
+	"python_exec"
 )
 
 NO_ARGUMENTS=(
@@ -121,6 +123,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--pip_packages)
 			pip_packages=$(append_packages $pip_packages $2)
+			shift 2
+		;;
+		--python_exec)
+			python_exec=$2
 			shift 2
 		;;
 		--remove_packages)
@@ -197,8 +203,10 @@ if [[ -n "$wrapper_config" ]]; then
 	pip_packages=$(append_packages $pip_packages $wrapper_pip)
 fi
 
-# Ensure pip is available for the python3 interpreter.
-if [[ -n "$pip_packages" ]]; then
+# Ensure pip is available for the default python3 interpreter.
+# If a custom one is provided, let the wrapper figure out the
+# correct method to install pip
+if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]]; then
 	pip_os_pkg=$(parse_json $base_dir/deps/python_pip.json $running_os)
 	packages=$(append_packages $packages $pip_os_pkg)
 fi
