@@ -210,6 +210,9 @@ fi
 # correct method to install pip
 if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]]; then
 	pip_os_pkg=$(parse_json $base_dir/deps/python_pip.json $running_os)
+	if [[ -z "$pip_os_pkg" ]]; then
+		exit_out "$running_os has no known python3-pip package" 1
+	fi
 	packages=$(append_packages $packages $pip_os_pkg)
 fi
 
