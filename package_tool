@@ -8,6 +8,8 @@ usage()
 	echo "  --packages: comma separated list of packages to install"
 	echo "  --update: Update the system."
 	echo "  --usage: This usage message."
+	echo "  --pip_packages: comma separated list of pip modules to install"
+	echo "  --python_exec: path to python intrepreter to install pip modules for (default \"python3\"), will require installation of relevant packages to install pip"
 	exit 1
 }
 
@@ -23,6 +25,60 @@ is_installed=""
 packages=""
 remove_packages=""
 wrapper_config=""
+pip_packages=""
+python_exec="python3"
+
+base_dir=$(dirname $(realpath $0))
+running_os=$($base_dir/detect_os)
+
+# Fetches dependencies from a wrapper JSON file
+# Args:
+# - Wrapper file path
+# - os name (will lookup .dependencies.<os> within the JSON file)
+#
+# Returns:
+# CSV list of packages from the relevant section of the JSON file
+parse_json()
+{
+	json_file=$1
+	platform=$2
+
+	jq -r ".dependencies.$platform | @csv"  $json_file | tr -d '"'
+}
+
+# Append packages to a CSV list variable
+# Args:
+# - Existing CSV package list
+# - CSV list of packages to add
+#
+# Returns:
+# Full list of packages via `echo`
+append_packages()
+{
+	existing_pkgs=$1
+	pkgs=$2
+
+	if [[ -z "$existing_pkgs" ]]; then
+		echo $pkgs
+	elif [[ -z "$pkgs" ]]; then
+		echo $existing_pkgs
+	else
+		echo "$pkgs,$existing_pkgs"
+	fi
+}
+
+# Installs pip packages
+# No args, no return
+# Will exit_out if unable to install a pip package
+install_pip_pkgs() {
+	install_cmd="$python_exec -m pip install --quiet"
+	for pip_pkg in $(echo $pip_packages | sed -e 's/,/ /g'); do
+		$install_cmd $pip_pkg
+		if [[ $? -ne 0 ]]; then
+			exit_out "$install_cmd failed to install $pip_pkg" 1
+		fi
+	done
+}
 
 ARGUMENT_LIST=(
 	"is_installed"
@@ -30,11 +86,13 @@ ARGUMENT_LIST=(
 	"packages"
 	"remove_packages"
 	"wrapper_config"
+	"pip_packages"
+	"python_exec"
 )
 
 NO_ARGUMENTS=(
 	"update"
-        "usage"
+	"usage"
 )
 
 
@@ -53,31 +111,35 @@ while [[ $# -gt 0 ]]; do
         case "$1" in
 		--is_installed)
 			is_installed=$2
-                        shift 2
+			shift 2
 		;;
 		--no_packages)
 			if [[ $2 == "1" ]]; then
 				exit 0
 			fi
-                        shift 2
+			shift 2
 		;;
-                --packages)
-						if [[ -z "$packages" ]]; then
-							packages=$2
-						else
-							packages="$packages,$2"
-						fi
-                        shift 2
-                ;;
-                --remove_packages)
-                        remove_packages=$2
-                        shift 2
-                ;;
-                --update)
+		--packages)
+			packages=$(append_packages $packages $2)
+			shift 2
+		;;
+		--pip_packages)
+			pip_packages=$(append_packages $pip_packages $2)
+			shift 2
+		;;
+		--python_exec)
+			python_exec=$2
+			shift 2
+		;;
+		--remove_packages)
+			remove_packages=$2
+			shift 2
+		;;
+		--update)
 			update=1
-                        shift 1
-                ;;
-                --usage)
+			shift 1
+		;;
+		--usage)
 			usage $0
 		;;
 		--wrapper_config)
@@ -98,8 +160,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 install_cmd=""
-base_dir=$(dirname $(realpath $0))
-running_os=$($base_dir/detect_os)
 case "$running_os" in
 	"ubuntu")
 		install_cmd="/bin/apt"
@@ -138,12 +198,22 @@ if [ $update -ne 0 ]; then
 fi
 
 if [[ -n "$wrapper_config" ]]; then
-	wrapper_pkgs=$(jq -r ".dependencies.$running_os | @csv" $wrapper_config | tr -d '"')
-	if [[ -z "$packages" ]]; then
-		packages=$wrapper_pkgs
-	else
-		packages="$packages,$wrapper_pkgs"
+	wrapper_pkgs=$(parse_json $wrapper_config $running_os)
+	wrapper_pip=$(parse_json $wrapper_config pip)
+	
+	packages=$(append_packages $packages $wrapper_pkgs)
+	pip_packages=$(append_packages $pip_packages $wrapper_pip)
+fi
+
+# Ensure pip is available for the default python3 interpreter.
+# If a custom one is provided, let the wrapper figure out the
+# correct method to install pip
+if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]]; then
+	pip_os_pkg=$(parse_json $base_dir/deps/python_pip.json $running_os)
+	if [[ -z "$pip_os_pkg" ]]; then
+		exit_out "$running_os has no known python3-pip package" 1
 	fi
+	packages=$(append_packages $packages $pip_os_pkg)
 fi
 
 if [[ $packages != "" ]]; then
@@ -154,5 +224,9 @@ if [[ $packages != "" ]]; then
 			 exit_out "$install_cmd install of $package failed" 1
 		fi
 	done
+fi
+
+if [[ -n "$pip_packages" ]]; then
+	install_pip_pkgs
 fi
 exit 0
