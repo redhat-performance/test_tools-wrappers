@@ -73,7 +73,7 @@ append_packages()
 install_pip_pkgs() {
 	python_pip_flags="--quiet"
 	if [[ $running_os == "ubuntu" ]]; then
-		python_pip_flags="$python_pip_flags --break-package-system"
+		python_pip_flags="$python_pip_flags --break-system-packages"
 	fi
 
 	install_cmd="$python_exec -m pip install $python_pip_flags"
