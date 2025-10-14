@@ -71,7 +71,12 @@ append_packages()
 # No args, no return
 # Will exit_out if unable to install a pip package
 install_pip_pkgs() {
-	install_cmd="$python_exec -m pip install --quiet"
+	python_pip_flags="--quiet"
+	if [[ $running_os == "ubuntu" ]]; then
+		python_pip_flags="$python_pip_flags --break-system-packages"
+	fi
+
+	install_cmd="$python_exec -m pip install $python_pip_flags"
 	for pip_pkg in $(echo $pip_packages | sed -e 's/,/ /g'); do
 		$install_cmd $pip_pkg
 		if [[ $? -ne 0 ]]; then
