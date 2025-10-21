@@ -43,7 +43,12 @@ parse_json()
 	json_file=$1
 	platform=$2
 
-	jq -r ".dependencies.$platform | @csv"  $json_file | tr -d '"'
+	packages=$(jq -r ".dependencies.$platform | @csv" $json_file 2> /dev/null)
+
+	if [[ $? -ne 0 ]]; then
+		echo "WARN: Could not find dependency information for $platform in $json_file, this could be intended behavior" > /dev/stderr
+	fi
+	echo $packages | tr -d '"'
 }
 
 # Append packages to a CSV list variable
