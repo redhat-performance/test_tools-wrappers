@@ -169,6 +169,9 @@ case "$running_os" in
 	"ubuntu")
 		install_cmd="/bin/apt"
 	;;
+	"sles")
+		install_cmd="/usr/bin/zypper"
+	;;
 	*)
 		if [[ -f "/bin/dnf" ]]; then
 			install_cmd="/bin/dnf"
