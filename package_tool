@@ -90,6 +90,22 @@ install_pip_pkgs() {
 	done
 }
 
+install_system_pkgs() {
+	packages=$1
+	package_list=$(echo ${packages} | sed "s/,/ /g")
+
+	if [[ -z "$package_list" ]]; then
+		return 0 # Nothing to do
+	fi
+
+	for package in $package_list; do
+		$install_cmd install -y $package
+		if [ $? -ne 0 ]; then
+			 exit_out "$install_cmd install of $package failed" 1
+		fi
+	done
+}
+
 ARGUMENT_LIST=(
 	"is_installed"
 	"no_packages"
@@ -229,15 +245,7 @@ if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]]; then
 	packages=$(append_packages $packages $pip_os_pkg)
 fi
 
-if [[ $packages != "" ]]; then
-	package_list=`echo ${packages} | sed "s/,/ /g"`
-	for package in $package_list; do
-		$install_cmd install -y $package
-		if [ $? -ne 0 ]; then
-			 exit_out "$install_cmd install of $package failed" 1
-		fi
-	done
-fi
+install_system_pkgs "$packages"
 
 if [[ -n "$pip_packages" ]]; then
 	install_pip_pkgs
