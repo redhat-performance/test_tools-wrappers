@@ -90,6 +90,9 @@ install_pip_pkgs() {
 	done
 }
 
+# Install System packages
+# Args:
+# - Comma separated list of packages, can also be space separated and work
 install_system_pkgs() {
 	packages=$1
 	package_list=$(echo ${packages} | sed "s/,/ /g")
@@ -227,6 +230,7 @@ if [ $update -ne 0 ]; then
 fi
 
 if [[ -n "$wrapper_config" ]]; then
+	install_system_pkgs jq # Fetch JQ so it can read the config
 	wrapper_pkgs=$(parse_json $wrapper_config $running_os)
 	wrapper_pip=$(parse_json $wrapper_config pip)
 	
