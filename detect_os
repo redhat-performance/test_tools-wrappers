@@ -19,6 +19,9 @@
 
 os_release_file="/etc/os-release"
 get_version=0 # Fetch OS name by default
+get_major=0
+get_minor=0
+vers_sep="."
 
 usage()
 {
@@ -28,6 +31,16 @@ usage()
 
     echo -e "\t --os-version"
     echo -e "\t\t Determine the current OS version"
+
+    echo -e "\t --major-version"
+    echo -e "\t\t Output the major version number of the OS (requires --os-version)"
+
+    echo -e "\t --minor-version"
+    echo -e "\t\t Output the minor version number of the OS (requires --os-version)"
+
+    echo -e "\t --version-separator"
+    echo -e "\t\t Set the separator between the major and minor version numbers"
+    echo -e "\t\t Default is \".\""
 
     echo -e "\t -h/--help/--usage"
     echo -e "\t\t Displays this message"
@@ -41,23 +54,48 @@ echo_stderr()
 parse_os_release()
 {
     source $os_release_file
+    has_major_minor=0
     if [[ $get_version -eq 1 ]]; then
-        echo $VERSION_ID
+        if [[ "$VERSION_ID" == *"${vers_sep}"* ]]; then
+            major_version=$(echo $VERSION_ID | cut -d${vers_sep} -f1)
+            minor_version=$(echo $VERSION_ID | cut -d${vers_sep} -f2)
+        else # Does not have a major/minor structure (using the provided separator)
+            major_version=$VERSION_ID
+            minor_version=""
+            vers_sep=""
+        fi
+
+        if [[ $get_major -eq 1 ]]; then
+            echo $major_version
+        fi
+        if [[ $get_minor -eq 1 ]] && [[ -n "$minor_version" ]];then
+            echo $minor_version
+        fi
+        if [[ $get_major -eq 0 ]] && [[ $get_minor -eq 0 ]]; then
+            echo $VERSION_ID
+        fi
     else
         echo $ID
     fi
 }
 
+ARG_OPTS=(
+    "version-separator"
+)
+
 NOARG_OPTS=(
     "h"
     "help"
-
     "usage"
+
     "os-version"
+    "major-version"
+    "minor-version"
 )
 
 opts=$(getopt \
     --longoptions "$(printf "%s," "${NOARG_OPTS[@]}")" \
+    --longoptions "$(printf "%s:," "${ARG_OPTS[@]}")" \
     --name "$(basename "$0")" \
     --options "hc:" \
     -- "$@"
@@ -80,6 +118,18 @@ while [[ $# -gt 0 ]]; do
     --os-version)
         get_version=1
         shift 1
+    ;;
+    --major-version)
+        get_major=1
+        shift 1
+    ;;
+    --minor-version)
+        get_minor=1
+        shift 1
+    ;;
+    --version-separator)
+        vers_sep=$2
+        shift 2
     ;;
     --)
         break
