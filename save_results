@@ -223,8 +223,4 @@ tardir=`pwd`
 link_files ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_${test_name}_${tuned_setting}.tar
 
 cd /tmp
-#
-# Provide a common pull for Zathra.
-#
-zip results_${test_name}.zip  results_${test_name}_${tuned_setting}.tar
 popd > /dev/null
