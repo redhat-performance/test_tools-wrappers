@@ -219,18 +219,12 @@ copy_file ${curdir}/hw_info.out ${RESULTS_PATH}
 
 tar hcf results_${test_name}_${tuned_setting}.tar ${results_dir}
 copy_file ${results_dir}/* .
-link_files results_${test_name}_${tuned_setting}.tar results_pbench_${test_name}_${tuned_setting}.tar
 tardir=`pwd`
 link_files ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_${test_name}_${tuned_setting}.tar
-link_files ${tardir}/results_${test_name}_${tuned_setting}.tar /tmp/results_pbench_${test_name}_${tuned_setting}.tar
 
 cd /tmp
 #
 # Provide a common pull for Zathra.
 #
-if [[ -f  test_wrapper_results_${test}.zip ]]; then
-	rm test_wrapper_results_${test}.zip test_wrapper_results_pbench_${test}.zip
-fi
 zip results_${test_name}.zip  results_${test_name}_${tuned_setting}.tar
-link_files results_${test_name}.zip results_pbench_${test_name}.zip
 popd > /dev/null
