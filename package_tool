@@ -31,6 +31,25 @@ python_exec="python3"
 base_dir=$(dirname $(realpath $0))
 running_os=$($base_dir/detect_os)
 
+# Install System packages
+# Args:
+# - Comma separated list of packages, can also be space separated and work
+install_system_pkgs() {
+	packages=$1
+	package_list=$(echo ${packages} | sed "s/,/ /g")
+
+	if [[ -z "$package_list" ]]; then
+		return 0 # Nothing to do
+	fi
+
+	for package in $package_list; do
+		$install_cmd install -y $package
+		if [ $? -ne 0 ]; then
+			 exit_out "$install_cmd install of $package failed" 1
+		fi
+	done
+}
+
 # Fetches dependencies from a wrapper JSON file
 # Args:
 # - Wrapper file path
@@ -42,6 +61,10 @@ parse_json()
 {
 	json_file=$1
 	platform=$2
+
+	if ! command -v jq > /dev/null; then
+		install_system_pkgs jq
+	fi
 
 	packages=$(jq -r ".dependencies.$platform | @csv" $json_file 2> /dev/null)
 
@@ -86,25 +109,6 @@ install_pip_pkgs() {
 		$install_cmd $pip_pkg
 		if [[ $? -ne 0 ]]; then
 			exit_out "$install_cmd failed to install $pip_pkg" 1
-		fi
-	done
-}
-
-# Install System packages
-# Args:
-# - Comma separated list of packages, can also be space separated and work
-install_system_pkgs() {
-	packages=$1
-	package_list=$(echo ${packages} | sed "s/,/ /g")
-
-	if [[ -z "$package_list" ]]; then
-		return 0 # Nothing to do
-	fi
-
-	for package in $package_list; do
-		$install_cmd install -y $package
-		if [ $? -ne 0 ]; then
-			 exit_out "$install_cmd install of $package failed" 1
 		fi
 	done
 }
@@ -230,7 +234,6 @@ if [ $update -ne 0 ]; then
 fi
 
 if [[ -n "$wrapper_config" ]]; then
-	install_system_pkgs jq # Fetch JQ so it can read the config
 	wrapper_pkgs=$(parse_json $wrapper_config $running_os)
 	wrapper_pip=$(parse_json $wrapper_config pip)
 	
