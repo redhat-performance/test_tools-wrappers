@@ -63,7 +63,7 @@ parse_json()
 	platform=$2
 
 	if ! command -v jq > /dev/null; then
-		install_system_pkgs jq
+		install_system_pkgs jq >&2 # Move stdout to stderr to avoid returning noisy package install
 	fi
 
 	packages=$(jq -r ".dependencies.$platform | @csv" $json_file 2> /dev/null)
