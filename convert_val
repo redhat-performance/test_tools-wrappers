@@ -79,7 +79,7 @@ opts=$(getopt \
 	-- "$@"
 )
 
-eval set --$opts
+eval set -- "$opts"
 
 if [ $? -ne 0 ]; then
         exit 1
@@ -150,7 +150,7 @@ cnvt_to_bytes()
 	if [[ $lunit == "B" ]] || [[ $lunit == "b" ]]; then
 		base_value=1
 	else
-		if [[ $lunit =~ [K,M,G,T] ]] && [[ $lunit != *"i"* ]]; then
+		if [[ $lunit =~ [KMGT] ]] && [[ $lunit != *"i"* ]]; then
 			base_value=`numfmt --from=si 1${lunit}`
 			if [[ $? -ne 0 ]]; then
 				echo Error: Invalid unit $lunit
