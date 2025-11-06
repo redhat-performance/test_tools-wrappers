@@ -20,7 +20,6 @@
 
 usage()
 {
-	echo Usage $0
 	echo "  --field_separator <char>:  character separator, default is :"
 	echo "  --field_size <n>: size of the fields in the output"
 	echo "  --results_in <file>: file converting"
@@ -82,7 +81,7 @@ while [[ $# -gt 0 ]]; do
 			usage
 		;;
 		-h)
-                        usage "0"
+                        usage
                         shift 1
 		;;
 		--)
@@ -95,6 +94,10 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
+if [[ $field_size == "" ]] || [[ $results_in == "" ]] || [[ $results_out == "" ]]; then
+	echo Error: one or more fields are not set, field_size, results_in or results_out.
+	exit 1
+fi
 if [[ $results_out -ne "" ]]; then
 	rm -rf $results_out
 fi
@@ -110,3 +113,4 @@ do
 	done
 	printf "\n" >> $results_out
 done < "$results_in"
+exit 0
