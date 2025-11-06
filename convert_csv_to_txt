@@ -103,7 +103,7 @@ if [[ $results_out -ne "" ]]; then
 fi
 while IFS= read -r line
 do
-	if [[ "$line" != *"${field_separator}"* ]]; then
+	if [[ "$line" == "#"* ]] || [[ "$line" != *"${field_separator}"* ]]; then
 		echo $line >> $results_out
 		continue
 	fi
