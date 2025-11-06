@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "rhel": [
+      "pcp-zeroconf",
+      "pcp-pmda-openmetrics",
+      "pcp-pmda-denki"
+    ],
+    "ubuntu": [
+      "pcp-zeroconf"
+    ]
+  }
+}
