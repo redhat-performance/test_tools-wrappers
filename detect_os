@@ -54,7 +54,6 @@ echo_stderr()
 parse_os_release()
 {
     source $os_release_file
-    has_major_minor=0
     if [[ $get_version -eq 1 ]]; then
         if [[ "$VERSION_ID" == *"${vers_sep}"* ]]; then
             major_version=$(echo $VERSION_ID | cut -d${vers_sep} -f1)
@@ -105,7 +104,7 @@ if [ $? -ne 0 ]; then
         exit 1
 fi
 
-eval set --$opts
+eval set -- "$opts"
 
 flag_set=0
 
