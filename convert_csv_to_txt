@@ -21,7 +21,7 @@
 usage()
 {
 	echo Usage $0
-	echo "  --field_seper <char>:  character separator"
+	echo "  --field_separator <char>:  character separator, default is :"
 	echo "  --field_size <n>: size of the fields in the output"
 	echo "  --results_in <file>: file converting"
 	echo "  --results_out <file>: file to output the results to."
@@ -30,7 +30,7 @@ usage()
 
 
 ARGUMENT_LIST=(
-	"field_seper"
+	"field_separator"
 	"field_size"
         "results_in"
         "results_out"
@@ -55,15 +55,15 @@ fi
 
 eval set -- "$opts"
 
-field_seper=""
+field_separator=":"
 field_size=""
 results_in=""
 results_out=""
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
-		--field_seper)
-			field_seper=$2
+		--field_separator)
+			field_separator=$2
 			shift 2
 		;;
 		--field_size)
@@ -98,11 +98,11 @@ done
 rm -rf $results_out
 while IFS= read -r line
 do
-	if [[ $line != *":"* ]]; then
+	if [[ $line != *"${field_separator}"* ]]; then
 		echo $line >> $results_out
 		continue
 	fi
-	break_down=`echo $line | sed "s/ /_/g" | sed "s/${field_seper}/ /g"`
+	break_down=`echo $line | sed "s/ /_/g" | sed "s/${field_separator}/ /g"`
 	for  i in $break_down; do
 		printf "%${field_size}s" $i >> $results_out
 	done
