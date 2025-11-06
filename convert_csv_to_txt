@@ -95,7 +95,9 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-rm -rf $results_out
+if [[ $results_out -ne "" ]]; then
+	rm -rf $results_out
+fi
 while IFS= read -r line
 do
 	if [[ $line != *"${field_separator}"* ]]; then
