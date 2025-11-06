@@ -143,7 +143,7 @@ mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}
 if [ $? -ne 0 ]; then
 	exit 1
 fi
-mount ${device_to_use} "${mount_pnt} "
+mount ${device_to_use} "${mount_pnt}"
 if [ $? -ne 0 ]; then
 	exit 1
 fi
