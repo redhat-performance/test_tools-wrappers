@@ -55,7 +55,7 @@ setup_pcp()
 	# If pmlogger isn't present, install the PCP bits
 	pcp_present=$(which pmlogger)
 	if [[ $? -ne 0 ]]; then 
-		package_tool --packages pcp-zeroconf,pcp-pmda-openmetrics,pcp-pmda-denki
+		${TOOLS_BIN}/package_tool --no_packages $to_no_pkg_install --wrapper_config ${TOOLS_BIN}/pcp/pcp.json
 	fi
 
 	working_dir="/usr/local/src/PCPrecord"
