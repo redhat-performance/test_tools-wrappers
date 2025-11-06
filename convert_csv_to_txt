@@ -100,13 +100,13 @@ if [[ $results_out -ne "" ]]; then
 fi
 while IFS= read -r line
 do
-	if [[ $line != *"${field_separator}"* ]]; then
+	if [[ "$line" != *"${field_separator}"* ]]; then
 		echo $line >> $results_out
 		continue
 	fi
-	break_down=`echo $line | sed "s/ /_/g" | sed "s/${field_separator}/ /g"`
+	break_down=`echo "$line" | sed "s/ /_/g" | sed "s/${field_separator}/ /g"`
 	for  i in $break_down; do
-		printf "%${field_size}s" $i >> $results_out
+		printf "%${field_size}s" "$i" >> $results_out
 	done
 	printf "\n" >> $results_out
 done < "$results_in"
