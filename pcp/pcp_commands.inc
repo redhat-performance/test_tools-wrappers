@@ -57,6 +57,26 @@ setup_pcp()
 	if [[ $? -ne 0 ]]; then 
 		${TOOLS_BIN}/package_tool --no_packages $to_no_pkg_install --wrapper_config ${TOOLS_BIN}/pcp/pcp.json
 	fi
+	# Distro-specific magic required once the packages are installed
+	running_os=`${TOOLS_BIN}/detect_os`
+	case "$running_os" in
+		"ubuntu")
+			# Ubuntu drops the PMDAs in a known place when zeroconf is used, but doesn't make them usable.
+			# Each has its own installer which has to be run from its own directory.
+			pushd /var/lib/pcp/pmdas/openmetrics
+			./Install
+			popd
+			pushd /var/lib/pcp/pmdas/denki
+			./Install
+			popd
+		;;
+			"sles")
+			# No zeroconf, SLES procedure will go here
+		;;
+		*)
+		# Nothing to do, the installation did everything for you
+		;;
+	esac
 
 	working_dir="/usr/local/src/PCPrecord"
 
