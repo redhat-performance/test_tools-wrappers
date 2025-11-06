@@ -45,7 +45,7 @@ usage()
 	echo "$ $1 --from_unit Mi --value 1024 --to_unit Gi"
 	echo "1Gi"
 	echo "$ $1 --from_unit Mi"
-	echo "1000000B"
+	echo "1048576B"
 	echo "$ $1 --time_val --from_unit s --value 10 --to_unit ms"
 	echo "10000ms"
 	echo "$ $1 --time_val --from_unit s --value 60 --to_unit m"
