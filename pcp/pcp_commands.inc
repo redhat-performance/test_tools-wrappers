@@ -71,10 +71,17 @@ setup_pcp()
 			popd
 		;;
 			"sles")
-			# No zeroconf, SLES procedure will go here
+			# SLES drops the PMDAs in a known place when zeroconf is used, but doesn't make them usable.
+			# Each has its own installer which has to be run from its own directory.
+			pushd /var/lib/pcp/pmdas/openmetrics
+			./Install
+			popd
+			pushd /var/lib/pcp/pmdas/denki
+			./Install
+			popd
 		;;
 		*)
-		# Nothing to do, the installation did everything for you
+		# Nothing to do, the installation did everything for us
 		;;
 	esac
 
