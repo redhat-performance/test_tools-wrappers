@@ -90,7 +90,7 @@ opts=$(getopt \
 	-- "$@"
 )
 
-eval set --$opts
+eval set -- "$opts"
 
 if [[ $? -ne 0 ]] || [[ $# -eq 1 ]]; then
 	usage  $0
@@ -158,7 +158,7 @@ if [[ $curdir == "" ]]; then
 	curdir=`pwd`
 fi
 if [[ $user == "" ]] && [[ $home_root == "" ]]; then
-	$home_root=$curdir
+	home_root=$curdir
 fi
 export_results="$home_root/$user/export_results"
 if [[ ! -d $export_results ]]; then
@@ -176,11 +176,11 @@ which tuned-adm >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
         echo tuned-adm not available > ~/tuned_after
 else
-        tuned-adm active | cut -d:  -f 2 | sed "s/ //g" > ~/tuned_after
+        tuned-adm active | cut -d: -f 2 | sed "s/ //g" > ~/tuned_after
 fi
 diff ~/tuned_before ~/tuned_after > $RESULTS_PATH/tuned_setting
 
-if [[ $? -ne -0 ]]; then
+if [[ $? -ne 0 ]]; then
 	echo 'Tuned settings have changed!!!!'
 	echo Start of run
 	cat ~/tuned_before
@@ -200,9 +200,9 @@ if [[ $other_files != "" ]]; then
 fi
 
 if [[ $tar_file != "" ]]; then
-	pushd $RESULTS_PATH 
+	pushd $RESULTS_PATH > /dev/null
 	tar xf $tar_file
-	popd
+	popd > /dev/null
 fi
 if [[ $copy_dir != "" ]]; then
 	cp -R $copy_dir $RESULTS_PATH
@@ -228,8 +228,8 @@ cd /tmp
 #
 # Provide a common pull for Zathra.
 #
-if [[ -f  test_wrapper_results_${test}.zip ]]; then
-	rm test_wrapper_results_${test}.zip test_wrapper_results_pbench_${test}.zip
+if [[ -f  test_wrapper_results_${test_name}.zip ]]; then
+	rm test_wrapper_results_${test_name}.zip
 fi
 zip results_${test_name}.zip  results_${test_name}_${tuned_setting}.tar
 link_files results_${test_name}.zip results_pbench_${test_name}.zip
