@@ -257,11 +257,11 @@ fi
 if [[ -n "$wrapper_config" ]]; then
 	wrapper_pkgs=$(parse_json $wrapper_config $running_os)
 	if [[ $? -ne 0 ]]; then
-		exit 1
+		exit_out "Error parsing .dependencies.$running_os in $wrapper_config" 1
 	fi
 	wrapper_pip=$(parse_json $wrapper_config pip)
 	if [[ $? -ne 0 ]]; then
-		exit $?
+		exit_out "Error parsing .dependencies.pip in $wrapper_config" 1
 	fi
 	
 	packages=$(append_packages $packages $wrapper_pkgs)
