@@ -70,6 +70,7 @@ to_times_to_run=0
 iteration_default=1
 to_run_label=""
 to_user=`whoami`
+to_run_user=`whoami`
 to_sysname=`hostname`
 to_no_pkg_install=0
 
