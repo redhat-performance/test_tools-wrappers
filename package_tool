@@ -222,7 +222,7 @@ if [[ $remove_packages != "" ]]; then
 	pkgs_rm=`echo $remove_packages | sed "s/,/ /g"`
 	$install_cmd remove -y $pkg_rm
 	if [ $? -ne 0 ]; then
-		exit_out "Failed: Was unable to remove some or all of the package(s) $remoove_packages" 1
+		exit_out "Failed: Was unable to remove some or all of the package(s) $remove_packages" 1
 	fi
 fi
 
