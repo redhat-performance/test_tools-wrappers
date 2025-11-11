@@ -74,6 +74,7 @@ gs_usage_info()
 
 to_test_verify_file=""
 to_sys_type=`hostname`
+to_sys_env="local"
 to_configuration=`hostname`
 to_home_root=`echo $HOME | rev | cut -d'/' -f 2- | rev`
 if [[ $to_home_root == "" ]]; then
@@ -108,6 +109,7 @@ do
 		--sys_type)
 			i=$((i + 2))
 			to_sys_type=$value
+			to_sys_env=$value
 			shift 2
 		;;
 		--home_parent)
@@ -126,10 +128,12 @@ do
 			shift 2
 		;;
 		--iteration_default)
+			i=$((i + 2))
 			iteration_default=$value
 			shift 2
 		;;
 		--no_pkg_install)
+			i=$((i + 1))
 			to_no_pkg_install=1
 			shift 1
 		;;
@@ -218,6 +222,7 @@ do
 		;;
 	esac
 done
+export to_sys_env
 if [[ ! -d $TOOLS_BIN ]]; then
 	TOOLS_BIN=${to_home_root}/${to_user}/test_tools
 fi
@@ -235,7 +240,7 @@ which tuned-adm >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
 	echo tuned-adm not available > ~/tuned_before
 else
-	tuned-adm active | cut -d:  -f 2 | sed "s/ //g" > ~/tuned_before
+	tuned-adm active | cut -d: -f 2 | sed "s/ //g" > ~/tuned_before
 fi
 
 if [[ $to_test_verify_file != "" ]]; then

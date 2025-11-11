@@ -24,7 +24,13 @@ devices_to_use=""
 devices_list=""
 lvm_vol=""
 lvm_grp=""
-wipefs=""
+wipefs=0
+
+error_out()
+{
+	echo $1
+	exit $2
+}
 
 usage()
 {
@@ -42,22 +48,18 @@ usage()
 validate_data()
 {
 	if [[ $lvm_vol = "" ]]; then
-		echo Need to designate an lvm_vol name.
-		exit -1
+		error_out "Need to designate an lvm_vol name." 1
 	fi
 	if [[ $lvm_grp = "" ]]; then
-		echo Need to designate an lvm_grp name.
-		exit -1
+		error_out "Need to designate an lvm_grp name." 1
 	fi
 	if [[ $devices_to_use = "" ]]; then
-		echo Need to designate an lvm_grp name.
-		exit -1
+		error_out "Need to designate at least one device to use." 1
 	fi
 	for i in $devices_to_use;
 	do
 		if [[ ! -e $i ]]; then
-			echo Error, device $i not found.
-			exit -1
+			error_out "Error, device $i not found." 1
 		fi
 	done
 }
@@ -86,9 +88,9 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit
+        exit 0
 fi
-eval set --$opts
+eval set -- "$opts"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -130,7 +132,7 @@ validate_data
 seper=""
 for i in $devices_to_use; do
 	lv_disks=${i}${seper}${lv_disks}
-	size=`fdisk -l $i | grep bytes | grep  Disk | cut -d' ' -f 5`
+	size=`lsblk -b -d -n -o SIZE $i`
 	gb=`echo "$size/(1024*1024*1024)" | bc`
 	let "lv_total_size=$lv_total_size+$gb"
 	let "lv_disk_count=$lv_disk_count+1"
@@ -145,20 +147,17 @@ vgremove -f $lvm_vol
 let "total_size=$lv_total_size-200"
 pvcreate -ff $lv_disks
 if [ $? -ne 0 ]; then
-	echo pvcreate -ff $lv_disks failed.
-	exit -1
+	error_out "pvcreate -ff $lv_disks failed." 1
 fi
 sleep 60
 vgcreate $lvm_vol $lv_disks
 if [ $? -ne 0 ]; then
-	echo vgcreate $lvm_vol $lv_disks failed
-	exit -1
+	error_out "vgcreate $lvm_vol $lv_disks failed" 1
 fi
 sleep 60
-echo y | lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp
+lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp
 if [ $? -ne 0 ]; then
-	echo  lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp failed.
-	exit -1
+	error_out "lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp failed." 1
 fi
 wipefs -f /dev/$lvm_vol/$lvm_grp
-
+exit 0

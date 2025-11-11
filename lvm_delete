@@ -57,7 +57,7 @@ opts=$(getopt \
 if [ $? -ne 0 ]; then
         exit
 fi
-eval set --$opts
+eval set -- "$opts"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
