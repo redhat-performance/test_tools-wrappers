@@ -121,14 +121,13 @@ while [[ $# -gt 0 ]]; do
     ;;
     -n | --node)
         node=$2
-        get_nodes=1
         shift 2
     ;;
     --list-cpu | --cpu-list)
         get_cpus=1
         shift 1
     ;;
-    -n | --node-count)
+    --node-count)
         get_nodes=1
         shift 1
     ;;
