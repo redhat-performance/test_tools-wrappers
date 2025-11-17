@@ -17,10 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-config="$(dirname $(realpath $0))/configs/detect_os.yml"
-os_release=1 # /etc/os-release more reliable, so use it by default
 os_release_file="/etc/os-release"
 get_version=0 # Fetch OS name by default
+get_major=0
+get_minor=0
+vers_sep="."
 
 usage()
 {
@@ -28,53 +29,21 @@ usage()
     echo -e "\t Detects the OS that the system is currently using and prints it out"
     echo -e "Options"
 
-    echo -e "\t -c/--config"
-    echo -e "\t\t The YAML configuration file used to help identify an OS (default is $(dirname $(realpath $0))/configs/detect_os.yml)"
-
-    echo -e "\t --uname"
-    echo -e "\t\t Determine the current OS using 'uname -a' output"
-    echo -e "\t\t Cannot be combined with --os-release"
-
-    echo -e "\t --os-release"
-    echo -e "\t\t Determine the current OS using the /etc/os-release file"
-    echo -e "\t\t Cannot be combined with --uname"
-
     echo -e "\t --os-version"
     echo -e "\t\t Determine the current OS version"
-    echo -e "\t\t Works with --uname and --os-release"
+
+    echo -e "\t --major-version"
+    echo -e "\t\t Output the major version number of the OS (requires --os-version)"
+
+    echo -e "\t --minor-version"
+    echo -e "\t\t Output the minor version number of the OS (requires --os-version)"
+
+    echo -e "\t --version-separator"
+    echo -e "\t\t Set the separator between the major and minor version numbers"
+    echo -e "\t\t Default is \".\""
 
     echo -e "\t -h/--help/--usage"
     echo -e "\t\t Displays this message"
-}
-
-install_deps()
-{
-    sys_arch=`arch`
-    if [ "$sys_arch" == "x86_64" ]; then
-        sys_arch="amd64"
-    elif [ "$sys_arch" == "aarch64" ]; then
-        sys_arch="arm64"
-    fi
-
-    if ! command -v yq > /dev/null 2>&1; then
-        if ! command -v wget > /dev/null 2>&1; then
-            if command -v yum > /dev/null 2>&1; then
-                yum install -y wget
-            elif command -v apt > /dev/null 2>&1; then
-                apt install -y wget
-	    elif command -v zypper > /dev/null 2>&1; then
-                zypper install -y wget
-	    else
-                echo "Missing wget, and do not know what package manager is being used, exiting out"
-                exit 1
-            fi
-        fi
-
-        version="v4.35.1"
-        bin_name="yq_linux_$sys_arch"
-        wget --quiet https://github.com/mikefarah/yq/releases/download/$version/$bin_name -O /usr/bin/yq
-        chmod +x /usr/bin/yq
-    fi
 }
 
 echo_stderr()
@@ -84,82 +53,44 @@ echo_stderr()
 
 parse_os_release()
 {
-    if [ ! -f $os_release_file ];then
-        echo_stderr Could not find file $os_release_file, aborting
-        exit 1
+    source $os_release_file
+    has_major_minor=0
+    if [[ $get_version -eq 1 ]]; then
+        if [[ "$VERSION_ID" == *"${vers_sep}"* ]]; then
+            major_version=$(echo $VERSION_ID | cut -d${vers_sep} -f1)
+            minor_version=$(echo $VERSION_ID | cut -d${vers_sep} -f2)
+        else # Does not have a major/minor structure (using the provided separator)
+            major_version=$VERSION_ID
+            minor_version=""
+            vers_sep=""
+        fi
+
+        if [[ $get_major -eq 1 ]]; then
+            echo $major_version
+        fi
+        if [[ $get_minor -eq 1 ]] && [[ -n "$minor_version" ]];then
+            echo $minor_version
+        fi
+        if [[ $get_major -eq 0 ]] && [[ $get_minor -eq 0 ]]; then
+            echo $VERSION_ID
+        fi
+    else
+        echo $ID
     fi
-
-    local os_id=`grep '^ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
-    local version=`grep '^VERSION_ID=' $os_release_file | cut -d'=' -f2 | sed -e "s/\"\|'//g"`
-
-    local config_len=`yq '. | length' $config`
-    for i in `seq 0 $config_len`;do
-        local identifier=`yq -r ".[$i].identifier" $config`
-        
-         if [ $identifier = $os_id ]; then
-            if [ $get_version -eq 0 ];then
-                echo $identifier
-            else
-                echo $version
-            fi
-            exit 0
-        fi
-    done
-
-    echo_stderr Unknown os \"$os_id\", check $config to make sure it exists
-    exit 1
 }
-
-parse_uname()
-{
-    local kinfo=`uname -a`
-
-    local config_len=`yq '. | length' $config`
-    for i in `seq 0 $config_len`;do
-        local pattern=`yq -r ".[$i].uname_pattern" $config`
-        local identifier=`yq -r ".[$i].identifier" $config`
-        local ver_pattern=`yq -r ".[$i].uname_version_pattern" $config`
-
-        if [ -z "$ver_pattern" ]; then
-            echo $identifier has no uname_version_pattern, skipping
-            continue
-        fi
-
-        if [ -z "$pattern" ]; then
-            echo $identifier has no uname_pattern, skipping
-            continue
-        fi
-        
-        local os_match=`echo $kinfo | grep -Eo $pattern`
-        
-         if [ ! -z $os_match ]; then
-            if [ $get_version -eq 1 ];then
-                echo $os_match | grep -Eo $ver_pattern
-            else
-                echo $identifier
-            fi
-            exit 0
-        fi
-    done
-
-    echo_stderr No known uname pattern matches, check $config to ensure that a pattern matches the following uname line
-    echo_stderr $kinfo
-    exit 1
-}
-
-NOARG_OPTS=(
-    "uname"
-    "h"
-    "help"
-    "os-version"
-
-    "usage"
-    "os-release"
-)
 
 ARG_OPTS=(
-    "c"
-    "config"
+    "version-separator"
+)
+
+NOARG_OPTS=(
+    "h"
+    "help"
+    "usage"
+
+    "os-version"
+    "major-version"
+    "minor-version"
 )
 
 opts=$(getopt \
@@ -184,30 +115,20 @@ while [[ $# -gt 0 ]]; do
         usage
         exit 0
     ;;
-    --uname)
-        if [ $flag_set -eq 1 ];then
-            usage
-            exit 1
-        fi
-        flag_set=1
-        os_release=0
-        shift 1
-    ;;
-    --os-release)
-        if [ $flag_set -eq 1 ];then
-            usage
-            exit 1
-        fi
-        flag_set=1
-        os_release=1
-        shift 1
-    ;;
     --os-version)
         get_version=1
         shift 1
     ;;
-    -c | --config)
-        config=$2
+    --major-version)
+        get_major=1
+        shift 1
+    ;;
+    --minor-version)
+        get_minor=1
+        shift 1
+    ;;
+    --version-separator)
+        vers_sep=$2
         shift 2
     ;;
     --)
@@ -220,17 +141,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [ ! -f $config ]; then
-    echo_stderr Cannot access $config, aborting
-    exit 1
-fi
-
-install_deps
-
-if [ $os_release -eq 1 ]; then
-    parse_os_release
-else
-    parse_uname
-fi
+parse_os_release
 
 exit 0

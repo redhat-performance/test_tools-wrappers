@@ -28,7 +28,7 @@ jobs:
       - name: Dump /etc/os-release for debug purposes
         run: cat /etc/os-release
       - name: Run tests # Skipping uname since kernel does not change
-        run: ./tests/test_detect_os --skip-uname --os rhel --os-version 8.8
+        run: ./tests/test_detect_os --os rhel --os-version 8.8
 
   detect_os_rhel_ubi9:
     runs-on: ubuntu-latest
@@ -45,6 +45,6 @@ jobs:
       - name: Dump /etc/os-release for debug purposes
         run: cat /etc/os-release
       - name: Run tests # Skipping uname since kernel does not change
-        run: ./tests/test_detect_os --skip-uname --os rhel --os-version 9.2
+        run: ./tests/test_detect_os --os rhel --os-version 9.2
 
 

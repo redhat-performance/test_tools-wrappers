@@ -22,16 +22,6 @@ usage()
     echo -e "\t\t Sets the version of the currently running OS to validate against detect_os's output (os-release mode)"
     echo -e "\t\t If not set, this test will be skipped"
 
-    echo -e "\t --os-version-uname <string>"
-    echo -e "\t\t Sets the version of the currently running OS to validate against detect_os's output (uname mode)"
-    echo -e "\t\t If not set, this test will be skipped"
-
-    echo -e "\t --skip-uname"
-    echo -e "\t\t Skips checking the uname output (used in some CI instances where container images are used)"
-
-    echo -e "\t --skip-os-release"
-    echo -e "\t\t Skips checking the os-release file"
-
     echo -e "\t -h/--help/--usage"
     echo -e "\t\t Shows this message"
 
@@ -39,9 +29,6 @@ usage()
 }
 
 NOARG_OPTS=(
-    "skip-uname"
-    "skip-os-release"
-
     "h"
     "help"
     "usage"
@@ -73,14 +60,6 @@ while [[ $# -gt 0 ]]; do
     -h | --usage | --help)
         usage
     ;;
-    --skip-os-release)
-        test_os_release=0
-        shift 1
-    ;;
-    --skip-uname)
-        test_uname=0
-        shift 1
-    ;;
     --os)
         actual_os=$2
         shift 2
@@ -110,25 +89,11 @@ fi
 
 source "./tests/assert.sh"
 
-if [ $test_os_release -eq 1 ];then
-    assert "$EXEC_FILE" "$actual_os"
-    
-    if [ ! -z $os_ver ]; then
-        assert "$EXEC_FILE --os-version" "$os_ver"
-    fi
+assert "$EXEC_FILE" "$actual_os"
+
+if [ ! -z $os_ver ]; then
+    assert "$EXEC_FILE --os-version" "$os_ver"
 fi
-
-if [ $test_uname -eq 1 ];then
-    assert "$EXEC_FILE --uname" "$actual_os"
-
-    if [ ! -z $os_ver_uname ]; then
-        assert "$EXEC_FILE --uname --os-version" "$os_ver_uname"
-    fi
-fi
-
-# Ensure combining flags errors out
-assert_raises "$EXEC_FILE --uname --os-release" 1
-
 assert_end
 
 exit 0
