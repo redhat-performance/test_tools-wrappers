@@ -51,9 +51,9 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit
+        exit 1
 fi
-eval set --$opts
+eval set -- "$opts"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -83,11 +83,11 @@ done
 
 if [[ $mount_pnt == "" ]]; then
 	echo Need to designate mount point prefix
-	usage
+	usage $0
 fi
 if [[ $number_mount_pnts == "" ]]; then
 	echo Need to designate the number of mount points
-	usage
+	usage $0
 fi
 
 let "number_mount_pnts=$number_mount_pnts-1"

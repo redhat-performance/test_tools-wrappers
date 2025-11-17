@@ -18,6 +18,15 @@
 #
 
 
+usage()
+{
+	echo Usage ${1}:
+	echo "--command <string>: Command executing."
+	echo "--options <strings>: Options we are to past to the command."
+	echo "--test_name <string>: name of test executing."
+	exit 0
+}
+
 ARGUMENT_LIST=(
 	"command"
 	"options"
@@ -39,7 +48,7 @@ if [ $? -ne 0 ]; then
         usage $0
 fi
 
-eval set --$opts
+eval set -- "$opts"
 
 command=""
 options=""
@@ -93,7 +102,7 @@ if [ $tuned_active -eq 1 ]; then
 	if  [ $? -eq 0 ]; then 
 		echo "Warning: Tuned was active now it isn't, restarting tuned" >> /tmp/${test_name}_tuned.status
 		systemctl enable --now tuned
-		tuned-adm profile $start_active
+		tuned-adm profile $start_active_tuned
 	fi
 fi
 

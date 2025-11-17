@@ -9,8 +9,8 @@ usage()
 	echo "  --update: Update the system."
 	echo "  --usage: This usage message."
 	echo "  --pip_packages: comma separated list of pip modules to install"
+	echo "  --python_exec: path to python interpreter to install pip modules for (default \"python3\"), will require installation of relevant packages to install pip"
 	echo "  --update_cache: Update package cache before install/updating packages, 1 (default) updates cache, 0 skips cache update"
-	echo "  --python_exec: path to python intrepreter to install pip modules for (default \"python3\"), will require installation of relevant packages to install pip"
 	exit 1
 }
 
@@ -149,7 +149,7 @@ opts=$(getopt \
     -- "$@"
 )
 
-eval set --$opts
+eval set -- "$opts"
 
 while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -232,15 +232,15 @@ if [[ $install_cmd == "" ]]; then
 fi
 
 if [[ $is_installed != "" ]]; then
-	$install_cmd list installed | grep -q php-cli.x86_64
+	$install_cmd list installed | grep -q $is_installed
 	exit $?
 fi
 
 if [[ $remove_packages != "" ]]; then
 	pkgs_rm=`echo $remove_packages | sed "s/,/ /g"`
-	$install_cmd remove -y $remove_packages
+	$install_cmd remove -y $pkg_rm
 	if [ $? -ne 0 ]; then
-		exit_out "Failed to remove $packages" 1
+		exit_out "Failed: Was unable to remove some or all of the package(s) $remove_packages" 1
 	fi
 fi
 
