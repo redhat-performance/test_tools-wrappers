@@ -7,10 +7,8 @@ from typing import TextIO
 try:
 	from pydantic import BaseModel, TypeAdapter, ValidationError
 except ImportError as e:
-	print("WARNING: Could not import pydantic, installing it using pip", file=sys.stderr)
-	import subprocess
-	subprocess.check_call([sys.executable, "-m", "pip", "install", "pydantic", "--user", "--quiet"])
-	from pydantic import BaseModel, TypeAdapter, ValidationError
+	print("ERROR: Could not import pydantic, exiting", file=sys.stderr)
+	exit(1)
 
 def verify_schema(file: TextIO, class_name: BaseModel):
 	data = json.load(file)

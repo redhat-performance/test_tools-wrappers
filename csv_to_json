@@ -28,10 +28,8 @@ from typing import TextIO
 try:
     import pandas as pd
 except ImportError:
-    print("WARNING: pandas is not installed. Installing using pip", file=sys.stderr)
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas", "--user", "--quiet"])
-    import pandas as pd
+    print("ERROR: pandas is not installed. Exiting", file=sys.stderr)
+    exit(1)
 
 def main(csv_file: TextIO, output: TextIO, separator: str):
     """
