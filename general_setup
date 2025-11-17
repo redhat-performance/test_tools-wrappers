@@ -64,7 +64,8 @@ gs_usage_info()
 	echo "  --run_user: user that is actually running the test on the test system. Defaults to user running wrapper."
 	echo "  --sys_type: Type of system working with, aws, azure, hostname.  Defaults to hostname."
 	echo "  --sysname: name of the system running, used in determining config files.  Defaults to hostname."
-	echo "  --test_verification <test_verify_file>: Runs the test verification.  Information is in the test_verify file in the tests github"
+	echo "  --json_skip: Skip JSON conversion of test CSV results, default is 0"
+	echo "  --verify_skip: Skip test verifications against output, default is 0"
 	echo "  --tuned_setting: used in naming the tar file, default for RHEL is the current active tuned.  For non"
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."
@@ -72,7 +73,6 @@ gs_usage_info()
 	exit 1
 }
 
-to_test_verify_file=""
 to_sys_type=`hostname`
 to_configuration=`hostname`
 to_home_root=`echo $HOME | rev | cut -d'/' -f 2- | rev`
@@ -92,6 +92,7 @@ to_user=`whoami`
 to_sysname=`hostname`
 to_pstats="default"
 to_no_pkg_install=0
+skip_verification=0
 to_verify_flags=""
 to_json_flags=""
 to_tuned_setting=""
@@ -170,20 +171,6 @@ do
 			to_sysname=$value
 			shift 2
 		;;
-		--test_verification)
-			i=$((i + 2))
-			to_test_verify_file=$2
-			#
-			# If the path is relative, then we make it absolute by
-			# using the the path of general_setup, minus the test_tools dir.
-			#
-			echo $to_test_verify_file |grep -q "^/" 
-			if [[ $? -ne 0 ]]; then
-				tdir=`echo $test_cmd | rev | cut -d'/' -f2- | rev`
-				to_test_verify_file=${tdir}/${to_test_verify_file}
-			fi
-			shift 2
-		;;
 		--tuned_setting)
 			i=$((i + 2))
 			if [[ $value != *"none"* ]]; then
@@ -204,6 +191,7 @@ do
 		;;
 		--verify_skip)
 			to_verify_flags="$1"
+			skip_verification=1
 			shift 1
 		;;
 		--json_skip)
@@ -234,6 +222,10 @@ fi
 
 if [[ $to_tuned_setting == "" ]]; then
 	to_tuned_setting=`${TOOLS_BIN}/get_tuned_setting`
+fi
+
+if [[ "$skip_verification" -eq 0 ]]; then
+	${TOOLS_BIN}/package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json --no_packages $to_no_pkg_install
 fi
 
 #
