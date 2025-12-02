@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+#
+#                         License
+#
+# Copyright (C) 2025  Keith Valin kvalin@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Convert CSV files to JSON.
+
+import argparse
+import sys
+from typing import TextIO
+
+try:
+    import pandas as pd
+except ImportError:
+    print("ERROR: pandas is not installed. Exiting", file=sys.stderr)
+    exit(1)
+
+def main(csv_file: TextIO, output: TextIO, separator: str):
+    """
+    Convert a CSV file to JSON.
+    """
+    df = pd.read_csv(csv_file, sep=separator, comment='#')
+    df.to_json(output, orient='records', lines=False, indent=4)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Convert CSV files to JSON')
+    parser.add_argument('--csv_file', type=argparse.FileType("r"), help='The CSV file to convert', default=sys.stdin)
+    parser.add_argument('--output_file', type=argparse.FileType("w"), help='The JSON file to write', default=sys.stdout)
+    parser.add_argument('--json_skip', action='store_true', help='Skip processing the CSV to JSON, effectively makes this a no-op')
+    
+    # Colon is used as the default separator since most wrappers use it.
+    parser.add_argument('--separator', type=str, help='The separator to use for the CSV file', default=":")
+    args = parser.parse_args()
+
+    if args.json_skip:
+        sys.exit(0)
+
+    main(args.csv_file, args.output_file, args.separator)

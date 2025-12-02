@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import sys
+import json
+from typing import TextIO
+
+try:
+	from pydantic import BaseModel, TypeAdapter, ValidationError
+except ImportError as e:
+	print("ERROR: Could not import pydantic, exiting", file=sys.stderr)
+	exit(1)
+
+def verify_schema(file: TextIO, class_name: BaseModel):
+	data = json.load(file)
+	try:
+		TypeAdapter(list[class_name]).validate_python(data)
+	except ValidationError as e:
+		print("Could not verify schema, see below for details", file=sys.stderr)
+		print(e, file=sys.stderr)
+		sys.exit(1)
+
+	print("Results verified")
+
+if __name__ == "__main__":
+	import argparse
+	import importlib.util
+	import re
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--file",
+		type=argparse.FileType("r"),
+		help="JSON file to verify, default is to read from stdin",
+		default=sys.stdin
+	)
+	parser.add_argument("--schema_file",
+		type=str,
+		help="Schema file used to validate JSON file"
+	)
+	parser.add_argument("--class_name", type=str, help="Class name used to validate JSON file", default="Results")
+	parser.add_argument("--usage", action="store_true", help="Show usage")
+	parser.add_argument("--verify_skip", action="store_true", help="Skip verification process")
+	args = parser.parse_args()
+	
+	if args.usage:
+		parser.print_help()
+		sys.exit(0)
+
+	if args.verify_skip:
+		sys.exit(0)
+
+	try:
+		# Get the file name (minus the extension), since it is the module name
+		module_name = re.sub(r".py$", "", args.schema_file).split("/")[-1]
+		
+		# Import the class from the schema file
+		spec = importlib.util.spec_from_file_location(module_name, args.schema_file)
+		importedClass = importlib.util.module_from_spec(spec)
+		spec.loader.exec_module(importedClass)
+		
+		baseModel = getattr(importedClass, args.class_name)
+	# Handle file issues and if the class is not found (attribute error)
+	except (FileNotFoundError, AttributeError) as e:
+		print(f"Class {args.class_name} not found in {args.schema_file}", file=sys.stderr)
+		print(f"Error: {e}", file=sys.stderr)
+		sys.exit(1)
+	except Exception as e:
+		print(f"Error: {e}", file=sys.stderr)
+		sys.exit(1)
+
+	verify_schema(args.file, baseModel)
