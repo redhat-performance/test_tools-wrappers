@@ -55,10 +55,37 @@ setup_pcp()
 	# If pmlogger isn't present, install the PCP bits
 	pcp_present=$(which pmlogger)
 	if [[ $? -ne 0 ]]; then 
-		package_tool --packages pcp-zeroconf,pcp-pmda-openmetrics,pcp-pmda-denki
+		${TOOLS_BIN}/package_tool --no_packages $to_no_pkg_install --wrapper_config ${TOOLS_BIN}/pcp/pcp.json
 	fi
-
-	working_dir="/usr/local/src/PCPrecord"
+	# Distro-specific magic required once the packages are installed
+	running_os=`${TOOLS_BIN}/detect_os`
+	case "$running_os" in
+		"ubuntu")
+			# Ubuntu drops the PMDAs in a known place when zeroconf is used, but doesn't make them usable.
+			# Each has its own installer which has to be run from its own directory.
+			pushd /var/lib/pcp/pmdas/openmetrics
+			./Install
+			popd
+			pushd /var/lib/pcp/pmdas/denki
+			./Install
+			popd
+		;;
+			"sles")
+			# SLES drops the PMDAs in a known place when zeroconf is used, but doesn't make them usable.
+			# Each has its own installer which has to be run from its own directory.
+			pushd /var/lib/pcp/pmdas/openmetrics
+			./Install
+			popd
+			pushd /var/lib/pcp/pmdas/denki
+			./Install
+			popd
+		;;
+		*)
+		# Nothing to do, the installation did everything for us
+		;;
+	esac
+	
+working_dir="/usr/local/src/PCPrecord"
 
 	mkdir -p "${working_dir}"
 	chmod 755 ${TOOLS_BIN}/pcp/*.sh
