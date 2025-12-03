@@ -44,11 +44,11 @@ validate_data()
 		echo Designated device, $device_to_use, does not exist
 		exit 1
 	fi
-	if [[ mount_pnt = "" ]]; then
+	if [[ $mount_pnt = "" ]]; then
 		echo You need to designate a mount point.
 		exit 1
 	fi
-	if [[ fs_type = "" ]]; then
+	if [[ $fs_type = "" ]]; then
 		echo You need to designate a filesys type.
 		exit 1
 	fi
@@ -79,7 +79,7 @@ opts=$(getopt \
 if [ $? -ne 0 ]; then
         exit
 fi
-eval set --$opts
+eval set -- "$opts"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -93,7 +93,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--mount_dir)
 			mount_pnt=${2}
-			mkdir -p $mount_pnt
+			mkdir -p "$mount_pnt"
 			shift 2
 		;;
 		--usage)
@@ -134,7 +134,7 @@ case $fs_type in
 		MKFS_OPS="-f"
 	;;
 	*)
-		echo Error, $1 unknown filesystem type
+		echo Error, $fs_type unknown filesystem type
 		exit 1
 	;;
 esac
@@ -143,7 +143,7 @@ mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}
 if [ $? -ne 0 ]; then
 	exit 1
 fi
-mount ${device_to_use} ${mount_pnt} 
+mount ${device_to_use} "${mount_pnt}"
 if [ $? -ne 0 ]; then
 	exit 1
 fi

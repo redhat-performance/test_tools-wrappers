@@ -21,7 +21,7 @@ disks_passed=$1
 disks=""
 numb_disks=0
 
-seper=""
+separator=""
 
 build_disks_list()
 {
@@ -29,11 +29,11 @@ build_disks_list()
 	for i in $disk_list; do
 		let "numb_disks=$numb_disks + 1"
 		if [[ $i == "/dev/"* ]]; then
-			disks=${disks}${seper}${i}
+			disks=${disks}${separator}${i}
 		else
-			disks=${disks}${seper}/dev/${i}
+			disks=${disks}${separator}/dev/${i}
 		fi
-		seper=" "
+		separator=" "
 	done
 }
 
@@ -45,7 +45,6 @@ grab_disks()
 		ALLSTG=$(mktemp /tmp/allstgdsk.XXXXX)
 		USEDDSK=$(mktemp /tmp/useddsk.XXXXX)
 		ALLDSK=$(mktemp /tmp/alldsk.XXXXX)
-		MNTDDSK=$(mktemp /tmp/mntddsk.XXXXX)
 		lsblk -l > ${ALLSTG}
 		rootdisk=$(grep -e "part /$" -e boot$ ${ALLSTG} | awk '{print $1}')
 	
@@ -57,7 +56,7 @@ grab_disks()
 		#
 		# Now the mounted disks
 		#
-		for i in `df | grep /dev | cut -d' ' -f1 | grep /`
+		for i in `df --output=source |  grep /dev`
 		do 
 			echo ${i##*/} >> $USEDDSK
 		done
@@ -65,12 +64,14 @@ grab_disks()
 		grep disk ${ALLSTG} | awk '{print $1}' | sort | uniq > ${ALLDSK}
 		disks_temp=`echo $(grep -F -x -v -f ${USEDDSK} ${ALLDSK})`
 		echo "$disks_temp"  | awk '{ for (i=NF; i > 1; i--) printf("%s ",$i); print $1; }' > disks
+		rm -f $ALLSTG $USEDDSK $ALLDSK
 	fi
 	build_disks_list "`cat disks`"
+	rm -f disks
 }
 
 if [[ $disks_passed == *"none"* ]]; then
-	if [[ $sys_type == "local" ]]; then
+	if [[ $to_sys_env == "local" ]]; then
 		echo Unable to continue. non cloud systems require a disk to be designated.
 		exit 1
 	fi

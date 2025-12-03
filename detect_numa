@@ -68,7 +68,7 @@ fetch_cpus() {
     local node_count=`get_num_nodes`
     local prefix="NUMA node"
 
-    if [ `has_numa` -eq 0 ]; then # Return all syste
+    if [ `has_numa` -eq 0 ]; then # Return all system CPUs.
         prefix="On-line CPU\(s\) list:"
         node=""
     elif [ -z "$node" ]; then # Used to filter out "NUMA node(s)" line
@@ -112,7 +112,7 @@ if [ $? -ne 0 ]; then
         exit 1
 fi
 
-eval set --$opts
+eval set -- "$opts"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -127,7 +127,7 @@ while [[ $# -gt 0 ]]; do
         get_cpus=1
         shift 1
     ;;
-    -n | --node-count)
+    --node-count)
         get_nodes=1
         shift 1
     ;;
@@ -143,7 +143,7 @@ while [[ $# -gt 0 ]]; do
         break
     ;;
     *)
-        echo_stderr Unknown option $1
+        echo Unknown option $1 >&2
         exit 1
     ;;
     esac
