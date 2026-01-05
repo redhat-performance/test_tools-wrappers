@@ -30,6 +30,7 @@ pip_packages=""
 python_exec="python3"
 update_cache=1
 cache_cmd=""
+skip_pkg_install=0
 
 base_dir=$(dirname $(realpath $0))
 running_os=$($base_dir/detect_os)
@@ -47,8 +48,9 @@ update_system_cache() {
 install_system_pkgs() {
 	packages=$1
 	package_list=$(echo ${packages} | sed "s/,/ /g")
-
-	if [[ -z "$package_list" ]]; then
+	
+	# Skip package installs when asked to, or no packages are listed
+	if [[ "$skip_pkg_install" -eq 1 ]] || [[ -z "$package_list" ]]; then
 		return 0 # Nothing to do
 	fi
 	update_system_cache
@@ -179,9 +181,7 @@ while [[ $# -gt 0 ]]; do
 			shift 2
 		;;
 		--no_packages)
-			if [[ $2 == "1" ]]; then
-				exit 0
-			fi
+			skip_pkg_install=$2
 			shift 2
 		;;
 		--packages)
