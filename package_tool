@@ -9,6 +9,7 @@ usage()
 	echo "  --update: Update the system."
 	echo "  --usage: This usage message."
 	echo "  --pip_packages: comma separated list of pip modules to install"
+	echo "  --no_pip_packages: value 0 installs pip packages, value 1 does not.  Same logic as --no_packages"
 	echo "  --python_exec: path to python interpreter to install pip modules for (default \"python3\"), will require installation of relevant packages to install pip"
 	echo "  --update_cache: Update package cache before install/updating packages, 1 (default) updates cache, 0 skips cache update"
 	exit 1
@@ -31,6 +32,7 @@ python_exec="python3"
 update_cache=1
 cache_cmd=""
 skip_pkg_install=0
+skip_pip_pkg_install=0
 
 base_dir=$(dirname $(realpath $0))
 running_os=$($base_dir/detect_os)
@@ -149,6 +151,7 @@ install_pip_pkgs() {
 ARGUMENT_LIST=(
 	"is_installed"
 	"no_packages"
+	"no_pip_packages"
 	"update_cache"
 	"packages"
 	"remove_packages"
@@ -190,6 +193,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--pip_packages)
 			pip_packages=$(append_packages $pip_packages $2)
+			shift 2
+		;;
+		--no_pip_packages)
+			skip_pip_pkg_install=$2
 			shift 2
 		;;
 		--python_exec)
@@ -299,7 +306,7 @@ fi
 
 install_system_pkgs "$packages"
 
-if [[ -n "$pip_packages" ]]; then
+if [[ "$skip_pip_pkg_install" -eq 0 ]] && [[ -n "$pip_packages" ]]; then
 	install_pip_pkgs
 fi
 exit 0
