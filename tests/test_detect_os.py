@@ -80,4 +80,32 @@ def test_detect_os_minor_version(version: str, tmp_path):
     assert rtc == 0
     assert stdout.decode('utf-8').strip() == version.split('.')[1]
 
+@pytest.mark.parametrize("version,delim", [("2:9", ":"), ("89/2", "/")])
+def test_detect_os_vers_sep(version: str, delim: str, tmp_path):
+    d = tmp_path / f"os-release"
+    create_os_release_file(d, os_version=version)
+    stdout_major, stderr_major, rtc_major = run_script([
+        DETECT_OS_SCRIPT,
+        "--os-release-file",
+        d,
+        "--os-version",
+        "--major-version",
+        "--version-separator",
+        delim
+    ])
 
+    assert rtc_major == 0
+    assert stdout_major.decode('utf-8').strip() == version.split(delim)[0]
+
+    stdout_minor, stderr_minor, rtc_minor = run_script([
+        DETECT_OS_SCRIPT,
+        "--os-release-file",
+        d,
+        "--os-version",
+        "--minor-version",
+        "--version-separator",
+        delim
+    ])
+
+    assert rtc_minor == 0
+    assert stdout_minor.decode('utf-8').strip() == version.split(delim)[1]
