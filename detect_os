@@ -42,6 +42,10 @@ usage()
     echo -e "\t\t Set the separator between the major and minor version numbers"
     echo -e "\t\t Default is \".\""
 
+    echo -e "\t --os-release-file <file>"
+    echo -e "\t\t Set the file to be used to determine what OS is being used"
+    echo -e "\t\t Default is \"/etc/os-release\""
+
     echo -e "\t -h/--help/--usage"
     echo -e "\t\t Displays this message"
 }
@@ -80,6 +84,7 @@ parse_os_release()
 
 ARG_OPTS=(
     "version-separator"
+    "os-release-file"
 )
 
 NOARG_OPTS=(
@@ -128,6 +133,10 @@ while [[ $# -gt 0 ]]; do
     ;;
     --version-separator)
         vers_sep=$2
+        shift 2
+    ;;
+    --os-release-file)
+        os_release_file=$2
         shift 2
     ;;
     --)
