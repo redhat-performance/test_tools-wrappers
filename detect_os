@@ -38,7 +38,7 @@ usage()
     echo -e "\t --minor-version"
     echo -e "\t\t Output the minor version number of the OS (requires --os-version)"
 
-    echo -e "\t --version-separator"
+    echo -e "\t --version-separator <character>"
     echo -e "\t\t Set the separator between the major and minor version numbers"
     echo -e "\t\t Default is \".\""
 
