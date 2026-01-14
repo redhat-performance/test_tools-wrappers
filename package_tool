@@ -152,6 +152,7 @@ ARGUMENT_LIST=(
 	"is_installed"
 	"no_packages"
 	"no_pip_packages"
+	"no_system_packages"
 	"update_cache"
 	"packages"
 	"remove_packages"
@@ -184,7 +185,9 @@ while [[ $# -gt 0 ]]; do
 			shift 2
 		;;
 		--no_packages)
-			skip_pkg_install=$2
+			if [[ $2 == "1" ]]; then
+				exit 0
+			fi
 			shift 2
 		;;
 		--packages)
@@ -197,6 +200,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--no_pip_packages)
 			skip_pip_pkg_install=$2
+			shift 2
+		;;
+		--no_system_packages)
+			skip_pkg_install=$2
 			shift 2
 		;;
 		--python_exec)
