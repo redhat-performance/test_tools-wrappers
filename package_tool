@@ -303,7 +303,7 @@ fi
 # Ensure pip is available for the default python3 interpreter.
 # If a custom one is provided, let the wrapper figure out the
 # correct method to install pip
-if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]]; then
+if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]] && [[ "$skip_pip_pkg_install" -eq 0 ]]; then
 	pip_os_pkg=$(parse_json $base_dir/deps/python_pip.json $running_os)
 	if [[ -z "$pip_os_pkg" ]]; then
 		exit_out "$running_os has no known python3-pip package" 1
