@@ -145,7 +145,7 @@ result2pcp()
 	grep -w ${1} /tmp/openmetrics_workload.txt
 	if [[ $? -eq 0 ]]; then
 		#Just log it
-		sed -i "s/^.*${1}.*$/${1} ${2}/" /tmp/openmetrics_workload.txt
+		sed -i "s/^${1} .*$/${1} ${2}/" /tmp/openmetrics_workload.txt
 	else
 		#I don't see it. Typo? Experiment? Flag it and add it to the file
 		echo "Unexpected metric logged. Check for a typo."
