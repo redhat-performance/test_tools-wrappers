@@ -94,10 +94,15 @@ working_dir="/usr/local/src/PCPrecord"
 	cp ${TOOLS_BIN}/pcp/pcp_functions.inc "${working_dir}/."
 	cp ${TOOLS_BIN}/pcp/workload.url /var/lib/pcp/pmdas/openmetrics/config.d/
 	#If there's a workload specific OM file use it. Otherwise use a generic one
+	om_reset_file=${TOOLS_BIN}/pcp/openmetrics_default_reset.txt
 	if [[ -f ${run_dir}/openmetrics_${test_name}_reset.txt ]]; then
-		cp ${run_dir}/openmetrics_${test_name}_reset.txt /tmp/openmetrics_workload_reset.txt
+		om_reset_file=${run_dir}/openmetrics_${test_name}_reset.txt
 	else
 		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
+	fi
+	cp $om_reset_file /tmp/openmetrics_workload_reset.txt
+	if [[ ! -f /tmp/openmetrics_workload.txt ]]; then
+		cp $om_reset_file /tmp/openmetrics_workload.txt
 	fi
 	# Stop and then Restart the service
 	systemctl stop PCPrecord.service
@@ -106,8 +111,7 @@ working_dir="/usr/local/src/PCPrecord"
 	systemctl daemon-reload
 	sleep 1
 	# WHY is this issuing warning to run 'systemctl daemon-reload'?
-	systemctl start PCPrecord.service
-	systemctl start pmcd
+	systemctl start PCPrecord.service # This will start pmcd and wait for openme
 	sleep 1
 }
 
