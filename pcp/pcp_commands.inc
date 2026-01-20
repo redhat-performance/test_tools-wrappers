@@ -16,7 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-
+gl_metric_list=""
+gl_metric_separ=""
 FIFO="/tmp/pcpFIFO"
 timeout_long=10             # wait-time for Start and Stop actions
 timeout_short=2             # wait-time for other actions
@@ -190,4 +191,71 @@ stop_pcp_subset()
 	printf "running 0" > $FIFO
 	check_svc $timeout_short
 	sleep 2
+}
+
+#
+# Takes a passed list of metrics and write it out to /tmp/openmetrics_workload.txt
+#
+# Argument:   <metric name 1>:<metric value>,<metric name 2>:<metric value>.......
+#
+results2pcp_multiple()
+{
+	check_svc $timeout_short
+
+	#
+	# Replace ',' with a space in the metric list.
+	#
+	metric_list=`echo "$1" | sed "s/,/ /g"`
+	#
+	# Make working copy
+	#
+	cp /tmp/openmetrics_workload.txt /tmp/openmetrics_workload_worker
+	#
+	# Walk each metric and make updates in the working copy.
+	#
+	for i in $metric_list; do
+		metric=`echo $i | cut -d':' -f1`
+		value=`echo $i | cut -d':' -f2`
+                sed -i "s/^${metric} .*$/${metric} ${value}/" /tmp/openmetrics_workload_worker
+	done
+	#
+	# Now cat it to be recorded, do not copy it or move it file.
+	#
+	cat /tmp/openmetrics_workload_worker > /tmp/openmetrics_workload.txt
+`
+	rm /tmp/openmetrics_workload_worker
+	check_svc $timeout_short
+	sleep 2
+}
+
+#
+# Places the metric into the $gl_metric_list.  To commit the metrics 
+# in the list, use results2pcp_add_value_commit.
+#
+# Argument <metric_name>:<value>
+#
+results2pcp_add_value()
+{
+	gl_metric_list="${gl_metric_list}${gl_metric_separ}${1}"
+	#
+	# Set the field separator for next metric.
+	#
+	gl_metric_separ=","
+}
+
+#
+# Writes out all metrics in $gl_metric_list to the 
+# pcp log file /tmp/openmetrics_workload.txt.
+#
+results2pcp_add_value_commit()
+{
+	#
+	# Use results2pcp_multiple to write the metrics out.
+	#
+	results2pcp_multiple "${gl_metric_list}"
+	#
+	# Reset the metric list and field separator.
+	#
+	gl_metric_list=""
+	gl_metric_separ=""
 }
