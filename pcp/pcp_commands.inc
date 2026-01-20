@@ -138,6 +138,9 @@ stop_pcp()
 #Sends value to OpenMetrics file to be added to PCP archive
 #$1: metric
 #$2: value
+# Note:
+#	result2pcp is depreicated, and will be going away, use results2pcp_multiple
+#	instead.
 result2pcp()
 {
 	echo "Logging results ${1} ${2}"
@@ -220,7 +223,7 @@ results2pcp_multiple()
 			echo "Warning: Unexpected metric, ${metric}, being logged. Check for a typo."
 		fi
 		value=`echo $i | cut -d':' -f2`
-                sed -i "s/^${metric} .*$/${metric} ${value}/" /tmp/openmetrics_workload_worker
+		sed -i "s/^${metric} .*$/${metric} ${value}/" /tmp/openmetrics_workload_worker
 	done
 	#
 	# Now cat it to be recorded, do not copy it or move it file.
