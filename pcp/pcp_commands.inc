@@ -215,7 +215,7 @@ results2pcp_multiple()
 	#
 	for i in $metric_list; do
 		metric=`echo $i | cut -d':' -f1`
-		grep -w ${metric} /tmp/openmetrics_workload.txt
+		grep -wq ${metric} /tmp/openmetrics_workload.txt
 		if [[ $? -ne 0 ]]; then
 			echo "Warning: Unexpected metric, ${metric}, being logged. Check for a typo."
 		fi
