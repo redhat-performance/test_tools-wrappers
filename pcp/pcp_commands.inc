@@ -215,6 +215,10 @@ results2pcp_multiple()
 	#
 	for i in $metric_list; do
 		metric=`echo $i | cut -d':' -f1`
+		grep -w ${metric} /tmp/openmetrics_workload.txt
+		if [[ $? -ne 0 ]]; then
+			echo "Warning: Unexpected metric, ${metric}, being logged. Check for a typo."
+		fi
 		value=`echo $i | cut -d':' -f2`
                 sed -i "s/^${metric} .*$/${metric} ${value}/" /tmp/openmetrics_workload_worker
 	done
@@ -222,7 +226,6 @@ results2pcp_multiple()
 	# Now cat it to be recorded, do not copy it or move it file.
 	#
 	cat /tmp/openmetrics_workload_worker > /tmp/openmetrics_workload.txt
-`
 	rm /tmp/openmetrics_workload_worker
 	check_svc $timeout_short
 	sleep 2
