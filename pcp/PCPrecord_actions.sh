@@ -128,13 +128,13 @@ while : ; do
                 # Change only one metric line at a time
                 # Replaces the entire line using sed
                 # Should I only print 'action_arr[0] & action_arr[1]'
-                sed -i "s/^.*${action_arr[0]}.*$/${action}/" "$om_workload_file"
+                sed -i "s/^${action_arr[0]} .*$/${action}/" "$om_workload_file"
             fi
             ;;
         running|iteration)                          # Workload States
             # state="${action_arr[1]}"  om_workload_file=$2
             if [[ "$pmlogger_running" = "true" ]]; then
-                sed -i "s/^.*${action_arr[0]}.*$/${action}/" "$om_workload_file"
+                sed -i "s/^${action_arr[0]} .*$/${action}/" "$om_workload_file"
             fi
             ;;
         *)
