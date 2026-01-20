@@ -99,6 +99,17 @@ working_dir="/usr/local/src/PCPrecord"
 	else
 		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
 	fi
+	#
+	# Verify there are no duplicate records.
+	#
+	total_recs=`wc -l /tmp/openmetrics_workload_reset.txt | awk '{print $1}'`
+	uniq_recs=$(awk '{print $1}' /tmp/openmetrics_workload_reset.txt | sort -u | wc -l)
+	if [[ $total_recs -ne  $uniq_recs ]]; then
+		echo "ERROR: /tmp/openmetrics_workload_reset.txt contains duplicate metric names"
+		echo "Following are the dups"
+		awk '{print $1}' /tmp/openmetrics_workload_reset.txt | sort | uniq -d
+		exit 1
+	fi
 	# Stop and then Restart the service
 	systemctl stop PCPrecord.service
 	systemctl stop pmcd
