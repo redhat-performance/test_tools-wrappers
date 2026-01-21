@@ -70,6 +70,7 @@ gs_usage_info()
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."
 	echo "  --use_pcp: Enables use of Performance Co-Pilot in wrappers, defaults to 0."
+	echo "  --debug: Enables bash -x output, useful for debugging issues with wrappers"
 	exit 1
 }
 
@@ -207,6 +208,11 @@ do
  			to_use_pcp=1
  			shift 1
 	    ;;
+		--debug)
+			i=$((i + 1))
+			set -x
+			shift 1
+		;;
 		--)
 			break; 
 		;;
