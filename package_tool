@@ -9,6 +9,7 @@ usage()
 	echo "  --update: Update the system."
 	echo "  --usage: This usage message."
 	echo "  --pip_packages: comma separated list of pip modules to install"
+	echo "  --no_pip_packages: value 0 installs pip packages, value 1 does not.  Same logic as --no_packages"
 	echo "  --python_exec: path to python interpreter to install pip modules for (default \"python3\"), will require installation of relevant packages to install pip"
 	echo "  --update_cache: Update package cache before install/updating packages, 1 (default) updates cache, 0 skips cache update"
 	exit 1
@@ -30,6 +31,8 @@ pip_packages=""
 python_exec="python3"
 update_cache=1
 cache_cmd=""
+skip_pkg_install=0
+skip_pip_pkg_install=0
 
 base_dir=$(dirname $(realpath $0))
 running_os=$($base_dir/detect_os)
@@ -47,8 +50,9 @@ update_system_cache() {
 install_system_pkgs() {
 	packages=$1
 	package_list=$(echo ${packages} | sed "s/,/ /g")
-
-	if [[ -z "$package_list" ]]; then
+	
+	# Skip package installs when asked to, or no packages are listed
+	if [[ "$skip_pkg_install" -eq 1 ]] || [[ -z "$package_list" ]]; then
 		return 0 # Nothing to do
 	fi
 	update_system_cache
@@ -147,6 +151,8 @@ install_pip_pkgs() {
 ARGUMENT_LIST=(
 	"is_installed"
 	"no_packages"
+	"no_pip_packages"
+	"no_system_packages"
 	"update_cache"
 	"packages"
 	"remove_packages"
@@ -190,6 +196,14 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--pip_packages)
 			pip_packages=$(append_packages $pip_packages $2)
+			shift 2
+		;;
+		--no_pip_packages)
+			skip_pip_pkg_install=$2
+			shift 2
+		;;
+		--no_system_packages)
+			skip_pkg_install=$2
 			shift 2
 		;;
 		--python_exec)
@@ -289,7 +303,7 @@ fi
 # Ensure pip is available for the default python3 interpreter.
 # If a custom one is provided, let the wrapper figure out the
 # correct method to install pip
-if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]]; then
+if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]] && [[ "$skip_pip_pkg_install" -eq 0 ]]; then
 	pip_os_pkg=$(parse_json $base_dir/deps/python_pip.json $running_os)
 	if [[ -z "$pip_os_pkg" ]]; then
 		exit_out "$running_os has no known python3-pip package" 1
@@ -299,7 +313,7 @@ fi
 
 install_system_pkgs "$packages"
 
-if [[ -n "$pip_packages" ]]; then
+if [[ "$skip_pip_pkg_install" -eq 0 ]] && [[ -n "$pip_packages" ]]; then
 	install_pip_pkgs
 fi
 exit 0

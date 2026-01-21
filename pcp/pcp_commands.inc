@@ -16,7 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-
+gl_metric_list=""
+gl_metric_separ=""
 FIFO="/tmp/pcpFIFO"
 timeout_long=10             # wait-time for Start and Stop actions
 timeout_short=2             # wait-time for other actions
@@ -93,6 +94,7 @@ working_dir="/usr/local/src/PCPrecord"
 	cp ${TOOLS_BIN}/pcp/PCPrecord_actions.sh "${working_dir}/."
 	cp ${TOOLS_BIN}/pcp/pcp_functions.inc "${working_dir}/."
 	cp ${TOOLS_BIN}/pcp/workload.url /var/lib/pcp/pmdas/openmetrics/config.d/
+
 	#If there's a workload specific OM file use it. Otherwise use a generic one
 	om_reset_file=${TOOLS_BIN}/pcp/openmetrics_default_reset.txt
 	if [[ -f ${run_dir}/openmetrics_${test_name}_reset.txt ]]; then
@@ -100,9 +102,21 @@ working_dir="/usr/local/src/PCPrecord"
 	else
 		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
 	fi
+
 	cp $om_reset_file /tmp/openmetrics_workload_reset.txt
 	if [[ ! -f /tmp/openmetrics_workload.txt ]]; then
 		cp $om_reset_file /tmp/openmetrics_workload.txt
+	fi
+	#
+	# Verify there are no duplicate records.
+	#
+	total_recs=`wc -l /tmp/openmetrics_workload_reset.txt | awk '{print $1}'`
+	uniq_recs=$(awk '{print $1}' /tmp/openmetrics_workload_reset.txt | sort -u | wc -l)
+	if [[ $total_recs -ne  $uniq_recs ]]; then
+		echo "ERROR: /tmp/openmetrics_workload_reset.txt contains duplicate metric names"
+		echo "Following are the dups"
+		awk '{print $1}' /tmp/openmetrics_workload_reset.txt | sort | uniq -d
+		exit 1
 	fi
 	# Stop and then Restart the service
 	systemctl stop PCPrecord.service
@@ -141,6 +155,9 @@ stop_pcp()
 #Sends value to OpenMetrics file to be added to PCP archive
 #$1: metric
 #$2: value
+# Note:
+#	result2pcp is depreicated, and will be going away, use results2pcp_multiple
+#	instead.
 result2pcp()
 {
 	echo "Logging results ${1} ${2}"
@@ -194,4 +211,74 @@ stop_pcp_subset()
 	printf "running 0" > $FIFO
 	check_svc $timeout_short
 	sleep 2
+}
+
+#
+# Takes a passed list of metrics and write it out to /tmp/openmetrics_workload.txt
+#
+# Argument:   <metric name 1>:<metric value>,<metric name 2>:<metric value>.......
+#
+results2pcp_multiple()
+{
+	check_svc $timeout_short
+
+	#
+	# Replace ',' with a space in the metric list.
+	#
+	metric_list=`echo "$1" | sed "s/,/ /g"`
+	#
+	# Make working copy
+	#
+	cp /tmp/openmetrics_workload.txt /tmp/openmetrics_workload_worker
+	#
+	# Walk each metric and make updates in the working copy.
+	#
+	for i in $metric_list; do
+		metric=`echo $i | cut -d':' -f1`
+		grep -wq ${metric} /tmp/openmetrics_workload.txt
+		if [[ $? -ne 0 ]]; then
+			echo "Warning: Unexpected metric, ${metric}, being logged. Check for a typo."
+		fi
+		value=`echo $i | cut -d':' -f2`
+		sed -i "s/^${metric} .*$/${metric} ${value}/" /tmp/openmetrics_workload_worker
+	done
+	#
+	# Now cat it to be recorded, do not copy it or move it file.
+	#
+	cat /tmp/openmetrics_workload_worker > /tmp/openmetrics_workload.txt
+	rm /tmp/openmetrics_workload_worker
+	check_svc $timeout_short
+	sleep 2
+}
+
+#
+# Places the metric into the $gl_metric_list.  To commit the metrics 
+# in the list, use results2pcp_add_value_commit.
+#
+# Argument <metric_name>:<value>
+#
+results2pcp_add_value()
+{
+	gl_metric_list="${gl_metric_list}${gl_metric_separ}${1}"
+	#
+	# Set the field separator for next metric.
+	#
+	gl_metric_separ=","
+}
+
+#
+# Writes out all metrics in $gl_metric_list to the 
+# pcp log file /tmp/openmetrics_workload.txt.
+#
+results2pcp_add_value_commit()
+{
+	#
+	# Use results2pcp_multiple to write the metrics out.
+	#
+	results2pcp_multiple "${gl_metric_list}"
+	#
+	# Reset the metric list and field separator.
+	#
+	gl_metric_list=""
+	gl_metric_separ=""
 }
