@@ -21,6 +21,7 @@ gl_metric_separ=""
 FIFO="/tmp/pcpFIFO"
 timeout_long=10             # wait-time for Start and Stop actions
 timeout_short=2             # wait-time for other actions
+metric_valid=0
 
 fail_exit()
 {
@@ -29,6 +30,26 @@ fail_exit()
         # Additional error handling logic can be added here
         exit 1
     fi
+}
+
+#
+# Verify the metric and associated value or valid.
+#
+
+verify_metric_recording()
+{
+	metric="$1"
+	value="$2"
+	metric_valid=1
+
+	if [[  "$metric" =~ [^a-zA-Z0-9_] ]]; then
+		echo Warning: metric $metric contains invalid characters, will not record.
+		metric_valid=0
+	fi
+	if [[  "$value" =~ [^0-9.] ]]; then
+		echo Warning: value of  $metric is invalid, will not record.
+		metric_valid=0
+	fi
 }
 
 # Wait for the PCPrecord.SVC to report Status='READY'
@@ -155,16 +176,34 @@ stop_pcp()
 result2pcp()
 {
 	echo "Logging results ${1} ${2}"
-	#Do we know about the metric?
 	check_svc $timeout_short
+	value="$2"
+	#
+	# Convert from scientific notation.
+	#
+	if [[ $value == *"+"* ]]; then
+		value=$(printf "%.5f" "$2")
+		if [[ $? -ne 0 ]]; then
+			echo "Invalid scientific notation $2"
+			return 1
+		fi
+	fi
+	#Do we know about the metric?
 	grep -w ${1} /tmp/openmetrics_workload.txt
 	if [[ $? -eq 0 ]]; then
+
+		verify_metric_recording "${1}" "${value}"
 		#Just log it
-		sed -i "s/^.*${1}.*$/${1} ${2}/" /tmp/openmetrics_workload.txt
+		if [[ $metric_valid -eq 1 ]]; then
+			sed -i "s/^.*${1}.*$/${1} ${value}/" /tmp/openmetrics_workload.txt
+		fi
 	else
 		#I don't see it. Typo? Experiment? Flag it and add it to the file
 		echo "Unexpected metric logged. Check for a typo."
-		echo "${1} ${2}" >> /tmp/openmetrics_workload.txt
+		verify_metric_recording "${1}" "${value}"
+		if [[ $metric_valid -eq 1 ]]; then
+			echo "${1} ${value}" >> /tmp/openmetrics_workload.txt
+		fi
 	fi
 	check_svc $timeout_short
 	sleep 2
@@ -234,7 +273,20 @@ results2pcp_multiple()
 			echo "Warning: Unexpected metric, ${metric}, being logged. Check for a typo."
 		fi
 		value=`echo $i | cut -d':' -f2`
-		sed -i "s/^${metric} .*$/${metric} ${value}/" /tmp/openmetrics_workload_worker
+		#
+		# Convert from scientific notation.
+		#
+		if [[ $value == *"+"* ]]; then
+			value=$(printf "%.5f" "$value")
+			if [[ $? -ne 0 ]]; then
+				echo "Invalid scientific notation $2"
+				return 1
+			fi
+		fi
+		verify_metric_recording "${metric}" "$value"
+		if [[ $metric_valid -eq 1 ]]; then
+			sed -i "s/^${metric} .*$/${metric} ${value}/" /tmp/openmetrics_workload_worker
+		fi
 	done
 	#
 	# Now cat it to be recorded, do not copy it or move it file.
