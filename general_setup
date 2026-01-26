@@ -51,6 +51,7 @@ source ~/.bashrc
 gs_usage_info()
 {
 	echo "General options"
+	echo "  --debug: Enables bash -x output, useful for debugging issues with wrappers"
 	echo "  --home_parent <value>: Our parent home directory.  If not set, defaults to current working directory."
 	echo "  --host_config <value>: default is the current host name."
 	echo "  --iterations <value>: Number of times to run the test, defaults to 1."
@@ -70,7 +71,6 @@ gs_usage_info()
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."
 	echo "  --use_pcp: Enables use of Performance Co-Pilot in wrappers, defaults to 0."
-	echo "  --debug: Enables bash -x output, useful for debugging issues with wrappers"
 	exit 1
 }
 
