@@ -45,7 +45,7 @@ if __name__ == "__main__":
     parser.add_argument('--json_skip', action='store_true', help='Skip processing the CSV to JSON, effectively makes this a no-op')
     
     # Colon is used as the default separator since most wrappers use it.
-    parser.add_argument('--separator', type=str, help='The separator to use for the CSV file', default=":")
+    parser.add_argument('--separator', type=str, help='The separator to use for the CSV file', default=";")
     args = parser.parse_args()
 
     if args.json_skip:

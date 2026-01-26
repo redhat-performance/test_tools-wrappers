@@ -18,6 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+field_header=""
 configuration="None"
 sys_type="None"
 results_version="None"
@@ -90,6 +91,7 @@ usage()
 {
 	echo "Usage: $0"
 	echo "--field_separ <char>: the field separator character in the directory used"
+	echo "--field_header <string>:  Field header to use"
 	echo "  by --info_in_dir_name.  Default is '_'"
 	echo "--front_matter:  Place system info in the results file"
 	echo "--info_in_dir_name \"<dir> <fields>\":  If directory contains info on test"
@@ -105,6 +107,7 @@ usage()
 }
 
 ARGUMENT_LIST=(
+	"field_header"
 	"field_separ"
 	"host"
 	"info_in_dir_name"
@@ -136,6 +139,10 @@ while [[ $# -gt 0 ]]; do
 	case "$1" in
 		--host)
 			configuration=$2
+			shift 2
+		;;
+		--field_header)
+			field_header=${2}
 			shift 2
 		;;
 		--field_separ)
@@ -194,4 +201,7 @@ if [ $front_matter -eq 1 ]; then
 	print_general_header_info $results_file
 else
 	print_test_meta $results_file
+fi
+if [[ $field_header ]]; then
+	echo "${field_header},Start_Date,End_Date" >> $results_file
 fi
