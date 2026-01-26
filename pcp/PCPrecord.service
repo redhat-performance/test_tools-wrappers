@@ -1,7 +1,6 @@
 [Unit]
 Description=PCP Recorder
 
-After=pmcd.service
 [Service]
 Type=notify
 WorkingDirectory=/usr/local/src/PCPrecord
