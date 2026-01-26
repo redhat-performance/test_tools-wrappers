@@ -51,6 +51,7 @@ source ~/.bashrc
 gs_usage_info()
 {
 	echo "General options"
+	echo "  --debug: Enables bash -x output, useful for debugging issues with wrappers"
 	echo "  --home_parent <value>: Our parent home directory.  If not set, defaults to current working directory."
 	echo "  --host_config <value>: default is the current host name."
 	echo "  --iterations <value>: Number of times to run the test, defaults to 1."
@@ -207,6 +208,11 @@ do
  			to_use_pcp=1
  			shift 1
 	    ;;
+		--debug)
+			i=$((i + 1))
+			set -x
+			shift 1
+		;;
 		--)
 			break; 
 		;;
