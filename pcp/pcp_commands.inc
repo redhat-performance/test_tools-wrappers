@@ -125,6 +125,7 @@ working_dir="/usr/local/src/PCPrecord"
 	systemctl daemon-reload
 	sleep 1
 	# WHY is this issuing warning to run 'systemctl daemon-reload'?
+	systemctl start pmcd
 	systemctl start PCPrecord.service # This will start pmcd and wait for openme
 	sleep 1
 }
