@@ -4,6 +4,7 @@ Description=PCP Recorder
 [Service]
 Type=notify
 WorkingDirectory=/usr/local/src/PCPrecord
+ExecStartPre=/bin/sh -c 'until pminfo openmetrics.workload.iteration; do sleep 1; done'
 ExecStart=/usr/local/src/PCPrecord/PCPrecord_actions.sh
 
 [Install]

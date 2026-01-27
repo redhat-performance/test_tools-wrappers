@@ -148,9 +148,11 @@ working_dir="/usr/local/src/PCPrecord"
 	cp ${TOOLS_BIN}/pcp/PCPrecord_actions.sh "${working_dir}/."
 	cp ${TOOLS_BIN}/pcp/pcp_functions.inc "${working_dir}/."
 	cp ${TOOLS_BIN}/pcp/workload.url /var/lib/pcp/pmdas/openmetrics/config.d/
+
 	#If there's a workload specific OM file use it. Otherwise use a generic one
+	om_reset_file=${TOOLS_BIN}/pcp/openmetrics_default_reset.txt
 	if [[ -f ${run_dir}/openmetrics_${test_name}_reset.txt ]]; then
-		cp ${run_dir}/openmetrics_${test_name}_reset.txt /tmp/openmetrics_workload_reset.txt
+		om_reset_file=${run_dir}/openmetrics_${test_name}_reset.txt
 	else
 		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
 	fi
@@ -162,8 +164,8 @@ working_dir="/usr/local/src/PCPrecord"
 	systemctl daemon-reload
 	sleep 1
 	# WHY is this issuing warning to run 'systemctl daemon-reload'?
-	systemctl start PCPrecord.service
 	systemctl start pmcd
+	systemctl start PCPrecord.service # This will start pmcd and wait for openme
 	sleep 1
 }
 
@@ -204,7 +206,7 @@ result2pcp()
 	grep -w ${1} /tmp/openmetrics_workload.txt
 	if [[ $? -eq 0 ]]; then
 		#Just log it
-		sed -i "s/^.*${1}.*$/${1} ${2}/" /tmp/openmetrics_workload.txt
+		sed -i "s/^${1} .*$/${1} ${2}/" /tmp/openmetrics_workload.txt
 	else
 		#I don't see it. Typo? Experiment? Flag it and add it to the file
 		echo "Unexpected metric logged. Check for a typo."

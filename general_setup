@@ -45,12 +45,36 @@ source ~/.bashrc
 # to_no_pkg_install: Test is not to use dnf/yum/apt or other such tools
 
 #
+# Standard time stamp for outputting to the csv files
+#
+retrieve_time_stamp()
+{
+	date -u "+%Y-%m-%dT%H:%M:%SZ"
+}
+
+#
+# Build the string and filter out all , in the results values
+#
+build_data_string()
+{
+	out_string=""
+	separ=""
+	for arg in "$@"; do
+		append=`echo $arg | sed "s/,//g"`
+		out_string=${out_string}${separ}${append}
+		separ=","
+	done
+	echo $out_string
+}
+
+#
 # Present usage information.
 #
 
 gs_usage_info()
 {
 	echo "General options"
+	echo "  --debug: Enables bash -x output, useful for debugging issues with wrappers"
 	echo "  --home_parent <value>: Our parent home directory.  If not set, defaults to current working directory."
 	echo "  --host_config <value>: default is the current host name."
 	echo "  --iterations <value>: Number of times to run the test, defaults to 1."
@@ -207,6 +231,11 @@ do
  			to_use_pcp=1
  			shift 1
 	    ;;
+		--debug)
+			i=$((i + 1))
+			set -x
+			shift 1
+		;;
 		--)
 			break; 
 		;;
@@ -253,3 +282,6 @@ if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
 fi
 set $gen_args_back
+
+test_start_time=$(retrieve_time_stamp)
+export test_start
