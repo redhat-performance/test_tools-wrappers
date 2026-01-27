@@ -158,6 +158,7 @@ working_dir="/usr/local/src/PCPrecord"
 		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
 	fi
 	openmetrics_file_verification /tmp/openmetrics_workload_reset.txt
+	cp /tmp/openmetrics_workload_reset.txt /tmp/openmetrics_workload.txt
 	# Stop and then Restart the service
 	systemctl stop PCPrecord.service
 	systemctl stop pmcd
