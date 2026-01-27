@@ -80,13 +80,13 @@ openmetrics_file_verification()
 	#
 	# Verify we have exactly two fields in the file
 	#
-	field1=`awk '{print $1'} $metric_file | wc -l`
-	field2=`awk '{print $2'} $metric_file | grep -v "^$" | wc -l`
+	field1=`awk '{print $1}' $metric_file | wc -l`
+	field2=`awk '{print $2}' $metric_file | grep -v "^$" | wc -l`
 	if [[ $field2 -lt $field1 ]]; then
 		echo "Error $metric_file has at least one line with only 1 field."
 		exit 1
 	fi
-	extra_field=`awk '{print $3'} $metric_file | grep -v "^$" | wc -l`
+	extra_field=`awk '{print $3}' $metric_file | grep -v "^$" | wc -l`
 	if [[ $extra_field -ne 0 ]]; then
 		echo "Error $metric_file has at least one line with more then 2 fields."
 		exit 1
