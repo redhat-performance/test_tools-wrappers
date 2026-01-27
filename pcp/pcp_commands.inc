@@ -50,6 +50,60 @@ check_svc()
     fi
 }
 
+#
+# Verify the contets of the openmetrics file
+#
+openmetrics_file_verification()
+{
+	metric_file=$1
+	#
+	# Verify we have no special characters
+	#
+	if [[ `cat $metric_file | awk '{print $1}' | tr -d '\n'` =~ [^a-zA-Z0-9_] ]]; then
+		echo "Error: Invalid entry in $1, metric name must be non special."
+		exit 1
+	fi
+	#
+	# Verify there are no blank lines.
+	#
+	grep -q "^$" $metric_file
+	if [[ $? -eq 0 ]]; then
+		echo "Error $1 contains a blank line."
+		exit 1
+	fi
+	grep -q "^[0-9]" $metric_file
+	if [[ $? -eq 0 ]]; then
+		echo "Error: $1 contains a metric starting with a digit."
+		exit 1
+	fi
+
+	#
+	# Verify we have exactly two fields in the file
+	#
+	field1=`awk '{print $1}' $metric_file | wc -l`
+	field2=`awk '{print $2}' $metric_file | grep -v "^$" | wc -l`
+	if [[ $field2 -lt $field1 ]]; then
+		echo "Error $metric_file has at least one line with only 1 field."
+		exit 1
+	fi
+	extra_field=`awk '{print $3}' $metric_file | grep -v "^$" | wc -l`
+	if [[ $extra_field -ne 0 ]]; then
+		echo "Error $metric_file has at least one line with more then 2 fields."
+		exit 1
+	fi
+	#
+	# Verify there are no duplicate records.
+	#
+	total_recs=`wc -l $metric_file | awk '{print $1}'`
+	uniq_recs=$(awk '{print $1}' $metric_file | sort -u | wc -l)
+	if [[ $total_recs -ne  $uniq_recs ]]; then
+		echo "ERROR: $metric_file contains duplicate metric names"
+		echo "Following are the dups"
+		awk '{print $1}' $metric_file | sort | uniq -d
+		exit 1
+	fi
+}
+
 #Sets up and starts the PCP service
 setup_pcp()
 {
@@ -102,22 +156,7 @@ working_dir="/usr/local/src/PCPrecord"
 	else
 		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
 	fi
-
-	cp $om_reset_file /tmp/openmetrics_workload_reset.txt
-	if [[ ! -f /tmp/openmetrics_workload.txt ]]; then
-		cp $om_reset_file /tmp/openmetrics_workload.txt
-	fi
-	#
-	# Verify there are no duplicate records.
-	#
-	total_recs=`wc -l /tmp/openmetrics_workload_reset.txt | awk '{print $1}'`
-	uniq_recs=$(awk '{print $1}' /tmp/openmetrics_workload_reset.txt | sort -u | wc -l)
-	if [[ $total_recs -ne  $uniq_recs ]]; then
-		echo "ERROR: /tmp/openmetrics_workload_reset.txt contains duplicate metric names"
-		echo "Following are the dups"
-		awk '{print $1}' /tmp/openmetrics_workload_reset.txt | sort | uniq -d
-		exit 1
-	fi
+	openmetrics_file_verification /tmp/openmetrics_workload_reset.txt
 	# Stop and then Restart the service
 	systemctl stop PCPrecord.service
 	systemctl stop pmcd
