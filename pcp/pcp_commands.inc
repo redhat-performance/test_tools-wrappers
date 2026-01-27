@@ -153,6 +153,7 @@ working_dir="/usr/local/src/PCPrecord"
 	om_reset_file=${TOOLS_BIN}/pcp/openmetrics_default_reset.txt
 	if [[ -f ${run_dir}/openmetrics_${test_name}_reset.txt ]]; then
 		om_reset_file=${run_dir}/openmetrics_${test_name}_reset.txt
+		cp ${run_dir}/openmetrics_${test_name}_reset.txt /tmp/openmetrics_workload_reset.txt
 	else
 		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
 	fi
