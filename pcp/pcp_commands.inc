@@ -71,12 +71,18 @@ openmetrics_file_verification()
 		echo "Error $1 contains a blank line."
 		exit 1
 	fi
+	grep -q "^[0-9]" $metric_file
+	if [[ $? -eq 0 ]]; then
+		echo "Error: $1 contains a metric starting with a digit."
+		exit 1
+	fi
+
 	#
 	# Verify we have exactly two fields in the file
 	#
 	field1=`awk '{print $1'} $metric_file | wc -l`
 	field2=`awk '{print $2'} $metric_file | grep -v "^$" | wc -l`
-	if [[ $field1 -ne $field2 ]]; then
+	if [[ $field2 -lt $field1 ]]; then
 		echo "Error $metric_file has at least one line with only 1 field."
 		exit 1
 	fi
@@ -89,7 +95,7 @@ openmetrics_file_verification()
 	# Verify there are no duplicate records.
 	#
 	total_recs=`wc -l $metric_file | awk '{print $1}'`
-	uniq_recs=$(awk '{print $1}' /tmp/openmetrics_workload_reset.txt | sort -u | wc -l)
+	uniq_recs=$(awk '{print $1}' $metric_file | sort -u | wc -l)
 	if [[ $total_recs -ne  $uniq_recs ]]; then
 		echo "ERROR: $metric_file contains duplicate metric names"
 		echo "Following are the dups"
