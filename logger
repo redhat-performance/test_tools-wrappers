@@ -1,0 +1,77 @@
+#!/bin/bash
+
+_log_levels=("TRACE" "DEBUG" "INFO" "WARNING" "ERROR" "FATAL")
+
+_log_alias() {
+    input=$1
+    case $input in
+        "ERR")
+            echo "ERROR"
+            return
+        ;;
+        "WARN")
+            echo "WARNING"
+            return
+        ;;
+    esac
+    echo $input
+}
+
+_get_log_index() {
+    target=$(_log_alias $1)
+    idx=0
+    for i in ${_log_levels[@]}; do
+        if [[ $i == "$target" ]]; then
+            echo $idx
+            return
+        fi
+        idx=$((idx+1))
+    done
+    # TRACE if faulty level
+    echo 0
+    return
+}
+
+_log() {
+    level=$1
+    msg="${@:2}"
+    env_level=$(echo "${LOGLEVEL:-"WARNING"}" | awk '{ print toupper($0) }')
+
+    level_idx=$(_get_log_index $level)
+    env_idx=$(_get_log_index $env_level)
+    dt=$(date +"%m-%d-%Y %H:%M:%S" | tr -d '\n')
+
+    if [ $env_idx -le $level_idx ]; then
+        printf "[%s] %s | %s\n" ${_log_levels[$level_idx]} "$dt" "$msg"
+    fi   
+}
+
+log_fatal() {
+    _log "FATAL" $@
+}
+
+log_error() {
+    _log "ERROR" $@
+}
+log_err() { #Alias
+    log_error $@
+}
+
+log_warning() {
+    _log "WARNING" $@
+}
+log_warn() { # Alias
+    log_warning $@
+}
+
+log_info() {
+    _log "INFO" $@
+}
+
+log_debug() {
+    _log "DEBUG" $@
+}
+
+log_trace() {
+    _log "TRACE" $@
+}
