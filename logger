@@ -34,44 +34,53 @@ _get_log_index() {
 
 _log() {
     level=$1
-    msg="${@:2}"
+    color_code=$2
+    msg="${@:3}"
     env_level=$(echo "${LOGLEVEL:-"WARNING"}" | awk '{ print toupper($0) }')
 
     level_idx=$(_get_log_index $level)
     env_idx=$(_get_log_index $env_level)
     dt=$(date +"%m-%d-%Y %H:%M:%S" | tr -d '\n')
 
+    if [[ "$LOGCOLOR" -eq 1 ]] && [[ $color_code -gt 0 ]]; then
+        tput setaf $color_code
+    fi
+
     if [ $env_idx -le $level_idx ]; then
         printf "[%s] %s | %s\n" ${_log_levels[$level_idx]} "$dt" "$msg"
-    fi   
+    fi
+
+    if [[ "$LOGCOLOR" -eq 1 ]] && [[ $color_code -gt 0 ]]; then
+        tput sgr0
+    fi
 }
 
 log_fatal() {
-    _log "FATAL" $@
+    _log "FATAL" 1 $@
 }
 
 log_error() {
-    _log "ERROR" $@
+    _log "ERROR" 1 $@
 }
 log_err() { #Alias
     log_error $@
 }
 
 log_warning() {
-    _log "WARNING" $@
+    _log "WARNING" 3 $@
 }
 log_warn() { # Alias
     log_warning $@
 }
 
 log_info() {
-    _log "INFO" $@
+    _log "INFO" -1 $@
 }
 
 log_debug() {
-    _log "DEBUG" $@
+    _log "DEBUG" "" -1 $@
 }
 
 log_trace() {
-    _log "TRACE" $@
+    _log "TRACE" "" -1 $@
 }
