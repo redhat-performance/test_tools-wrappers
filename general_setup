@@ -104,7 +104,7 @@ to_tuned_setting=""
 to_use_pcp=0
 
 package_tool() {
-	$TOOLS_BIN/package_tool $to_pkg_tool_flags $@
+	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
 }
 
 i=1
