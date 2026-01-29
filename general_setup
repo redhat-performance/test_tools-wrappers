@@ -104,7 +104,7 @@ to_tuned_setting=""
 to_use_pcp=0
 
 package_tool() {
-	$TOOLS_BIN/package_tool --no_packages $to_no_pkg_install $to_pkg_tool_flags $@
+	$TOOLS_BIN/package_tool $to_pkg_tool_flags $@
 }
 
 i=1
@@ -146,6 +146,7 @@ do
 		--no_pkg_install)
 			i=$((i + 1))
 			to_no_pkg_install=1
+			to_pkg_tool_flags="--no_packages=1 $to_pkg_tool_flags"
 			shift 1
 		;;
 		--no_system_packages | --no_pip_packages)
