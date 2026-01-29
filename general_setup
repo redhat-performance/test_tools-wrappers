@@ -104,7 +104,7 @@ to_tuned_setting=""
 to_use_pcp=0
 
 package_tool() {
-	$TOOLS_BIN/package_tool $to_pkg_tool_flags $@
+	$TOOLS_BIN/package_tool --no_packages $to_no_pkg_install $to_pkg_tool_flags $@
 }
 
 i=1
@@ -248,7 +248,7 @@ if [[ $to_tuned_setting == "" ]]; then
 fi
 
 if [[ "$skip_verification" -eq 0 ]]; then
-	package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json --no_packages $to_no_pkg_install
+	package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json
 fi
 
 #
