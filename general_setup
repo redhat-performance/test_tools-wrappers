@@ -56,7 +56,9 @@ gs_usage_info()
 	echo "  --host_config <value>: default is the current host name."
 	echo "  --iterations <value>: Number of times to run the test, defaults to 1."
 	echo "  --iteration_default <value>: Value to set iterations to, if default is not set."
-	echo "  --no_pkg_install: Test is not to use dnf/yum/apt or other such tools"
+	echo "  --no_system_packages: Do not install system packages via the system package manager"
+	echo "  --no_pip_packages: Do not install python pip packages via pip"
+	echo "  --no_pkg_install: Test is not to install any packages"
 	echo "  --pbench: use pbench-user-benchmark and place information into pbench, defaults to do not use."
 	echo "  --pbench_user <value>: user who started everything. Defaults to the current user."
 	echo "  --pbench_copy: Copy the pbench data, not move it."
@@ -93,12 +95,17 @@ to_run_label=""
 to_user=`whoami`
 to_sysname=`hostname`
 to_pstats="default"
+to_pkg_tool_flags=""
 to_no_pkg_install=0
 skip_verification=0
 to_verify_flags=""
 to_json_flags=""
 to_tuned_setting=""
 to_use_pcp=0
+
+package_tool() {
+	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
+}
 
 i=1
 j=$#
@@ -139,6 +146,12 @@ do
 		--no_pkg_install)
 			i=$((i + 1))
 			to_no_pkg_install=1
+			to_pkg_tool_flags="--no_packages=1 $to_pkg_tool_flags"
+			shift 1
+		;;
+		--no_system_packages | --no_pip_packages)
+			i=$((i+1))
+			to_pkg_tool_flags="$1=1 $to_pkg_tool_flags"
 			shift 1
 		;;
 		--pbench)
@@ -236,7 +249,7 @@ if [[ $to_tuned_setting == "" ]]; then
 fi
 
 if [[ "$skip_verification" -eq 0 ]]; then
-	${TOOLS_BIN}/package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json --no_packages $to_no_pkg_install
+	package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json
 fi
 
 #
