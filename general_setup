@@ -103,6 +103,8 @@ to_json_flags=""
 to_tuned_setting=""
 to_use_pcp=0
 
+export to_no_pkg_install
+
 package_tool() {
 	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
 }
