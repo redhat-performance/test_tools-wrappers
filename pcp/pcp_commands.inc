@@ -107,8 +107,9 @@ openmetrics_file_verification()
 #Sets up and starts the PCP service
 setup_pcp()
 {
-	# If pmlogger isn't present, install the PCP bits
-	pcp_present=$(which pmlogger)
+	# If pmlogger isn't present, install the PCP bits, do not echo anything
+	# to the screen.
+	which pmlogger > /dev/null 2>&1
 	if [[ $? -ne 0 ]]; then 
 		${TOOLS_BIN}/package_tool --no_packages $to_no_pkg_install --wrapper_config ${TOOLS_BIN}/pcp/pcp.json
 	fi
