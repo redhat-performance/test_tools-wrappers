@@ -31,11 +31,25 @@ except ImportError:
     print("ERROR: pandas is not installed. Exiting", file=sys.stderr)
     exit(1)
 
-def main(csv_file: TextIO, output: TextIO, separator: str):
+def main(csv_file: TextIO, output: TextIO, separator: str, transpose: bool):
     """
     Convert a CSV file to JSON.
     """
     df = pd.read_csv(csv_file, sep=separator, comment='#')
+
+    if transpose:
+        # Get first colname so we can accurately set it after transpose
+        first_colname = df.columns[0]
+        # Set colname to prevent a counter from entering the first row
+        # this can be very annoying to deal with
+        df.set_index(first_colname, inplace=True)
+
+        # Transpose and reset the index to take most of the correct headers
+        transposed_df = df.transpose().reset_index()
+        # Change first colname from `index` to the correct value 
+        transposed_df.rename(columns={'index': first_colname}, inplace=True)
+        df = transposed_df
+
     df.to_json(output, orient='records', lines=False, indent=4)
 
 if __name__ == "__main__":
@@ -43,6 +57,7 @@ if __name__ == "__main__":
     parser.add_argument('--csv_file', type=argparse.FileType("r"), help='The CSV file to convert', default=sys.stdin)
     parser.add_argument('--output_file', type=argparse.FileType("w"), help='The JSON file to write', default=sys.stdout)
     parser.add_argument('--json_skip', action='store_true', help='Skip processing the CSV to JSON, effectively makes this a no-op')
+    parser.add_argument('--transpose', action='store_true', help='Transpose the CSV (columns become rows, rows become columns) before converting to JSON')
     
     # Colon is used as the default separator since most wrappers use it.
     parser.add_argument('--separator', type=str, help='The separator to use for the CSV file', default=",")
@@ -51,4 +66,4 @@ if __name__ == "__main__":
     if args.json_skip:
         sys.exit(0)
 
-    main(args.csv_file, args.output_file, args.separator)
+    main(args.csv_file, args.output_file, args.separator, args.transpose)
