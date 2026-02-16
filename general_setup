@@ -46,12 +46,41 @@ source ~/.bashrc
 
 #
 # Setup a general error handling.
-#  We are forced to put the return code in a file, as a global set in the error handling
-#  is not preserved across the kill to the trap.
+# We are forced to put the return code in a file, as a global set in the error handling
+# is not preserved across the kill to the trap.
 # 
 #  127: Command not found.
 #
-trap 'rval=`cat exit_with_$$`; rm exit_with_$$; if [[ $rval -ne 0 ]]; then exit $rval; fi' USR1 INT
+handle_usr1_trap()
+{
+	# 
+	# Only perform the full action if we have an exit_with_<pid>
+	# file that matches our pid.  Else simply proceede as normal.
+	#
+	if [[ -f exit_with_$$ ]]; then
+		rval=$(cat exit_with_$$)
+		#
+		# Do no leave cruft around.
+		#
+		rm exit_with_$$
+		if [[ $rval -ne 0 ]]; then
+			exit $rval
+		fi
+	fi
+}
+
+trap 'handle_usr1_trap' USR1 INT
+#
+# The command_not_found_handle function is activated when a command executing cannot be located.
+#
+# Since this function operates within a subshell of the caller, a simple exit would only return an
+# exit code to the calling shell, which is insufficient. The desired behavior is for the calling shell
+# to terminate immediately, returning the correct exit code to the command line.
+#
+# To achieve this, the function first saves the return code (rtc) to a temporary file named exit_with_<pid>.
+# It then sends a kill -USR1 signal to the process that initiated the call. This USR1 signal is subsequently
+# intercepted and processed by the handle_usr1_trap function.
+#
 
 command_not_found_handle() {
 	echo "Error: The command \"$1\" was not found." >&2
