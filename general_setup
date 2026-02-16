@@ -45,6 +45,21 @@ source ~/.bashrc
 # to_no_pkg_install: Test is not to use dnf/yum/apt or other such tools
 
 #
+# Setup a general error handling.
+#  We are forced to put the return code in a file, as a global set in the error handling
+#  is not preserved across the kill to the trap.
+# 
+#  127: Command not found.
+#
+trap 'rval=`cat exit_with_$$`; rm exit_with_$$; if [[ $rval -ne 0 ]]; then exit $rval; fi' USR1 INT
+
+command_not_found_handle() {
+	echo "Error: The command \"$1\" was not found." >&2
+	echo 127 > exit_with_$$
+	kill -USR1 $$
+}
+
+#
 # Present usage information.
 #
 
