@@ -71,10 +71,11 @@ handle_usr1_trap()
 
 trap 'handle_usr1_trap' USR1 INT
 #
-# The command_not_found_handle function is activated when a command executing cannot be located.
+# The command_not_found_handle function is activated when BASH cannot find a BASH cannot find a command
+# in $PATH.
 #
 # Since this function operates within a subshell of the caller, a simple exit would only return an
-# exit code to the calling shell, which is insufficient. The desired behavior is for the calling shell
+# exit code to the subshell, which is insufficient. The desired behavior is for the calling shell
 # to terminate immediately, returning the correct exit code to the command line.
 #
 # To achieve this, the function first saves the return code (rtc) to a temporary file named exit_with_<pid>.
