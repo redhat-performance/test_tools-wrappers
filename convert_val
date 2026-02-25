@@ -147,6 +147,7 @@ fi
 cnvt_to_bytes()
 {
 	lunit=$1
+	local -n rval=$2
 	if [[ $lunit == "B" ]] || [[ $lunit == "b" ]]; then
 		base_value=1
 	else
@@ -168,25 +169,26 @@ cnvt_to_bytes()
 			fi
 		fi
 	fi
-	echo $base_value
+	rval=$base_value
 }
 
 cnvt_unit_to_nsec()
 {
 	in_unit=$1
+	local -n rval=$2
 
 	if [[ $in_unit == "h"* ]]; then
-		echo 3600000000000
+		rval=3600000000000
 	elif [[ $in_unit == "ms"* ]]; then
-		echo 1000000
+		rval=1000000
 	elif [[ $in_unit == "m"* ]]; then
-		echo 60000000000
+		rval=60000000000
 	elif [[ $in_unit == "s"* ]]; then
-		echo 1000000000
+		rval=1000000000
 	elif [[ $in_unit == "u"* ]]; then
 		echo 1000
 	elif [[ $in_unit == "n"* ]]; then
-		echo 1
+		rval=1
 	else
 		echo Error: Invalid unit $in_unit
 		exit 1
@@ -194,13 +196,13 @@ cnvt_unit_to_nsec()
 }
 
 if [ $time_val -eq 0 ]; then
-	to_base_unit=$(cnvt_to_bytes $from_unit)
-	converting_to=$(cnvt_to_bytes $to_unit)
+	cnvt_to_bytes $from_unit to_base_unit
+	cnvt_to_bytes $to_unit converting_to
 	cnv_value=`echo \(${value}*${to_base_unit}\)/$converting_to | bc`
 	echo ${cnv_value}${to_unit}
 else
-	time_base_unit=$(cnvt_unit_to_nsec $from_unit)
-	time_cnvt_to=$(cnvt_unit_to_nsec $to_unit)
+	cnvt_unit_to_nsec $from_unit time_base_unit
+	cnvt_unit_to_nsec $to_unit time_cnvt_to
 	cnv_value=`echo \(${value}*${time_base_unit}\)/$time_cnvt_to | bc`
 	echo ${cnv_value}${to_unit}
 fi
