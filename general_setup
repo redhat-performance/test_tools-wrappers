@@ -26,6 +26,11 @@
 test_cmd=$0
 source ~/.bashrc
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
+
 # Values setting for test wrappers to use.
 #
 # TOOLS_BIN: points to the tool directory
@@ -85,7 +90,7 @@ trap 'handle_usr1_trap' USR1 INT
 
 command_not_found_handle() {
 	echo "Error: The command \"$1\" was not found." >&2
-	echo 127 > exit_with_$$
+	echo $E_NO_CMD > exit_with_$$
 	kill -USR1 $$
 }
 
@@ -118,7 +123,7 @@ gs_usage_info()
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."
 	echo "  --use_pcp: Enables use of Performance Co-Pilot in wrappers, defaults to 0."
-	exit 1
+	exit $E_USAGE
 }
 
 to_sys_type=`hostname`
@@ -311,10 +316,13 @@ else
 	tuned-adm active | cut -d: -f 2 | sed "s/ //g" > ~/tuned_before
 fi
 
-if [[ $to_test_verify_file != "" ]]; then
-	$TOOLS_BIN/verification --test_cmd $test_cmd --test_name $test_name --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
-	exit $?
-fi
+#
+# This is dead code, I think
+# 
+#if [[ $to_test_verify_file != "" ]]; then
+#	$TOOLS_BIN/verification --test_cmd $test_cmd --test_name $test_name --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
+#	exit $?
+#fi
 if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
 fi
