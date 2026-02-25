@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
 
 lvm_vol=""
 lvm_grp=""
@@ -28,7 +32,7 @@ usage()
 	echo " --lvm_grp: name of the lvm group removing"
 	echo " --lvm_vol: name of the lvm volume removing"
 	echo " --mount_pnt: mount point of the lvm"
-	exit 0
+	exit $E_USAGE
 }
 
 
@@ -55,7 +59,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit
+        exit $E_NO_ARGS
 fi
 eval set -- "$opts"
 
@@ -91,4 +95,11 @@ done
 
 umount $mount_pnt
 lvremove -f $lvm_vol/$lvm_grp
+if [[ $? -ne 0 ]]; then
+	exit $E_GENERAL
+fi
 vgremove -f $lvm_vol
+if [[ $? -ne 0 ]]; then
+	exit $E_GENERAL
+fi
+exit $E_SUCCESS
