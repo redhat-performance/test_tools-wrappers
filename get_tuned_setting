@@ -8,3 +8,4 @@ else
         tval="tuned_none"
 fi
 echo $tval
+exit $E_SUCCESS
