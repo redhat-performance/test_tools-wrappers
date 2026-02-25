@@ -20,6 +20,12 @@
 #
 # Convert various time and memory units.
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+
+source ${TOOLS_BIN}/error_codes
+
 usage()
 {
 	echo "usage $1 <unit>"
@@ -52,7 +58,7 @@ usage()
 	echo "1m"
 	echo "$ $1 --time_val --from_unit s"
 	echo "1000000000ns"
-	exit 1
+	exit $E_USAGE
 }
 
 if [[ $1 == "" ]]; then
@@ -82,7 +88,7 @@ opts=$(getopt \
 eval set -- "$opts"
 
 if [ $? -ne 0 ]; then
-        exit 1
+        exit $E_PARSE_ARGS
 fi
 
 #
@@ -101,7 +107,6 @@ while [[ $# -gt 0 ]]; do
 	case "$1" in
 		-h | --usage | --help)
 			usage $0
-			exit 0
 		;;
 		--to_unit)
 			to_unit=$2
@@ -155,7 +160,7 @@ cnvt_to_bytes()
 			base_value=`numfmt --from=si 1${lunit}`
 			if [[ $? -ne 0 ]]; then
 				echo Error: Invalid unit $lunit
-				exit 1
+				exit $E_GENERAL
 			fi
 		else
 			# 
@@ -165,7 +170,7 @@ cnvt_to_bytes()
 			base_value=`numfmt --from=iec 1${lunit}`
 			if [[ $? -ne 0 ]]; then
 				echo Error: Invalid unit $lunit
-				exit 1
+				exit $E_GENERAL
 			fi
 		fi
 	fi
@@ -191,7 +196,7 @@ cnvt_unit_to_nsec()
 		rval=1
 	else
 		echo Error: Invalid unit $in_unit
-		exit 1
+		exit $E_GENERAL
 	fi
 }
 
@@ -206,4 +211,4 @@ else
 	cnv_value=`echo \(${value}*${time_base_unit}\)/$time_cnvt_to | bc`
 	echo ${cnv_value}${to_unit}
 fi
-exit 0
+exit $E_SUCESS
