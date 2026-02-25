@@ -26,12 +26,17 @@
 # get 1,24,48,72,96,99.
 #
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
+
 usage()
 {
 	echo "Usage: $1"
 	echo "  --interval <x>: create x intervals (default is 4)."
 	echo "  --max_value  <x>: Maximum value to go to."
-	exit 0
+	exit $E_USAGE
 }
 
 interval=0
@@ -56,7 +61,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-	exit 1
+	exit $E_NO_ARGS
 fi
 
 eval set -- "$opts"
@@ -93,12 +98,12 @@ done
 if [[ $max_value -lt 1 ]] || [[ $interval  -lt 1 ]]; then
 	echo Need to designate a positive non-zero value for
 	echo "--max_value and --interval"
-	exit 1
+	exit $E_GENERAL
 fi
 
 if [[ $interval -gt $max_value ]]; then
 	echo Error, number of intervals may not exceed the max_value.
-	exit 1
+	exit $E_GENERAL
 fi
 
 #
@@ -122,4 +127,4 @@ else
 	interval_seq="1,$max_value"
 fi
 echo $interval_seq
-exit 0
+exit $E_SUCCESS
