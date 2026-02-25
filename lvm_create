@@ -26,6 +26,11 @@ lvm_vol=""
 lvm_grp=""
 wipefs=0
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
+
 error_out()
 {
 	echo $1
@@ -39,7 +44,7 @@ usage()
 	echo "   --lvm_grp: name of the lvm group creating"
 	echo "   --lvm_vol: name of the lvm volume creating"
 	echo "   --wipefs: wipe the device before doing the lvm operations"
-	exit 0
+	exit $E_USAGE
 }
 
 #
@@ -48,18 +53,18 @@ usage()
 validate_data()
 {
 	if [[ $lvm_vol = "" ]]; then
-		error_out "Need to designate an lvm_vol name." 1
+		error_out "Need to designate an lvm_vol name." $E_GENERAL
 	fi
 	if [[ $lvm_grp = "" ]]; then
-		error_out "Need to designate an lvm_grp name." 1
+		error_out "Need to designate an lvm_grp name." $E_GENERAL
 	fi
 	if [[ $devices_to_use = "" ]]; then
-		error_out "Need to designate at least one device to use." 1
+		error_out "Need to designate at least one device to use." $E_GENERAL
 	fi
 	for i in $devices_to_use;
 	do
 		if [[ ! -e $i ]]; then
-			error_out "Error, device $i not found." 1
+			error_out "Error, device $i not found." $E_GENERAL
 		fi
 	done
 }
@@ -88,7 +93,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit 0
+        exit $E_NO_ARGS
 fi
 eval set -- "$opts"
 
@@ -147,17 +152,17 @@ vgremove -f $lvm_vol
 let "total_size=$lv_total_size-200"
 pvcreate -ff $lv_disks
 if [ $? -ne 0 ]; then
-	error_out "pvcreate -ff $lv_disks failed." 1
+	error_out "pvcreate -ff $lv_disks failed." $E_GENERAL
 fi
 sleep 60
 vgcreate $lvm_vol $lv_disks
 if [ $? -ne 0 ]; then
-	error_out "vgcreate $lvm_vol $lv_disks failed" 1
+	error_out "vgcreate $lvm_vol $lv_disks failed" $E_GENERAL
 fi
 sleep 60
 lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp
 if [ $? -ne 0 ]; then
-	error_out "lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp failed." 1
+	error_out "lvcreate -Zy -Wy --yes -i $lv_disk_count -L  ${total_size}G -n $lvm_vol $lvm_grp failed." $E_GENERAL
 fi
 wipefs -f /dev/$lvm_vol/$lvm_grp
-exit 0
+exit $E_SUCCESS
