@@ -19,13 +19,18 @@
 
 mount_pnt=""
 number_mount_pnts=""
+if [[ $TOOLS_BIN == "" ]]; then
+        TOOLS_BIN=$(realpath $(dirname $0))
+fi
+
+source ${TOOLS_BIN}/error_codes
 
 usage()
 {
 	echo "Usage: $1"
 	echo "  --mount_pnt: directory to mount to"
 	echo "  --number_mount_pnts: Number of devices mounted."
-	exit 1
+	exit $E_USAGE
 }
 
 
@@ -51,7 +56,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit 1
+        exit $E_NO_ARGS
 fi
 eval set -- "$opts"
 
@@ -95,3 +100,4 @@ for findex in `seq 0 1 $number_mount_pnts`
 do
 	umount  ${mount_pnt}${findex}
 done
+exit $E_SUCCESS
