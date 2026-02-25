@@ -52,7 +52,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit $E_NO_ARGS
+        exit $E_PARSE_ARGS
 fi
 
 eval set -- "$opts"
