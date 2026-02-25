@@ -22,13 +22,19 @@ mount_pnt=""
 fs_type=""
 valid_fs_type="xfs ext4 ext3 gfs2 gfs"
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+
+source ${TOOLS_BIN}/error_codes
+
 usage()
 {
 	echo "Usage: $1"
 	echo "  --fs_type: filesystem to create.  ${valid_fs_type}"
 	echo "  --mount_dir: directory to mount to"
 	echo "  --device: device to use."
-	exit 1
+	exit $E_USAGE
 }
 
 #
@@ -38,19 +44,19 @@ validate_data()
 {
 	if [[ $device_to_use = "" ]]; then
 		echo You need to designate a device to use.
-		exit 1
+		exit $E_GENERAL
 	fi
 	if [[ ! -e $device_to_use ]]; then
 		echo Designated device, $device_to_use, does not exist
-		exit 1
+		exit $E_GENERAL
 	fi
 	if [[ $mount_pnt = "" ]]; then
 		echo You need to designate a mount point.
-		exit 1
+		exit $E_GENERAL
 	fi
 	if [[ $fs_type = "" ]]; then
 		echo You need to designate a filesys type.
-		exit 1
+		exit $E_GENERAL
 	fi
 }
 
@@ -135,16 +141,16 @@ case $fs_type in
 	;;
 	*)
 		echo Error, $fs_type unknown filesystem type
-		exit 1
+		exit $E_GENERAL
 	;;
 esac
 echo "mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}"
 mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}
 if [ $? -ne 0 ]; then
-	exit 1
+	exit $E_GENERAL
 fi
 mount ${device_to_use} "${mount_pnt}"
 if [ $? -ne 0 ]; then
-	exit 1
+	exit $E_GENERAL
 fi
-exit 0
+exit  $E_SUCCESS
