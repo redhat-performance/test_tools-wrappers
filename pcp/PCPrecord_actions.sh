@@ -23,6 +23,7 @@
 # GLOBALS ###################
 # Include the PCP Functions file
 source $PWD/pcp_functions.inc
+source $PWD/../error_codes
 
 FIFO="/tmp/pcpFIFO"                 # get from cmdline
 sample_rate=5                       # hardcode DEFAULT for now
@@ -48,7 +49,7 @@ error_exit()
         # Reset openmetric.workload metric values prior to leaving
         reset_om_metrics
 ## if pmlogger_running = True then attempt forcible STOP?
-        exit 1
+        exit $E_PCP_FAILURE
     fi
 }
 # END Functions #################
@@ -152,4 +153,4 @@ echo "Cleaning up"
 # Reset openmetric.workload metric values prior to leaving
 reset_om_metrics
 
-exit 0
+exit $E_SUCCESS

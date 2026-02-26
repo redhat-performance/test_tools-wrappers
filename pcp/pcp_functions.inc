@@ -37,7 +37,7 @@ pcp_verify()
 # Verify user provided pmlogger.conf file exists. If not abort.
     if [[ ! -f "$cfg_file" ]]; then
         echo "File $cfg_file not found!"; echo
-        exit 20
+        exit $E_PCP_FAILURE
     fi
 
 # TBD: use 'pmlogger -c $PWD/$cfg_file -C' to Verify syntax
@@ -47,7 +47,7 @@ pcp_verify()
     if [[ $? != 0 ]]; then
         echo "PCP pmcd is not running. Is PCP installed?"
         echo "Suggested syntax: sudo dnf install pcp-zeroconf"; echo
-        exit 21
+        exit $E_PCP_FAILURE
     fi
 
 # Manage primary pmlogger. STOP if it is running.
@@ -85,7 +85,7 @@ pcp_start()
     # Trap timeout condition
     if [[ $? -eq 124 ]]; then
         echo "Timed out waiting for PMLOGGER to Start1"
-        exit 30
+        exit $E_PCP_FAILURE
     fi
 }
 
@@ -103,7 +103,7 @@ pcp_stop()
     if [[ $? -eq 124 ]]; then
         echo "Timed out waiting for PMLOGGER to Stop"
         pmlogger_killed="failed"        # Not used -yet
-        exit 40
+        exit $E_PCP_FAILURE
     fi
     pmlogger_killed="success"
 
