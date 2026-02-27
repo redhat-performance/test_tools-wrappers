@@ -114,6 +114,7 @@ gs_usage_info()
 	echo "  --sysname: name of the system running, used in determining config files.  Defaults to hostname."
 	echo "  --json_skip: Skip JSON conversion of test CSV results, default is 0"
 	echo "  --verify_skip: Skip test verifications against output, default is 0"
+	echo "  --test_tools_tag <tag>: Version tag of test tools to use"
 	echo "  --tuned_setting: used in naming the tar file, default for RHEL is the current active tuned.  For non"
 	echo "    RHEL systems, default is none."
 	echo "  --usage: this usage message."
@@ -121,6 +122,7 @@ gs_usage_info()
 	exit 1
 }
 
+test_tools_tag=""
 to_sys_type=`hostname`
 to_sys_env="local"
 to_configuration=`hostname`
@@ -236,6 +238,11 @@ do
 			to_sysname=$value
 			shift 2
 		;;
+		--test_tools_tag)
+			i=$((i + 2))
+			test_tools_tag=$value
+			shift 2
+		;;
 		--tuned_setting)
 			i=$((i + 2))
 			if [[ $value != *"none"* ]]; then
@@ -287,8 +294,21 @@ do
 	esac
 done
 export to_sys_env
-if [[ ! -d $TOOLS_BIN ]]; then
-	TOOLS_BIN=${to_home_root}/${to_user}/test_tools
+
+if [[ $test_tools_tag != "" ]]; then
+	new_td=${HOME}/test_tools_${test_tools_tag}
+
+	if [[ ! -f $new_td ]]; then
+		git clone https://github.com/redhat-performance/test_tools-wrappers $new_td
+		pushd $new_td > /dev/null
+		git checkout tags/$test_tools_tag
+		if [[ $? -ne 0 ]]; then
+			echo "Error test_tools-wrappers tag $test_tools_tag is unknown"
+			exit 1
+		fi
+		popd > /dev/null
+	fi
+	TOOLS_BIN=$new_td
 fi
 
 if [[ $to_tuned_setting == "" ]]; then
