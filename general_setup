@@ -298,7 +298,7 @@ export to_sys_env
 if [[ $test_tools_release != "" ]]; then
 	new_td=${HOME}/test_tools_${test_tools_release}
 
-	if [[ ! -f $new_td ]]; then
+	if [[ ! -d $new_td ]]; then
 		git clone https://github.com/redhat-performance/test_tools-wrappers $new_td
 		pushd $new_td > /dev/null
 		git checkout tags/$test_tools_release
