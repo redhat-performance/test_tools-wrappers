@@ -25,17 +25,24 @@ import argparse
 import sys
 from typing import TextIO
 
+E_INVALID_DATA=106
+E_PACKAGE_FAIL=127
+
 try:
     import pandas as pd
 except ImportError:
     print("ERROR: pandas is not installed. Exiting", file=sys.stderr)
-    exit(1)
+    exit(E_PACKAGE_FAIL)
 
 def main(csv_file: TextIO, output: TextIO, separator: str, transpose: bool):
     """
     Convert a CSV file to JSON.
     """
-    df = pd.read_csv(csv_file, sep=separator, comment='#')
+    try:
+        df = pd.read_csv(csv_file, sep=separator, comment='#')
+    except pd.errors.ParserError:
+        print("Could not parse CSV file, exiting")
+        exit(E_INVALID_DATA)
 
     if transpose:
         # Get first colname so we can accurately set it after transpose
