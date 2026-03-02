@@ -211,4 +211,4 @@ else
 	cnv_value=`echo \(${value}*${time_base_unit}\)/$time_cnvt_to | bc`
 	echo ${cnv_value}${to_unit}
 fi
-exit $E_SUCESS
+exit $E_SUCCESS
