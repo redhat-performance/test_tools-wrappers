@@ -191,7 +191,7 @@ cnvt_unit_to_nsec()
 	elif [[ $in_unit == "s"* ]]; then
 		rval=1000000000
 	elif [[ $in_unit == "u"* ]]; then
-		echo 1000
+		rval=1000
 	elif [[ $in_unit == "n"* ]]; then
 		rval=1
 	else
