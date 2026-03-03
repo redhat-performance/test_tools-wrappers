@@ -116,6 +116,7 @@ gs_usage_info()
 	echo "  --run_label: the label to associate with the pbench run. No default setting."
 	echo "  --run_user: user that is actually running the test on the test system. Defaults to user running wrapper."
 	echo "  --sys_type: Type of system working with, aws, azure, hostname.  Defaults to hostname."
+	echo "  --test_tools_release <tag>: Version tag of test tools to use"
 	echo "  --sysname: name of the system running, used in determining config files.  Defaults to hostname."
 	echo "  --json_skip: Skip JSON conversion of test CSV results, default is 0"
 	echo "  --verify_skip: Skip test verifications against output, default is 0"
@@ -126,6 +127,7 @@ gs_usage_info()
 	exit $E_USAGE
 }
 
+test_tools_release=""
 to_sys_type=`hostname`
 to_sys_env="local"
 to_configuration=`hostname`
@@ -241,6 +243,11 @@ do
 			to_sysname=$value
 			shift 2
 		;;
+		--test_tools_release)
+			i=$((i + 2))
+			test_tools_release=$value
+			shift 2
+		;;
 		--tuned_setting)
 			i=$((i + 2))
 			if [[ $value != *"none"* ]]; then
@@ -291,6 +298,26 @@ do
 		;;
 	esac
 done
+
+if [[ $test_tools_release != "" ]]; then
+	new_td="${HOME}/test_tools_${test_tools_release}"
+	if [[ ! -d "$new_td" ]]; then
+		git clone https://github.com/redhat-performance/test_tools-wrappers "$new_td"
+		pushd "$new_td" > /dev/null
+		git checkout "tags/$test_tools_release"
+		if [[ $? -ne 0 ]]; then
+			echo "Error test_tools-wrappers tag $test_tools_release is unknown"
+			exit $E_GENERAL
+		fi
+		popd > /dev/null
+	fi
+	#
+	#  Note TOOLS_BIN has already been set in the wrapper.  This will set it to the
+	#  test_tool version we are using.
+	#
+	TOOLS_BIN=$new_td
+fi
+
 export to_sys_env
 if [[ ! -d $TOOLS_BIN ]]; then
 	TOOLS_BIN=${to_home_root}/${to_user}/test_tools
@@ -316,13 +343,6 @@ else
 	tuned-adm active | cut -d: -f 2 | sed "s/ //g" > ~/tuned_before
 fi
 
-#
-# This is dead code, I think
-# 
-#if [[ $to_test_verify_file != "" ]]; then
-#	$TOOLS_BIN/verification --test_cmd $test_cmd --test_name $test_name --verify_file $to_test_verify_file --run_user $to_user --home_parent $to_home_root 
-#	exit $?
-#fi
 if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
 fi
