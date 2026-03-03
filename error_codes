@@ -3,6 +3,12 @@
 # rtcs in the range 1 to 99 indicates to retry the test.
 # rtcs > 100 indicates do not retry the test.
 #
+# Note: the python files have these defined in them.  If you change
+#       any value here, make sure you update the python files.
+#       Currently the python files are
+#          csv_to_json
+#          verify_results
+#
 E_SUCCESS=0
 E_PACKAGE_TOOL_PACKAGING=1
 E_GENERAL=101
