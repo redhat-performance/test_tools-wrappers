@@ -21,6 +21,10 @@
 #
 # Common code for the test wrappers to call to save the run data.
 #
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
 curdir=""
 home_root=""
 other_files=""
@@ -62,7 +66,7 @@ usage()
 	echo "  --tuned_setting <tuned setting>: tuned settings"
 	echo "  --version <version # or None>: Version number of the test."
 	echo "  --user <name>: name of the user who ran the wrapper"
-	exit 1
+	exit $E_USAGE
 }
 
 ARGUMENT_LIST=(
@@ -232,3 +236,4 @@ if [[ -f  test_wrapper_results_${test_name}.zip ]]; then
 fi
 zip results_${test_name}.zip  results_${test_name}_${tuned_setting}.tar
 popd > /dev/null
+exit $E_SUCCESS

@@ -17,14 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
 usage()
 {
 	echo "  --field_separator <char>:  character separator, default is :"
 	echo "  --field_size <n>: size of the fields in the output"
 	echo "  --results_in <file>: file converting"
 	echo "  --results_out <file>: file to output the results to."
-	exit 1
+	exit $E_USAGE
 }
 
 
@@ -49,7 +52,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit
+        exit $E_PARSE_ARGS
 fi
 
 eval set -- "$opts"
@@ -96,11 +99,11 @@ done
 
 if [[ $field_size == "" ]] || [[ $results_in == "" ]] || [[ $results_out == "" ]]; then
 	echo Error: one or more fields are not set, field_size, results_in or results_out.
-	exit 1
+	exit $E_GENERAL
 fi
-if [[ $results_out -ne "" ]]; then
-	rm -rf $results_out
-fi
+
+rm -rf $results_out
+
 while IFS= read -r line
 do
 	if [[ "$line" == "#"* ]] || [[ "$line" != *"${field_separator}"* ]]; then
@@ -113,4 +116,4 @@ do
 	done
 	printf "\n" >> $results_out
 done < "$results_in"
-exit 0
+exit $E_SUCCESS

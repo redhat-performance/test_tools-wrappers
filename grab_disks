@@ -17,6 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+
+source ${TOOLS_BIN}/error_codes
+
 disks_passed=$1
 disks=""
 numb_disks=0
@@ -73,7 +79,7 @@ grab_disks()
 if [[ $disks_passed == *"none"* ]]; then
 	if [[ $to_sys_env == "local" ]]; then
 		echo Unable to continue. non cloud systems require a disk to be designated.
-		exit 1
+		exit $E_GENERAL
 	fi
 fi
 
@@ -91,7 +97,7 @@ fi
 #
 if [ $numb_disks -eq 0 ]; then
 	echo  "Need to have disks to perform the requested test.  No disks have been provided/found."
-	exit 1
+	exit $E_GENERAL
 fi
 echo  $disks:$numb_disks
-exit 0
+exit $E_SUCCESS

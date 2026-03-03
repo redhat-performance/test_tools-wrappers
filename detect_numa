@@ -6,6 +6,11 @@ remove_empty_nodes=1
 lscpu_command="lscpu"
 node=""
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
+
 usage()
 {
     echo -e "$0"
@@ -32,7 +37,7 @@ usage()
     echo -e "\t-i/--input"
     echo -e "\t\tProvide a command to gather information in lscpu format"
     echo -e "\t\tThis is intended for development"
-    exit 0
+    exit $E_USAGE
 }
 
 # Verifies that NUMA exists on the system
@@ -77,7 +82,7 @@ fetch_cpus() {
         node=`echo "[$node]" | sed -e 's/,/|/g'`
     elif [ $node -gt $((node_count-1)) ] || [ $node -lt 0 ]; then #If a single integer is provided, verify it's within bounds
         echo "Error: NUMA Node $node does not exist" > /dev/stderr
-        exit 1
+        exit $E_GENERAL
     fi
     $lscpu_command | grep -E "$prefix$node" | sort | awk '{ print $4 }'
 }
@@ -109,7 +114,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit 1
+        exit $E_PARSE_ARGS
 fi
 
 eval set -- "$opts"
@@ -144,7 +149,7 @@ while [[ $# -gt 0 ]]; do
     ;;
     *)
         echo Unknown option $1 >&2
-        exit 1
+        exit $E_USAGE
     ;;
     esac
 done
@@ -160,4 +165,4 @@ else
     fetch_cpus $node
 fi
 
-exit 0
+exit $E_SUCCESS

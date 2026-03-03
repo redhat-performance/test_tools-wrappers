@@ -27,7 +27,7 @@ fail_exit()
     if [[ "$?" != "0" ]]; then
         echo "ERROR: $1"
         # Additional error handling logic can be added here
-        exit 1
+        exit $E_PCP_FAILURE
     fi
 }
 
@@ -46,7 +46,7 @@ check_svc()
     if [[ $? -eq 124 ]]; then
         echo "Timed out waiting $wait_to sec for systemd status=READY: \
           Request=$request_str"
-        exit 2
+        exit $E_PCP_FAILURE
     fi
 }
 
@@ -61,7 +61,7 @@ openmetrics_file_verification()
 	#
 	if [[ `cat $metric_file | awk '{print $1}' | tr -d '\n'` =~ [^a-zA-Z0-9_] ]]; then
 		echo "Error: Invalid entry in $1, metric name must be non special."
-		exit 1
+		exit $E_PCP_FAILURE
 	fi
 	#
 	# Verify there are no blank lines.
@@ -69,12 +69,12 @@ openmetrics_file_verification()
 	grep -q "^$" $metric_file
 	if [[ $? -eq 0 ]]; then
 		echo "Error $1 contains a blank line."
-		exit 1
+		exit $E_PCP_FAILURE
 	fi
 	grep -q "^[0-9]" $metric_file
 	if [[ $? -eq 0 ]]; then
 		echo "Error: $1 contains a metric starting with a digit."
-		exit 1
+		exit $E_PCP_FAILURE
 	fi
 
 	#
@@ -84,12 +84,12 @@ openmetrics_file_verification()
 	field2=`awk '{print $2}' $metric_file | grep -v "^$" | wc -l`
 	if [[ $field2 -lt $field1 ]]; then
 		echo "Error $metric_file has at least one line with only 1 field."
-		exit 1
+		exit $E_PCP_FAILURE
 	fi
 	extra_field=`awk '{print $3}' $metric_file | grep -v "^$" | wc -l`
 	if [[ $extra_field -ne 0 ]]; then
 		echo "Error $metric_file has at least one line with more then 2 fields."
-		exit 1
+		exit $E_PCP_FAILURE
 	fi
 	#
 	# Verify there are no duplicate records.
@@ -100,7 +100,7 @@ openmetrics_file_verification()
 		echo "ERROR: $metric_file contains duplicate metric names"
 		echo "Following are the dups"
 		awk '{print $1}' $metric_file | sort | uniq -d
-		exit 1
+		exit $E_PCP_FAILURE
 	fi
 }
 

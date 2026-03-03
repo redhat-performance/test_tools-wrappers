@@ -23,6 +23,12 @@ get_major=0
 get_minor=0
 vers_sep="."
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
+
+
 usage()
 {
     echo -e "detect_os"
@@ -44,6 +50,7 @@ usage()
 
     echo -e "\t -h/--help/--usage"
     echo -e "\t\t Displays this message"
+    exit $E_USAGE
 }
 
 echo_stderr()
@@ -101,7 +108,7 @@ opts=$(getopt \
 )
 
 if [ $? -ne 0 ]; then
-        exit 1
+        exit $E_NO_ARGS
 fi
 
 eval set -- "$opts"
@@ -112,7 +119,6 @@ while [[ $# -gt 0 ]]; do
 	case "$1" in
     -h | --usage | --help)
         usage
-        exit 0
     ;;
     --os-version)
         get_version=1
@@ -135,11 +141,11 @@ while [[ $# -gt 0 ]]; do
     ;;
     *)
         echo_stderr Unknown option $1
-        exit 1
+        exit $E_GENERAL
     ;;
     esac
 done
 
 parse_os_release
 
-exit 0
+exit $E_SUCCESS

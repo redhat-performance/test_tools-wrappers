@@ -18,6 +18,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+if [[ $TOOLS_BIN == "" ]]; then
+        TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
+
 field_header=""
 configuration="None"
 sys_type="None"
@@ -32,7 +37,6 @@ passed_meta=""
 output_index=0
 field_separ='_'
 
-TOOLS_BIN=`echo $0 | rev | cut -d'/' -f2- | rev`
 print_general_header_info()
 {
 	out_file=$1
@@ -103,7 +107,7 @@ usage()
 	echo "--results_file <file>:  Results file working with"
 	echo "--results_version <version #>:  Results format version number"
 	echo "--test_name <test name>:  Name of test"
-	exit 0
+	exit $E_USAGE
 }
 
 ARGUMENT_LIST=(
@@ -205,3 +209,4 @@ fi
 if [[ $field_header ]]; then
 	echo "${field_header},Start_Date,End_Date" >> $results_file
 fi
+exit $E_SUCCESS

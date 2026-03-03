@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
+source ${TOOLS_BIN}/error_codes
 
 usage()
 {
@@ -24,7 +28,7 @@ usage()
 	echo "--command <string>: Command executing."
 	echo "--options <strings>: Options we are to past to the command."
 	echo "--test_name <string>: name of test executing."
-	exit 0
+	exit $E_USAGE
 }
 
 ARGUMENT_LIST=(
@@ -73,7 +77,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 		*)
 			echo "not found $1"
-			exit 1
+			exit $E_GENERAL
 		;;
 	esac
 done
