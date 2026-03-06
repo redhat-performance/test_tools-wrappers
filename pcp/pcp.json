@@ -1,5 +1,9 @@
 {
   "dependencies": {
+    "amzn": [
+      "spal-release",
+      "pcp-zeroconf"
+    ],
     "rhel": [
       "pcp-zeroconf",
       "pcp-pmda-openmetrics",
