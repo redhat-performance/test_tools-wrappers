@@ -6,3 +6,7 @@ setup_verification() {
 	package_tool --remove_packages python3-typing-extensions
 	package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json
 }
+
+verify_results() {
+    "$TOOLS_BIN/verify_results" $to_verify_flags "$@"
+}
