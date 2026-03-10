@@ -9,6 +9,9 @@
         "suse": [
             "python3-pip"
         ],
+        "sles": [
+            "python3-pip"
+        ],
         "fedora": [
             "python3-pip"
         ],
