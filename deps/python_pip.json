@@ -6,7 +6,7 @@
         "ubuntu": [
             "python3-pip"
         ],
-        "suse": [
+        "sles": [
             "python3-pip"
         ],
         "fedora": [

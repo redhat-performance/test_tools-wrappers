@@ -89,9 +89,39 @@ trap 'handle_usr1_trap' USR1 INT
 #
 
 command_not_found_handle() {
-	echo "Error: The command \"$1\" was not found." >&2
-	echo $E_NO_CMD > exit_with_$$
-	kill -USR1 $$
+	#
+	# A bad seach on which ends up here.
+	# We want the 2nd argument in that case.
+	#
+	if [[ $1 == "which" ]]; then
+		command=$2
+	else
+		command=$1
+	fi
+
+	#
+	# Certain commands we expect to be missing on various OSs.
+	# Example, tuned-adm on SUSE
+	# If it is not exepected, then flag the missing command.
+	# If it is expected, give a warning, just the first time.
+	#
+	# Note, we direct directly to the tty that way we will see the
+	# message, regardless of what redirection the faulting  script
+	# did for output redirection.
+	#
+	os=`${TOOLS_BIN}/detect_os`
+	grep -qx "${os},${command}," ${TOOLS_BIN}/ignore_missing_cmds.txt
+	if [[ $? -ne 0 ]]; then
+		echo "Error: The command \"$command\" was not found." > /dev/tty
+		echo $E_NO_CMD > exit_with_$$
+		kill -USR1 $$
+	else
+		grep -qx "${command}" missing_command_$$
+		if [[ $? -ne 0 ]] then
+			echo "Warning: The command \"$command\" was not found." > /dev/tty
+			echo ${command} >> missing_command_$$
+		fi
+	fi
 }
 
 #
@@ -337,11 +367,7 @@ fi
 #  properly to start with.
 #
 which tuned-adm >> /dev/null 2>&1
-if [[ $? -ne 0 ]]; then
-	echo tuned-adm not available > ~/tuned_before
-else
-	tuned-adm active | cut -d: -f 2 | sed "s/ //g" > ~/tuned_before
-fi
+tuned-adm active | cut -d: -f 2 | sed "s/ //g" > ~/tuned_before
 
 if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
