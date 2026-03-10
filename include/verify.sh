@@ -28,3 +28,14 @@ verify_results() {
 
     $cmd "$TOOLS_BIN/verify_results" $to_verify_flags "$@"
 }
+
+csv_to_json() {
+    local cmd="python3"
+    local os=$("$TOOLS_BIN"/detect_os)
+    
+    if [[ "$os" == "sles" ]]; then
+        cmd="python3.11"
+    fi
+
+    $cmd "$TOOLS_BIN/csv_to_json" $to_json_flags "$@"
+}
