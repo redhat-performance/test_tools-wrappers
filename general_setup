@@ -161,6 +161,13 @@ package_tool() {
 	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
 }
 
+setup_verification() {
+	# Ubuntu started shipping with their python3-typing extensions
+	# which is too old for pydantic and should be installed via pip so it needs to be removed
+	package_tool --remove_packages python3-typing-extensions
+	package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json
+}
+
 i=1
 j=$#
 gen_args_back=$0
@@ -328,7 +335,7 @@ if [[ $to_tuned_setting == "" ]]; then
 fi
 
 if [[ "$skip_verification" -eq 0 ]]; then
-	package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json
+	setup_verification
 fi
 
 #
