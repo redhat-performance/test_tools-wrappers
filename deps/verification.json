@@ -1,4 +1,7 @@
 {
+    "sles": [
+        "python311"
+    ],
     "dependencies": {
         "pip": [
             "pandas",
