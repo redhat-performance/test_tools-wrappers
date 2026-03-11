@@ -83,11 +83,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 tuned_active=1
-start_active_tuned=`tuned-adm active`
-if [ $? -ne 0 ]; then
-	echo No active tuned >> /tmp/${test_name}_tuned.status
-else
-	echo $start_active_tuned >> /tmp/${test_name}_tuned.status
+if [[ $to_os_running == "rhel" ]]; then
+	start_active_tuned=`tuned-adm active`
+	if [ $? -ne 0 ]; then
+		echo No active tuned >> /tmp/${test_name}_tuned.status
+	else
+		echo $start_active_tuned >> /tmp/${test_name}_tuned.status
+	fi
 fi
 
 systemctl status tuned | grep -q inactive
@@ -100,13 +102,15 @@ command="$command $options"
 $command &> /tmp/${test_name}.out
 rtc=$?
 
-now_active_tuned=`tuned-adm active`
-if [ $tuned_active -eq 1 ]; then
-	systemctl status tuned | grep -q inactive
-	if  [ $? -eq 0 ]; then 
-		echo "Warning: Tuned was active now it isn't, restarting tuned" >> /tmp/${test_name}_tuned.status
-		systemctl enable --now tuned
-		tuned-adm profile $start_active_tuned
+if [[ $to_os_running == "rhel" ]]; then
+	now_active_tuned=`tuned-adm active`
+	if [ $tuned_active -eq 1 ]; then
+		systemctl status tuned | grep -q inactive
+		if  [ $? -eq 0 ]; then 
+			echo "Warning: Tuned was active now it isn't, restarting tuned" >> /tmp/${test_name}_tuned.status
+			systemctl enable --now tuned
+			tuned-adm profile $start_active_tuned
+		fi
 	fi
 fi
 

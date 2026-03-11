@@ -90,7 +90,7 @@ trap 'handle_usr1_trap' USR1 INT
 
 command_not_found_handle() {
 	#
-	# A bad seach on which ends up here.
+	# A bad search on which ends up here.
 	# We want the 2nd argument in that case.
 	#
 	if [[ $1 == "which" ]]; then
@@ -118,7 +118,7 @@ command_not_found_handle() {
 	else
 		grep -qx "${command}" missing_command_$$ 2> /dev/null
 		if [[ $? -ne 0 ]]; then
-			echo "Warning: The command \"$command\" was not found." > /dev/tty
+			echo "Warning: The command \"$command\" was not found, and is not expected." > /dev/tty
 			echo ${command} >> missing_command_$$
 		fi
 	fi
@@ -184,8 +184,10 @@ to_verify_flags=""
 to_json_flags=""
 to_tuned_setting=""
 to_use_pcp=0
+to_os_running=""
 
 export to_no_pkg_install
+export to_os_running
 
 package_tool() {
 	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
@@ -366,11 +368,14 @@ fi
 #  Do not depend on $to_tuned_setting. It might not have set 
 #  properly to start with.
 #
-which tuned-adm >> /dev/null 2>&1
-if [[ $? -ne 0 ]]; then
-	echo tuned-adm not available > ~/tuned_before
-else
+to_os_running=`${TOOLS_BIN}/detect_os`
+if [[ $to_os_running == "rhel" ]]; then
+	#
+	# We expect tuned to be available on rhel
+	# 
 	tuned-adm active | cut -d: -f 2 | sed "s/ //g" > ~/tuned_before
+else
+	echo tuned-adm not available > ~/tuned_before
 fi
 
 if [ $to_times_to_run -eq 0 ]; then

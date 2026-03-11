@@ -58,11 +58,16 @@ echo ==============================================
 echo Boot options
 cat /proc/cmdline
 
-#
-# Provide the current active tuned config
-#
-echo ==============================================
-echo Tuned `tuned-adm active | grep Current`
+
+if [[ $to_os_running == "rhel" ]]; then
+	#
+	# Provide the current active tuned config
+	#
+	echo ==============================================
+	echo Tuned `tuned-adm active | grep Current`
+else
+	echo Tuned none
+fi
 
 #
 # selinux settings check.
