@@ -10,7 +10,8 @@
       "pcp-pmda-denki"
     ],
     "sles": [
-      "pcp-zeroconf"
+      "pcp-zeroconf",
+      "pcp-pmda-openmetrics"
     ],
     "ubuntu": [
       "pcp-zeroconf"
