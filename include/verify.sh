@@ -2,8 +2,7 @@ setup_verification() {
     # Remove typing extensions, as the version is usually too old
     # and cause problems when installing pydantic.
     # Ubuntu AMIs have started to include this package
-    package_tool --remove_packages python3-typing-extensions \ 
-        --wrapper_config "${TOOLS_BIN}/deps/verification.json" 2> /dev/null
+    package_tool --remove_packages python3-typing-extensions --wrapper_config "${TOOLS_BIN}/deps/verification.json" 2> /dev/null
 }
 
 csv_to_json() {
