@@ -327,8 +327,9 @@ if [[ $to_tuned_setting == "" ]]; then
 	to_tuned_setting=`${TOOLS_BIN}/get_tuned_setting`
 fi
 
+source "$TOOLS_BIN/include/verify.sh"
 if [[ "$skip_verification" -eq 0 ]]; then
-	package_tool --wrapper_config ${TOOLS_BIN}/deps/verification.json
+	setup_verification
 fi
 
 #
@@ -347,5 +348,4 @@ if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
 fi
 source $TOOLS_BIN/helpers.inc
-source "$TOOLS_BIN/include/verify.sh"
 set $gen_args_back
