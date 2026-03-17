@@ -353,11 +353,7 @@ data=$(build_data_string "value1" "value,with,commas" "value3")
 | `to_home_root` | Parent home directory | Current user's home parent |
 | `to_configuration` | Configuration name | hostname |
 | `to_times_to_run` | Number of test iterations | 1 |
-| `to_pbench` | Use pbench | 0 (disabled) |
-| `to_pbench_copy` | Copy vs move pbench data | 0 (move) |
-| `to_puser` | Pbench user | Current user |
 | `to_pstats` | Pbench stats to collect | "default" |
-| `to_run_label` | Run label for pbench | "" |
 | `to_user` | Test user | Current user |
 | `to_sys_type` | System type | hostname |
 | `to_sys_env` | System environment | "local" |
@@ -376,10 +372,6 @@ data=$(build_data_string "value1" "value,with,commas" "value3")
 - `--no_pkg_install` - Disable all package installation
 - `--no_system_packages` - Disable system package installation
 - `--no_pip_packages` - Disable pip package installation
-- `--pbench` - Enable pbench
-- `--pbench_copy` - Copy pbench data
-- `--pbench_stats <stats>` - Stats to collect
-- `--pbench_user <user>` - Pbench user
 - `--run_label <label>` - Run label
 - `--run_user <user>` - Test execution user
 - `--sys_type <type>` - System type (aws, azure, local, etc.)
