@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ${TOOLS_BIN}/error_codes
+
 usage()
 {
 	echo ${0}:
@@ -12,7 +14,7 @@ usage()
 	echo "  --no_pip_packages: value 0 installs pip packages, value 1 does not.  Same logic as --no_packages"
 	echo "  --python_exec: path to python interpreter to install pip modules for (default \"python3\"), will require installation of relevant packages to install pip"
 	echo "  --update_cache: Update package cache before install/updating packages, 1 (default) updates cache, 0 skips cache update"
-	exit 1
+	exit $E_USAGE
 }
 
 exit_out()
@@ -59,7 +61,7 @@ install_system_pkgs() {
 	for package in $package_list; do
 		$install_cmd install -y $package
 		if [ $? -ne 0 ]; then
-			 exit_out "$install_cmd install of $package failed" 1
+			 exit_out "$install_cmd install of $package failed" $E_PACKAGE_TOOL_PACKAGING
 		fi
 	done
 }
@@ -143,7 +145,7 @@ install_pip_pkgs() {
 	for pip_pkg in $(echo $pip_packages | sed -e 's/,/ /g'); do
 		$install_cmd $pip_pkg
 		if [[ $? -ne 0 ]]; then
-			exit_out "$install_cmd failed to install $pip_pkg" 1
+			exit_out "$install_cmd failed to install $pip_pkg" $E_PACKAGE_TOOL_PACKAGING
 		fi
 	done
 }
@@ -186,7 +188,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--no_packages)
 			if [[ $2 == "1" ]]; then
-				exit 0
+				exit $E_SUCCESS
 			fi
 			shift 2
 		;;
@@ -263,37 +265,40 @@ case "$running_os" in
 esac
 
 if [[ $install_cmd == "" ]]; then
-	exit_out "package_install: Do not know what to use to install packages with" 1
+	exit_out "package_install: Do not know what to use to install packages with" $E_GENERAL
 fi
 
 if [[ $is_installed != "" ]]; then
 	$install_cmd list installed | grep -q $is_installed
-	exit $?
+	if [[ $? -ne 0 ]]; then
+		exit $E_PACKAGE_TOOL_PACKAGING
+	fi
+	exit $E_GENERAL
 fi
 
 if [[ $remove_packages != "" ]]; then
 	pkgs_rm=`echo $remove_packages | sed "s/,/ /g"`
 	$install_cmd remove -y $pkg_rm
 	if [ $? -ne 0 ]; then
-		exit_out "Failed: Was unable to remove some or all of the package(s) $remove_packages" 1
+		exit_out "Failed: Was unable to remove some or all of the package(s) $remove_packages" $E_PACKAGE_TOOL_REMOVE
 	fi
 fi
 
 if [ $update -ne 0 ]; then
 	$install_cmd update -y
 	if [ $? -ne 0 ]; then
-		exit_out "$install_cmd update failed" 1
+		exit_out "$install_cmd update failed" $E_PACKAGE_TOOL_UPDATE
 	fi
 fi
 
 if [[ -n "$wrapper_config" ]]; then
 	wrapper_pkgs=$(parse_json $wrapper_config $running_os)
 	if [[ $? -ne 0 ]]; then
-		exit_out "Error parsing .dependencies.$running_os in $wrapper_config" 1
+		exit_out "Error parsing .dependencies.$running_os in $wrapper_config" $E_GENERAL
 	fi
 	wrapper_pip=$(parse_json $wrapper_config pip)
 	if [[ $? -ne 0 ]]; then
-		exit_out "Error parsing .dependencies.pip in $wrapper_config" 1
+		exit_out "Error parsing .dependencies.pip in $wrapper_config" $E_GENERAL
 	fi
 	
 	packages=$(append_packages $packages $wrapper_pkgs)
@@ -316,4 +321,4 @@ install_system_pkgs "$packages"
 if [[ "$skip_pip_pkg_install" -eq 0 ]] && [[ -n "$pip_packages" ]]; then
 	install_pip_pkgs
 fi
-exit 0
+exit $E_SUCCESS
