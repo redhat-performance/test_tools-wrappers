@@ -353,7 +353,6 @@ data=$(build_data_string "value1" "value,with,commas" "value3")
 | `to_home_root` | Parent home directory | Current user's home parent |
 | `to_configuration` | Configuration name | hostname |
 | `to_times_to_run` | Number of test iterations | 1 |
-| `to_pstats` | Pbench stats to collect | "default" |
 | `to_user` | Test user | Current user |
 | `to_sys_type` | System type | hostname |
 | `to_sys_env` | System environment | "local" |
