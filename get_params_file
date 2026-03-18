@@ -43,4 +43,4 @@ fi
 # None
 #
 echo No config file
-exit $E_GENERAL
+exit $E_NO_CONFIG_FILE
