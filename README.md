@@ -36,22 +36,22 @@ All scripts use standardized exit codes defined in `error_codes`:
 **Purpose:** Converts CSV files to formatted plain text with fixed-width columns.
 
 **Inputs:**
-- `--results_in <file>` - Input CSV file (required)
-- `--results_out <file>` - Output text file (required)
-- `--field_size <n>` - Width of each field in characters (required)
-- `--field_separator <char>` - CSV field separator (default: ":")
-- `--usage/-h` - Display help
+- `--results_in <file>` - Input CSV file (required).
+- `--results_out <file>` - Output text file (required).
+- `--field_size <n>` - Width of each field in characters (required).
+- `--field_separator <char>` - CSV field separator (default: ":").
+- `--usage/-h` - Display help information.
 
 **Outputs:**
-- **File:** Creates formatted text file at `--results_out` path
-- **Exit code:** 0 on success, error code on failure
-- **Side effects:** Removes existing output file before writing
+- **File:** Creates formatted text file at `--results_out` path.
+- **Exit code:** 0 on success, error code on failure.
+- **Side effects:** If the file designated by --results_out exists, it will be overwritten.
 
 **Behavior:**
-- Comment lines (starting with #) are preserved as-is
-- Lines without the field separator are preserved as-is
-- Spaces in values are converted to underscores
-- Values are right-aligned in fixed-width columns
+- Comment lines (starting with #) are preserved as-is.
+- Lines without the field separator are preserved as-is.
+- Spaces in values are converted to underscores.
+- Values are right-aligned in fixed-width columns.
 
 **Examples:**
 ```bash
@@ -66,19 +66,15 @@ All scripts use standardized exit codes defined in `error_codes`:
 **Purpose:** Creates and mounts a filesystem on a specified device.
 
 **Inputs:**
-- `--device <path>` - Device to create filesystem on (required)
-- `--fs_type <type>` - Filesystem type: xfs, ext3, ext4, gfs, gfs2 (required)
-- `--mount_dir <path>` - Mount point directory (required, created if needed)
-- `--usage/-h` - Display help
+- `--device <path>` - Device to create filesystem on (required).
+- `--fs_type <type>` - Filesystem type: xfs, ext3, ext4, gfs, gfs2 (required).
+- `--mount_dir <path>` - Mount point directory (required, created if needed).
+- `--usage/-h` - Display help information.
 
 **Outputs:**
-- **stdout:** Command being executed (`mkfs -t ...`)
-- **stderr:** Error messages
-- **Exit code:** 0 on success, 101 on error
-- **Side effects:**
-  - Creates filesystem on device
-  - Creates mount directory if it doesn't exist
-  - Mounts filesystem to specified directory
+- **stdout:** Command being executed (`mkfs -t ...`).
+- **stderr:** Error messages.
+- **Exit code:** 0 on success, 101 on error.
 
 **Examples:**
 ```bash
@@ -98,19 +94,19 @@ All scripts use standardized exit codes defined in `error_codes`:
 **Purpose:** Converts CSV files to JSON format with optional transposition.
 
 **Inputs:**
-- `--csv_file <file>` - Input CSV file (default: stdin)
-- `--output_file <file>` - Output JSON file (default: stdout)
-- `--separator <char>` - CSV separator (default: ",")
-- `--transpose` - Transpose CSV (rows↔columns) before conversion
-- `--json_skip` - Skip processing (no-op, exits with 0)
+- `--csv_file <file>` - Input CSV file (default: stdin).
+- `--output_file <file>` - Output JSON file (default: stdout).
+- `--separator <char>` - CSV separator (default: ",").
+- `--transpose` - Transpose CSV (rows↔columns) before conversion.
+- `--json_skip` - Skip processing (no-op, exits with 0).
 
 **Outputs:**
 - **stdout/File:** JSON array of records with 4-space indentation
 - **stderr:** Error messages
 - **Exit code:**
-  - 0 on success
-  - 106 (E_INVALID_DATA) on parse error
-  - 127 (E_PACKAGE_FAIL) if pandas not installed
+  - 0 on success.
+  - 106 (E_INVALID_DATA) on parse error.
+  - 127 (E_PACKAGE_FAIL) if pandas not installed.
 
 **Requirements:** Python 3 with pandas library
 
@@ -128,19 +124,19 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Fetches NUMA (Non-Uniform Memory Access) information from the system using `lscpu`.
 
 **Inputs:**
-- `--node-count` - Display number of NUMA nodes (default operation)
-- `--cpu-list` - List CPUs on NUMA nodes
-- `-n/--node <value>` - Restrict CPU list to specific nodes (supports ranges: 0-5, comma-separated: 0,2,4, or single: 1)
-- `--include-empty` - Include empty NUMA nodes in count
-- `-i/--input <command>` - Provide alternative command for lscpu data (for testing)
-- `-h/--help/--usage` - Display help
+- `--node-count` - Display number of NUMA nodes (default operation).
+- `--cpu-list` - List CPUs on NUMA nodes.
+- `-n/--node <value>` - Restrict CPU list to specific nodes (supports ranges: 0-5, comma-separated: 0,2,4, or single: 1).
+- `--include-empty` - Include empty NUMA nodes in count.
+- `-i/--input <command>` - Provide alternative command for lscpu data (for testing).
+- `-h/--help/--usage` - Display help information..
 
 **Outputs:**
 - **stdout:**
-  - With `--node-count`: Number of NUMA nodes (default: excludes empty nodes)
-  - With `--cpu-list`: CPU list(s), one per line
-- **stderr:** Error messages if invalid node specified
-- **Exit code:** 0 on success, 101 on error
+  - With `--node-count`: Number of NUMA nodes (default: excludes empty nodes).
+  - With `--cpu-list`: CPU list(s), one per line.
+- **stderr:** Error messages if invalid node specified.
+- **Exit code:** 0 on success, 101 on error.
 
 **Examples:**
 ```bash
@@ -157,15 +153,15 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Detects the operating system and version information from `/etc/os-release`.
 
 **Inputs:**
-- `--os-version` - Get the OS version instead of the OS name
-- `--major-version` - Output only the major version (requires `--os-version`)
-- `--minor-version` - Output only the minor version (requires `--os-version`)
-- `--version-separator <char>` - Set separator between major/minor version (default: ".")
-- `-h/--help/--usage` - Display help
+- `--os-version` - Get the OS version instead of the OS name.
+- `--major-version` - Output only the major version (requires `--os-version`).
+- `--minor-version` - Output only the minor version (requires `--os-version`).
+- `--version-separator <char>` - Set separator between major/minor version (default: ".").
+- `-h/--help/--usage` - Display help information.
 
 **Outputs:**
-- **stdout:** OS ID (e.g., "rhel", "fedora") or version information
-- **Exit code:** 0 on success, error code on failure
+- **stdout:** OS ID (e.g., "rhel", "fedora") or version information.
+- **Exit code:** 0 on success, error code on failure.
 
 **Examples:**
 ```bash
@@ -181,21 +177,21 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Identifies available unused disks on the system or uses a specified disk list.
 
 **Inputs:**
-- Positional argument: Either "grab_disks" or comma-separated list of disk names
-- If "grab_disks": automatically discovers unused disks
-- If "none": exits with error on local systems (allowed only for cloud)
-- If disk list: uses provided disks (with or without `/dev/` prefix)
+- Positional argument: Either "grab_disks" or comma-separated list of disk names.
+- If "grab_disks": automatically discovers unused disks.
+- If "none": exits with error on local systems (allowed only for cloud).
+- If disk list: uses provided disks (with or without `/dev/` prefix).
 
 **Environment Variables:**
-- `TOOLS_BIN` - Path to tools directory
-- `to_sys_env` - Set to "local" for local system validation
+- `TOOLS_BIN` - Path to tools directory.
+- `to_sys_env` - Set to "local" for local system validation.
 
 **Outputs:**
-- **stdout:** Format: `<disk1> <disk2> ...:number_of_disks`
+- **stdout:** Format: `<disk1> <disk2> ...:number_of_disks`.
   - Example: `/dev/sdb /dev/sdc:2`
-- **stderr:** Error messages
-- **Exit code:** 0 on success, 101 if no disks found or invalid input
-- **Temporary files:** Creates and removes `disks` file
+- **stderr:** Error messages.
+- **Exit code:** 0 on success, 101 if no disks found or invalid input.
+- **Temporary files:** Creates and removes `disks` file.
 
 **Examples:**
 ```bash
@@ -205,12 +201,12 @@ cat data.csv | ./csv_to_json > data.json
 ```
 
 **Algorithm:**
-1. If `hw_config.yml` exists, reads storage devices from it
+1. If `hw_config.yml` exists, reads storage devices from it.
 2. Otherwise:
-   - Lists all disks with `lsblk`
-   - Identifies root/boot/swap devices
-   - Excludes mounted filesystems
-   - Returns unused disks in reverse order
+   - Lists all disks with `lsblk`.
+   - Identifies root/boot/swap devices.
+   - Excludes mounted filesystems.
+   - Returns unused disks in reverse order.
 
 ---
 
@@ -219,19 +215,19 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Wrapper for invoking tests with tuned profile tracking.
 
 **Inputs:**
-- `--command <string>` - Command to execute (required)
-- `--options <strings>` - Options to pass to command
-- `--test_name <string>` - Test name for status tracking (required)
-- `-h` - Display help
+- `--command <string>` - Command to execute (required).
+- `--options <strings>` - Options to pass to command.
+- `--test_name <string>` - Test name for status tracking (required).
+- `-h` - Display help information.
 
 **Outputs:**
-- **File:** Creates `/tmp/<test_name>_tuned.status` with tuned profile information
-- **Exit code:** 103 on usage error, 101 on general error
+- **File:** Creates `/tmp/<test_name>_tuned.status` with tuned profile information.
+- **Exit code:** 103 on usage error, 101 on general error.
 
 **Behavior:**
-- On RHEL: Captures active tuned profile
-- Checks if tuned service is inactive (writes warning)
-- Requires `to_os_running` environment variable
+- On RHEL: Captures active tuned profile.
+- Checks if tuned service is inactive (writes warning).
+- Requires `to_os_running` environment variable.
 
 **Examples:**
 ```bash
@@ -245,23 +241,23 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Creates an LVM (Logical Volume Manager) volume group and logical volume from specified devices.
 
 **Inputs:**
-- `--devices <list>` - Comma-separated list of devices (required)
-- `--lvm_grp <name>` - LVM group name (required)
-- `--lvm_vol <name>` - LVM volume name (required)
-- `--wipefs` - Wipe filesystem signatures before LVM operations
-- `--usage/-h` - Display help
+- `--devices <list>` - Comma-separated list of devices (required).
+- `--lvm_grp <name>` - LVM group name (required).
+- `--lvm_vol <name>` - LVM volume name (required).
+- `--wipefs` - Wipe filesystem signatures before LVM operations.
+- `--usage/-h` - Display help information.
 
 **Outputs:**
-- **stdout:** Progress messages
-- **stderr:** Error messages if operations fail
-- **Exit code:** 0 on success, 101 on error
+- **stdout:** Progress messages.
+- **stderr:** Error messages if operations fail.
+- **Exit code:** 0 on success, 101 on error.
 - **Side effects:**
-  - Removes existing LV/VG with same names
-  - Creates physical volumes (`pvcreate`)
-  - Creates volume group (`vgcreate`)
-  - Creates logical volume with striping across all devices
-  - Total size = (sum of device sizes in GB) - 200GB
-  - Wipes the created logical volume
+  - Removes existing LV/VG with same names.
+  - Creates physical volumes (`pvcreate`).
+  - Creates volume group (`vgcreate`).
+  - Creates logical volume with striping across all devices.
+  - Total size = (sum of device sizes in GB) - 200GB.
+  - Wipes the created logical volume.
 
 **Examples:**
 ```bash
@@ -278,17 +274,17 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Deletes an LVM logical volume and volume group.
 
 **Inputs:**
-- `--lvm_vol <name>` - LVM volume name (required)
-- `--lvm_grp <name>` - LVM group name (required)
-- `--mount_pnt <path>` - Mount point to unmount
-- `--usage/-h` - Display help
+- `--lvm_vol <name>` - LVM volume name (required).
+- `--lvm_grp <name>` - LVM group name (required).
+- `--mount_pnt <path>` - Mount point to unmount.
+- `--usage/-h` - Display help information.
 
 **Outputs:**
 - **Exit code:** 0 on success, 101 on error
 - **Side effects:**
-  - Unmounts the mount point
-  - Removes logical volume
-  - Removes volume group
+  - Unmounts the filesystem from the designated mount point.
+  - Removes logical volume.
+  - Removes volume group.
 
 **Examples:**
 ```bash
@@ -302,28 +298,28 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Cross-distribution package management wrapper for installing system and pip packages.
 
 **Inputs:**
-- `--is_installed <package>` - Check if package is installed (exits with 0/1)
-- `--no_packages <0|1>` - Skip system package installation if 1
-- `--no_system_packages <0|1>` - Skip system packages if 1
-- `--no_pip_packages <0|1>` - Skip pip packages if 1
-- `--packages <list>` - Comma-separated list of system packages to install
-- `--pip_packages <list>` - Comma-separated list of pip modules to install
-- `--python_exec <path>` - Python interpreter for pip (default: "python3")
-- `--remove_packages <list>` - Comma-separated list of packages to remove
-- `--update` - Update all system packages
-- `--update_cache <0|1>` - Update package cache before operations (default: 1)
-- `--wrapper_config <json_file>` - JSON file with dependencies specification
-- `-h/--usage` - Display help
+- `--is_installed <package>` - Check if package is installed (exits with 0/1).
+- `--no_packages <0|1>` - Skip system package installation if 1.
+- `--no_system_packages <0|1>` - Skip system packages if 1.
+- `--no_pip_packages <0|1>` - Skip pip packages if 1.
+- `--packages <list>` - Comma-separated list of system packages to install.
+- `--pip_packages <list>` - Comma-separated list of pip modules to install.
+- `--python_exec <path>` - Python interpreter for pip (default: "python3").
+- `--remove_packages <list>` - Comma-separated list of packages to remove.
+- `--update` - Update all system packages.
+- `--update_cache <0|1>` - Update package cache before operations (default: 1).
+- `--wrapper_config <json_file>` - JSON file with dependencies specification.
+- `-h/--usage` - Display help information.
 
 **Outputs:**
-- **stdout:** Package installation progress
-- **stderr:** Error messages
+- **stdout:** Package installation progress.
+- **stderr:** Error messages.
 - **Exit code:**
   - 0 (E_SUCCESS) on success
-  - 1 (E_PACKAGE_TOOL_PACKAGING) on package installation failure or `--is_installed` check failure
-  - 2 (E_PACKAGE_TOOL_REMOVE) on package removal failure
-  - 3 (E_PACKAGE_TOOL_UPDATE) on system update failure
-  - 101 (E_GENERAL) if package manager cannot be determined
+  - 1 (E_PACKAGE_TOOL_PACKAGING) on package installation failure or `--is_installed` check failure.
+  - 2 (E_PACKAGE_TOOL_REMOVE) on package removal failure.
+  - 3 (E_PACKAGE_TOOL_UPDATE) on system update failure.
+  - 101 (E_GENERAL) if package manager cannot be determined.
 
 **Supported Distributions:**
 - RHEL/Fedora/CentOS: dnf or yum
@@ -364,12 +360,12 @@ cat data.csv | ./csv_to_json > data.json
 ```
 
 **Behavior:**
-- Automatically detects OS and selects appropriate package manager
-- Updates package cache once before first install (unless disabled)
-- Installs python3-pip automatically when pip packages requested
-- On Ubuntu, uses `--break-system-packages` flag for pip
-- Falls back to versioned dependencies: full version → major version → default
-- Requires `jq` for JSON parsing (auto-installs if needed)
+- Automatically detects OS and selects appropriate package manager.
+- Updates package cache once before first install (unless disabled).
+- Installs python3-pip automatically when pip packages requested.
+- On Ubuntu, uses `--break-system-packages` flag for pip.
+- Falls back to versioned dependencies: full version → major version → default.
+- Requires `jq` for JSON parsing (auto-installs if needed).
 
 ---
 
@@ -379,8 +375,8 @@ cat data.csv | ./csv_to_json > data.json
 
 **Inputs:**
 - `--mount_pnt <prefix>` - Mount point directory prefix (required)
-- `--number_mount_pnts <n>` - Number of devices mounted (required)
-- `-h/--usage` - Display help
+- `--number_mount_pnts <n>` - Number of mount points (required).
+- `-h/--usage` - Display help information.
 
 **Outputs:**
 - **Exit code:** 0 on success, 103 on usage error
@@ -403,20 +399,21 @@ cat data.csv | ./csv_to_json > data.json
 **Purpose:** Validates JSON test results against a pydantic schema model.
 
 **Inputs:**
-- `--file <file>` - JSON file to verify (default: stdin)
-- `--schema_file <file>` - Python file containing the schema model (required)
-- `--class_name <name>` - Class name in schema file to validate against (default: "Results")
-- `--verify_skip` - Skip verification (no-op, exits with 0)
-- `--usage` - Display help
+- `--file <file>` - JSON file to verify (default: stdin).
+- `--schema_file <file>` - Python file containing the schema model (required).
+- `--class_name <name>` - Class name in schema file to validate against (default: "Results").
+- `--verify_skip` - Skip verification (no-op, exits with 0).
+- `--usage` - Display help information.
 
 **Outputs:**
-- **stdout:** "Results verified" on success
-- **stderr:** Validation error details on failure
+- **stdout:** "Results verified" on success.
+- **stderr:** Validation error details on failure.
 - **Exit code:**
-  - 0 on success or if `--verify_skip` used
-  - 104 (E_PARSE_ARGS) if schema file or class not found
-  - 106 (E_VALIDATION_FAIL) if validation fails
-  - 127 (E_PACKAGE_FAIL) if pydantic not installed
+  - 0 on success or if `--verify_skip` used.
+  - 104 (E_PARSE_ARGS) if schema file or class not found.
+  - 106 (E_VALIDATION_FAIL) if validation fails.
+  - 108 (E_VALIDATION_FAIL) if we have a data validation error.
+  - 127 (E_PACKAGE_FAIL) if pydantic not installed.
 
 **Requirements:** Python 3 with pydantic library
 
@@ -472,32 +469,32 @@ See Exit Codes section above for complete list.
 | `to_os_running` | Current OS | Auto-detected |
 
 **Common Options:**
-- `--debug` - Enable bash -x debugging
-- `--home_parent <path>` - Set parent home directory
-- `--host_config <name>` - Configuration name
-- `--iterations <n>` - Number of test runs
-- `--iteration_default <n>` - Default iteration count
-- `--no_pkg_install` - Disable all package installation
-- `--no_system_packages` - Disable system package installation
-- `--no_pip_packages` - Disable pip package installation
-- `--run_label <label>` - Run label
-- `--run_user <user>` - Test execution user
-- `--sys_type <type>` - System type (aws, azure, local, etc.)
-- `--sysname <name>` - System name
-- `--test_tools_release <tag>` - Use specific test_tools version
-- `--tuned_setting <profile>` - Set tuned profile
-- `--usage` - Display help
-- `--verify_skip` - Skip test verification
-- `--json_skip` - Skip JSON conversion
-- `--use_pcp` - Enable PCP monitoring
+- `--debug` - Enable bash -x debugging.
+- `--home_parent <path>` - Set parent home directory.
+- `--host_config <name>` - Configuration name.
+- `--iterations <n>` - Number of test runs.
+- `--iteration_default <n>` - Default iteration count.
+- `--no_pkg_install` - Disable all package installation.
+- `--no_system_packages` - Disable system package installation.
+- `--no_pip_packages` - Disable pip package installation.
+- `--run_label <label>` - Run label.
+- `--run_user <user>` - Test execution user.
+- `--sys_type <type>` - System type (aws, azure, local, etc.).
+- `--sysname <name>` - System name.
+- `--test_tools_release <tag>` - Use specific test_tools version.
+- `--tuned_setting <profile>` - Set tuned profile.
+- `--usage` - Display help information..
+- `--verify_skip` - Skip test verification.
+- `--json_skip` - Skip JSON conversion.
+- `--use_pcp` - Enable PCP monitoring.
 
 **Side Effects:**
 - Sources `~/.bashrc`
-- Installs verification dependencies (unless skipped)
-- Records active tuned profile to `~/tuned_before`
-- May clone specific test_tools release from GitHub
-- Sets up USR1 signal trap for command-not-found handling
-- Exports environment variables
+- Installs verification dependencies (unless skipped).
+- Records active tuned profile to `~/tuned_before`.
+- May clone specific test_tools release from GitHub.
+- Sets up USR1 signal trap for command-not-found handling.
+- Exports environment variables.
 
 **Usage Pattern:**
 ```bash
@@ -556,7 +553,7 @@ data=$(build_data_string "value1" "value,with,commas" "value3")
 - `--tuned_setting <profile>` - Tuned profile setting for archive naming
 - `--version <version>` - Version number/commit of the test (or "None")
 - `--user <name>` - Name of user who ran the wrapper
-- `-h/--usage` - Display help
+- `-h/--usage` - Display help information.
 
 **Outputs:**
 - **Directory:** `$home_root/$user/export_results/<test_name>_<timestamp>/`
@@ -628,7 +625,7 @@ ${TOOLS_BIN}/save_results \
 - `--from_unit <unit>` - Source unit (default: "K" for memory, "s" for time)
 - `--to_unit <unit>` - Destination unit (default: "B" for memory, "ns" for time)
 - `--time_val` - Interpret as time units instead of memory units
-- `-h/--help/--usage` - Display help
+- `-h/--help/--usage` - Display help information.
 
 **Outputs:**
 - **stdout:** Converted value with unit suffix
@@ -680,7 +677,7 @@ ${TOOLS_BIN}/save_results \
 
 **Inputs:**
 - Positional arguments: Device paths to check (e.g., `/dev/sdb`, `/dev/sdc`)
-- `-h` - Display help
+- `-h` - Display help information.
 
 **Outputs:**
 - **stdout:** Usage message (only with `-h`)
@@ -754,7 +751,7 @@ to_os_running=rhel ./gather_data
 **Inputs:**
 - `--interval <n>` - Number of intervals to create (required)
 - `--max_value <n>` - Maximum value to reach (required)
-- `-h/--usage` - Display help
+- `-h/--usage` - Display help information.
 
 **Outputs:**
 - **stdout:** Comma-separated sequence of values
@@ -879,7 +876,7 @@ to_os_running=rhel ./gather_data
 - `--sys_type <type>` - System environment type
 - `--test_name <name>` - Test name
 - `--tuned <profile>` - Tuned profile setting
-- `-h/--usage` - Display help
+- `-h/--usage` - Display help information.
 
 **Outputs:**
 - **File:** Writes formatted headers to `--results_file`
