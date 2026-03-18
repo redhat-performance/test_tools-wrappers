@@ -276,7 +276,7 @@ if [[ $is_installed != "" ]]; then
 	if [[ $? -ne 0 ]]; then
 		exit $E_PACKAGE_TOOL_PACKAGING
 	fi
-	exit $E_GENERAL
+	exit $E_SUCCESS
 fi
 
 if [[ $remove_packages != "" ]]; then
