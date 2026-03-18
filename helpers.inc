@@ -40,4 +40,4 @@ build_data_string()
 }
 
 test_start_time=$(retrieve_time_stamp)
-export test_start
+export test_start_time
