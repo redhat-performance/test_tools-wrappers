@@ -28,7 +28,7 @@ source ${TOOLS_BIN}/error_codes
 usage()
 {
 	echo "Usage: $1"
-	echo "  --mount_pnt: directory to mount to"
+	echo "  --mount_pnt: directory to unmount from"
 	echo "  --number_mount_pnts: Number of devices mounted."
 	exit $E_USAGE
 }
