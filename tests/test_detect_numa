@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source error_codes
 exec_file="./detect_numa"
 num_nodes=`lscpu | grep "NUMA node(s)" | grep -Eo "[0-9]+"`
 cpu_node=`lscpu | grep -E "NUMA node[0-9]+" | awk '{ print $NF }'`
@@ -14,7 +15,7 @@ assert "$exec_file" "$num_nodes"
 assert "$exec_file --node-count" "$num_nodes"
 
 # Test --cpu-list flag outputs CPUs grouped by NUMA node
-assert "$exec_file --cpu-list" $cpu_node
+assert "$exec_file --cpu-list" $cpu_node $E_GENERAL
 
 # Verify that the reported cpus belong to the correct NUMA node
 for i in `seq 0 $((num_nodes-1))`; do
@@ -22,10 +23,10 @@ for i in `seq 0 $((num_nodes-1))`; do
 done
 
 # Ensure that the --node flag fails when a NUMA node does not exist 
-assert_raises "$exec_file --node $((num_nodes)) --cpu-list" 1 # num_nodes is invalid since NUMA indexes from 0
+assert_raises "$exec_file --node $((num_nodes)) --cpu-list" $E_GENERAL # num_nodes is invalid since NUMA indexes from 0
 
 # Ensure that the --node flag fails when a negative NUMA node is provided
-assert_raises "$exec_file --node -1 --cpu-list" 1
+assert_raises "$exec_file --node -1 --cpu-list" $E_GENERAL
 
 # Ensure that empty NUMA nodes are not counted by default
 assert "$exec_file -i \"cat tests/resources/detect_numa/empty_numa.txt\"" 1
