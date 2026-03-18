@@ -1,5 +1,8 @@
 #!/bin/bash
 
+if [[ $TOOLS_BIN == "" ]]; then
+	TOOLS_BIN=$(realpath $(dirname $0))
+fi
 source ${TOOLS_BIN}/error_codes
 
 usage()
