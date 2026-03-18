@@ -15,33 +15,33 @@ A bash library providing high-level functions for PCP integration with workload 
 ##### Setup and Installation
 
 **`setup_pcp()`**
-- Installs PCP packages if not already present
-- Configures PMDAs (Performance Metrics Domain Agents) for openmetrics and denki
-- Handles OS-specific installation (Ubuntu, SLES, etc.)
-- Copies service files and configuration to appropriate locations
-- Sets up the PCPrecord systemd service
+- Installs PCP packages if not already present.
+- Configures PMDAs (Performance Metrics Domain Agents) for openmetrics and denki.
+- Handles OS-specific installation (Ubuntu, SLES, etc.).
+- Copies service files and configuration to appropriate locations.
+- Sets up the PCPrecord systemd service.
 
 ##### Recording Control
 
 **`start_pcp(archive_dir, test_name, config_file)`**
-- Resets OpenMetrics values
-- Sends Start command to PCPrecord service via FIFO
+- Resets OpenMetrics values.
+- Sends Start command to PCPrecord service via FIFO.
 - Parameters:
-  - `$1`: Directory for PCP archive data (should be within workload data directory)
-  - `$2`: Test name (used for archive naming)
-  - `$3`: PMLogger config file path
+  - `$1`: Directory for PCP archive data (should be within workload data directory).
+  - `$2`: Test name (used for archive naming).
+  - `$3`: PMLogger config file path.
 
 **`stop_pcp()`**
-- Sends Stop command to PCPrecord service
-- Terminates pmlogger recording session
+- Sends Stop command to PCPrecord service.
+- Terminates pmlogger recording session.
 
 **`shutdown_pcp()`**
-- Completely stops the PCPrecord and pmcd services
-- Use at end of test runs for cleanup
+- Completely stops the PCPrecord and pmcd services.
+- Use at end of test runs for cleanup.
 
 ##### Metric Management
 
-**`result2pcp(metric, value)`** (DEPRECATED)
+**`result2pcp(metric, value)`** (DEPRECATED, use results2pcp_multiple instead)
 - Logs a single metric value to OpenMetrics
 - Use `results2pcp_multiple()` instead
 - Parameters:
@@ -49,57 +49,58 @@ A bash library providing high-level functions for PCP integration with workload 
   - `$2`: Metric value
 
 **`results2pcp_multiple(metric_list)`**
-- Logs multiple metric values atomically
+- Logs multiple metric values atomically.
 - Format: `"metric1:value1,metric2:value2,metric3:value3"`
-- More efficient than multiple `result2pcp()` calls
-- Validates metrics exist in the OpenMetrics reset file
+- More efficient than multiple `result2pcp()` calls.
+- Validates metrics exist in the OpenMetrics reset file.
 
 **`results2pcp_add_value(metric:value)`**
-- Adds metric to a pending list without committing
-- Use with `results2pcp_add_value_commit()` for batching
+- Adds metric to a pending list without committing.
+- Use with `results2pcp_add_value_commit()` for batching.
 
 **`results2pcp_add_value_commit()`**
-- Commits all pending metrics added via `results2pcp_add_value()`
-- Clears the pending metric list after writing
+- Commits all pending metrics added via `results2pcp_add_value()`.
+- Clears the pending metric list after writing.
 
 ##### Subset Management
 
 **`start_pcp_subset()`**
-- Marks the beginning of a subset of interest within a long recording
-- Resets OpenMetrics values
-- Sets the "running" flag to 1 for visualization filtering
+- Marks the beginning of a subset of interest within a long recording.
+- Resets OpenMetrics values.
+- Sets the "running" flag to 1 for visualization filtering.
 
 **`stop_pcp_subset()`**
-- Marks the end of a subset
-- Sets the "running" flag to 0
+- Marks the end of a subset.
+- Sets the "running" flag to 0.
 
 **`reset_pcp_om()`**
-- Resets all OpenMetrics values to their defaults from the reset file
+- Resets all OpenMetrics values to their defaults from the reset file.
 
 ##### Validation
 
 **`openmetrics_file_verification(metric_file)`**
-- Validates OpenMetrics file format
+- Validates OpenMetrics file format.
 - Checks:
-  - No special characters in metric names (only alphanumeric and underscore)
-  - No blank lines
-  - Metrics don't start with digits
-  - Exactly 2 fields per line (metric name and value)
-  - No duplicate metric names
-- Parameters:
-  - `$1`: Path to OpenMetrics file to validate
+  - No special characters in metric names (only alphanumeric and underscore).
+  - No blank lines.
+  - Metrics don't start with digits.
+  - Exactly 2 fields per line (metric name and value).
+  - No duplicate metric names.
+  - Will cause script to exit with $E_PCP_FAILURE on failure.
+- Parameters:.
+  - `$1`: Path to OpenMetrics file to validate.
 
 **`check_svc(wait_timeout)`**
-- Waits for PCPrecord service to report READY status
+- Waits for PCPrecord service to report READY status.
 - Parameters:
   - `$1`: Timeout in seconds
-- Exits with error if timeout expires
+- Exits with error if timeout expires.
 
 #### Global Variables
 
-- `FIFO="/tmp/pcpFIFO"` - Named pipe for communication with PCPrecord service
-- `timeout_long=10` - Timeout for Start/Stop operations (seconds)
-- `timeout_short=2` - Timeout for other operations (seconds)
+- `FIFO="/tmp/pcpFIFO"` - Named pipe for communication with PCPrecord service.
+- `timeout_long=10` - Timeout for Start/Stop operations (seconds).
+- `timeout_short=2` - Timeout for other operations (seconds).
 
 #### Usage Example
 
@@ -136,50 +137,50 @@ A systemd service daemon that processes PCP recording commands via a FIFO pipe.
 
 #### Architecture
 
-- Runs as a systemd Type=notify service
-- Infinite loop reading commands from `/tmp/pcpFIFO`
-- Uses systemd-notify for status reporting and readiness signaling
-- Manages pmlogger lifecycle and OpenMetrics file updates
+- Runs as a systemd Type=notify service.
+- Infinite loop reading commands from `/tmp/pcpFIFO`.
+- Uses systemd-notify for status reporting and readiness signaling.
+- Manages pmlogger lifecycle and OpenMetrics file updates.
 
 #### Supported Actions
 
 ##### Start
 **Format:** `Start <archive_dir> <test_name> <conf_file>`
-- Starts pmlogger with specified configuration
-- Creates archive in the specified directory
-- Only starts if pmlogger is not already running
-- Example: `Start /data/results test1 /usr/local/src/PCPrecord/default.cfg`
+- Starts pmlogger with specified configuration.
+- Creates archive in the specified directory.
+- Only starts if pmlogger is not already running.
+- Example: `Start /data/results test1 /usr/local/src/PCPrecord/default.cfg`.
 
 ##### Stop
 **Format:** `Stop`
-- Stops the currently running pmlogger instance
-- Only stops if pmlogger is running
+- Stops the currently running pmlogger instance.
+- Only stops if pmlogger is running.
 
 ##### Reset
 **Format:** `Reset`
-- Resets all OpenMetrics values to defaults from reset file
-- Can be called at any time (doesn't require pmlogger running)
+- Resets all OpenMetrics values to defaults from reset file.
+- Can be called at any time (doesn't require pmlogger running).
 
 ##### Workload Metrics
 **Format:** `<metric_name> <value>`
-- Supported metrics: `throughput`, `latency`, `numthreads`, `runtime`
-- Updates the specified metric in the OpenMetrics workload file
-- Only processes if pmlogger is running
-- Example: `throughput 1234.5`
+- Supported metrics: `throughput`, `latency`, `numthreads`, `runtime`.
+- Updates the specified metric in the OpenMetrics workload file.
+- Only processes if pmlogger is running.
+- Example: `throughput 1234.5`.
 
 ##### Workload States
 **Format:** `<state_name> <value>`
-- Supported states: `running`, `iteration`
-- Updates state values in OpenMetrics file
-- Only processes if pmlogger is running
+- Supported states: `running`, `iteration`.
+- Updates state values in OpenMetrics file.
+- Only processes if pmlogger is running.
 - Example: `running 1`
 
 #### Service Status Reporting
 
 The service uses systemd-notify to report:
-- **READY:** Waiting for next command (includes timing of last action)
-- **Processing:** Currently handling a command
-- **ERROR:** Error occurred during command processing
+- **READY:** Waiting for next command (includes timing of last action).
+- **Processing:** Currently handling a command.
+- **ERROR:** Error occurred during command processing.
 
 Check status with:
 ```bash
@@ -188,11 +189,11 @@ systemctl status PCPrecord.service
 
 #### Global Variables
 
-- `FIFO="/tmp/pcpFIFO"` - Named pipe for receiving commands
-- `sample_rate=5` - Default pmlogger sample rate in seconds
-- `pmlogger_running="false"` - State tracking
-- `om_workload_file="/tmp/openmetrics_workload.txt"` - Active metrics file
-- `om_workload_file_reset="/tmp/openmetrics_workload_reset.txt"` - Default values
+- `FIFO="/tmp/pcpFIFO"` - Named pipe for receiving commands.
+- `sample_rate=5` - Default pmlogger sample rate in seconds.
+- `pmlogger_running="false"` - State tracking.
+- `om_workload_file="/tmp/openmetrics_workload.txt"` - Active metrics file.
+- `om_workload_file_reset="/tmp/openmetrics_workload_reset.txt"` - Default values.
 
 #### Dependencies
 
@@ -220,9 +221,9 @@ journalctl -u PCPrecord.service -f
 #### Debugging
 
 The service includes debug timing measurements:
-- Tracks processing time for each action in milliseconds
-- Reports timing in status message: `READY: last-action - <action> = <time>ms`
-- View with: `systemctl status PCPrecord.service`
+- Tracks processing time for each action in milliseconds.
+- Reports timing in status message: `READY: last-action - <action> = <time>ms`.
+- View with: `systemctl status PCPrecord.service`.
 
 ---
 
