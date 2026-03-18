@@ -517,16 +517,16 @@ source ${TOOLS_BIN}/general_setup
 **Functions:**
 
 #### retrieve_time_stamp()
-- **Returns:** ISO 8601 UTC timestamp (e.g., "2026-03-16T14:23:45Z")
-- **Usage:** For CSV file timestamps
+- **Returns:** ISO 8601 UTC timestamp (e.g., "2026-03-16T14:23:45Z").
+- **Usage:** Provides a routine for all wrappers to call to get a common timestamp format.
 
 #### build_data_string()
-- **Parameters:** Any number of arguments
-- **Returns:** Comma-separated string with all commas removed from values
-- **Usage:** Building CSV records
+- **Parameters:** Any number of arguments.
+- **Returns:** Comma-separated string with all commas removed from values.
+- **Usage:** Building CSV records.
 
 **Variables:**
-- `test_start_time` - Timestamp when script sourced
+- `test_start_time` - Timestamp when script sourced.
 
 **Example:**
 ```bash
@@ -543,26 +543,26 @@ data=$(build_data_string "value1" "value,with,commas" "value3")
 **Purpose:** Common script for saving and exporting test results. Creates timestamped result directories, archives test data, and tracks tuned profile changes.
 
 **Inputs:**
-- `--curdir <dir>` - Directory where wrapper started execution (default: `pwd`)
-- `--home_root <dir>` - Running user's home directory
-- `--test_name <name>` - Name of the test (required for directory naming)
-- `--results <file>` - Primary results file to export
-- `--other_files <file,file,...>` - Comma-separated list of additional files to export
-- `--tar_file <tarball>` - Tar file to extract into results directory
-- `--copy_dir <dir>` - Entire directory to copy into results
-- `--tuned_setting <profile>` - Tuned profile setting for archive naming
-- `--version <version>` - Version number/commit of the test (or "None")
-- `--user <name>` - Name of user who ran the wrapper
+- `--curdir <dir>` - Directory where wrapper started execution (default: `pwd`).
+- `--home_root <dir>` - Running user's home directory.
+- `--test_name <name>` - Name of the test (required for directory naming).
+- `--results <file>` - Primary results file to export.
+- `--other_files <file,file,...>` - Comma-separated list of additional files to export.
+- `--tar_file <tarball>` - Tar file to extract into results directory.
+- `--copy_dir <dir>` - Entire directory to copy into results.
+- `--tuned_setting <profile>` - Tuned profile setting for archive naming.
+- `--version <version>` - Version number/commit of the test (or "None").
+- `--user <name>` - Name of user who ran the wrapper.
 - `-h/--usage` - Display help information.
 
 **Outputs:**
-- **Directory:** `$home_root/$user/export_results/<test_name>_<timestamp>/`
-  - Contains all exported files and results
-  - Timestamp format: `YYYY.MM.DD-HH.MM.SS`
+- **Directory:** `$home_root/$user/export_results/<test_name>_<timestamp>/`.
+  - Contains all exported files and results.
+  - Timestamp format: `YYYY.MM.DD-HH.MM.SS`.
 - **Files:**
-  - `tuned_setting` - Diff of tuned profile before/after test (RHEL only)
-  - `version` - Test version or commit information
-  - All specified result files and directories
+  - `tuned_setting` - Differance of tuned profile before/after test (RHEL only).
+  - `version` - Test version or commit information.
+  - All specified result files and directories.
 - **Archives:**
   - `/tmp/results_<test_name>_<tuned_setting>.tar` - Full results tarball
   - `/tmp/results_<test_name>.zip` - Zip archive for Zathra integration
@@ -573,17 +573,17 @@ data=$(build_data_string "value1" "value,with,commas" "value3")
 - `to_os_running` - Operating system (for tuned profile tracking)
 
 **Behavior:**
-1. Creates export directory structure if needed
-2. Copies primary results file
+1. Creates export directory structure if needed.
+2. Copies primary results file.
 3. Checks tuned profile changes (RHEL only):
    - Compares `~/tuned_before` with current tuned-adm output
    - Warns if tuned settings changed during test
-4. Copies additional files specified in `--other_files`
-5. Extracts tar file if provided
-6. Copies entire directory if `--copy_dir` specified
-7. Records version information
-8. Copies metadata files (`meta_data*.yml`, `hw_info.out`)
-9. Creates tar archive and zip file in `/tmp`
+4. Copies additional files specified in `--other_files`.
+5. Extracts tar file if provided.
+6. Copies entire directory if `--copy_dir` specified.
+7. Records version information.
+8. Copies metadata files (`meta_data*.yml`, `hw_info.out`).
+9. Creates tar archive and zip file in `/tmp`.
 
 **Usage Pattern:**
 ```bash
@@ -606,11 +606,11 @@ ${TOOLS_BIN}/save_results \
 ```
 
 **Notes:**
-- Automatically includes metadata and hardware info files if present
-- Creates symbolic links for files (internal `link_files` function)
-- Preserves directory structure when copying
-- Replaces existing zip files with same name
-- Tuned profile tracking only active on RHEL systems
+- Automatically includes metadata and hardware info files if present.
+- Creates symbolic links for files (internal `link_files` function).
+- Preserves directory structure when copying.
+- Replaces existing zip files with same name.
+- Tuned profile tracking only active on RHEL systems.
 
 ---
 
@@ -621,15 +621,15 @@ ${TOOLS_BIN}/save_results \
 **Purpose:** Converts values between different units (memory sizes or time durations).
 
 **Inputs:**
-- `--value <n>` - Value to convert (default: 1)
-- `--from_unit <unit>` - Source unit (default: "K" for memory, "s" for time)
-- `--to_unit <unit>` - Destination unit (default: "B" for memory, "ns" for time)
-- `--time_val` - Interpret as time units instead of memory units
+- `--value <n>` - Value to convert (default: 1).
+- `--from_unit <unit>` - Source unit (default: "K" for memory, "s" for time).
+- `--to_unit <unit>` - Destination unit (default: "B" for memory, "ns" for time).
+- `--time_val` - Interpret as time units instead of memory units.
 - `-h/--help/--usage` - Display help information.
 
 **Outputs:**
-- **stdout:** Converted value with unit suffix
-- **Exit code:** 0 on success, 101 on invalid unit, 103 on usage, 104 on parse error
+- **stdout:** Converted value with unit suffix.
+- **Exit code:** 0 on success, 101 on invalid unit, 103 on usage, 104 on parse error.
 
 **Memory Units:**
 - **SI:** B, K, M, G, T (base 1000)
@@ -664,10 +664,10 @@ ${TOOLS_BIN}/save_results \
 ```
 
 **Behavior:**
-- Uses `numfmt` for memory conversions (SI and IEC standards)
-- Custom calculation for time conversions
-- All conversions go through base unit (bytes for memory, nanoseconds for time)
-- Outputs integer results using `bc` for arithmetic
+- Uses `numfmt` for memory conversions (SI and IEC standards).
+- Custom calculation for time conversions.
+- All conversions go through base unit (bytes for memory, nanoseconds for time).
+- Outputs integer results using `bc` for arithmetic.
 
 ---
 
@@ -683,28 +683,28 @@ ${TOOLS_BIN}/save_results \
 - **stdout:** Usage message (only with `-h`)
 - **Exit code:**
   - 0 (E_SUCCESS) if none of the devices are mounted
-  - 101 (E_GENERAL) if any device is mounted or used by LVM
   - 103 (E_USAGE) on usage error
+  - 109 (E_DEVICE_IN_USE) if any device is mounted or used by LVM
 
 **Examples:**
 ```bash
 ./detect_mounts /dev/sdb /dev/sdc
-# Exit 0 if neither is mounted, 101 if either is mounted
+# Exit 0 if neither is mounted, 109 if either is mounted
 
 ./detect_mounts /dev/sdb
 # Check single device
 ```
 
 **Behavior:**
-- Creates temporary file with list of mounted devices from `mount` output
-- Checks LVM physical volumes used by any logical volumes in `/dev/mapper`
-- Searches for exact device path matches
-- Returns error if ANY specified device is found
-- Cleans up temporary file on exit
+- Creates temporary file with list of mounted devices from `mount` output.
+- Checks LVM physical volumes used by any logical volumes in `/dev/mapper`.
+- Searches for exact device path matches.
+- Returns error if ANY specified device is found.
+- Cleans up temporary file on exit.
 
 **Use Case:**
-- Called before disk operations to ensure devices are not in use
-- Prevents accidental formatting of mounted filesystems
+- Called before disk operations to ensure devices are not in use.
+- Prevents accidental formatting of mounted filesystems.
 
 ---
 
@@ -713,23 +713,23 @@ ${TOOLS_BIN}/save_results \
 **Purpose:** Collects comprehensive system information for test documentation.
 
 **Inputs:**
-- No command-line arguments
-- Reads `$to_os_running` environment variable for OS-specific behavior
+- No command-line arguments.
+- Reads `$to_os_running` environment variable for OS-specific behavior.
 
 **Outputs:**
-- **stdout:** Formatted system information report
-- **Exit code:** Always 0
-- **Temporary files:** Creates `/tmp/lscpu.tmp`, `/tmp/data_gather.tmp*`
+- **stdout:** Formatted system information report.
+- **Exit code:** Always 0.
+- **Temporary files:** Creates `/tmp/lscpu.tmp`, `/tmp/data_gather.tmp*`.
 
 **Information Collected:**
-- **General:** Hostname, OS release, timestamp
-- **Hardware:** CPU architecture, model, count, NUMA configuration, product name, BIOS info
-- **Memory:** Total memory, hugepage size, NUMA node memory distribution
-- **Boot:** Kernel command-line options
-- **Tuned:** Active tuned profile (RHEL only)
-- **Security:** SELinux status
-- **Storage:** Disk information with model names
-- **Filesystems:** Mount points, mount options, overlay detection
+- **General:** Hostname, OS release, timestamp.
+- **Hardware:** CPU architecture, model, count, NUMA configuration, product name, BIOS info.
+- **Memory:** Total memory, hugepage size, NUMA node memory distribution.
+- **Boot:** Kernel command-line options.
+- **Tuned:** Active tuned profile (RHEL only).
+- **Security:** SELinux status.
+- **Storage:** Disk information with model names.
+- **Filesystems:** Mount points, mount options, overlay detection.
 
 **Examples:**
 ```bash
@@ -738,9 +738,9 @@ to_os_running=rhel ./gather_data
 ```
 
 **Special Features:**
-- Detects multiple mounts of the same directory (overlay detection)
-- Shows physical devices used by LVM volumes
-- RHEL-specific tuned profile detection
+- Detects multiple mounts of the same directory (overlay detection).
+- Shows physical devices used by LVM volumes.
+- RHEL-specific tuned profile detection.
 
 ---
 
@@ -749,13 +749,13 @@ to_os_running=rhel ./gather_data
 **Purpose:** Generates a sequence of interval values for testing (e.g., for ramping up load).
 
 **Inputs:**
-- `--interval <n>` - Number of intervals to create (required)
-- `--max_value <n>` - Maximum value to reach (required)
-- `-h/--usage` - Display help information.
+- `--interval <n>` - Number of intervals to create (required).
+- `--max_value <n>` - Maximum value to reach (required).
+- `-h/--usage` - Display help information..
 
 **Outputs:**
-- **stdout:** Comma-separated sequence of values
-- **Exit code:** 0 on success, 101 on error, 107 on no args
+- **stdout:** Comma-separated sequence of values.
+- **Exit code:** 0 on success, 101 on error, 107 on no args.
 
 **Examples:**
 ```bash
@@ -770,10 +770,10 @@ to_os_running=rhel ./gather_data
 ```
 
 **Behavior:**
-- Calculates evenly-spaced intervals using `bc` for division
-- Always starts at 1
-- Always includes max_value (adds it if not evenly divisible)
-- Interval count cannot exceed max_value
+- Calculates evenly-spaced intervals using `bc` for division.
+- Always starts at 1.
+- Always includes max_value (adds it if not evenly divisible).
+- Interval count cannot exceed max_value.
 
 ---
 
@@ -782,13 +782,13 @@ to_os_running=rhel ./gather_data
 **Purpose:** Locates test parameter configuration files with fallback logic.
 
 **Inputs:**
-- `-c <name>` - Configuration name (required)
+- `-c <name>` - Configuration name (required).
 - `-d <dir>` - Directory containing test_params subdirectory (required)
-- `-t <test>` - Test name (required)
+- `-t <test>` - Test name (required).
 
 **Outputs:**
-- **stdout:** Full path to parameter file if found, or "No config file"
-- **Exit code:** 0 if file found, 101 if not found
+- **stdout:** Full path to parameter file if found, or "No config file".
+- **Exit code:** 0 if file found, 110 if not found.
 
 **Examples:**
 ```bash
@@ -814,8 +814,8 @@ to_os_running=rhel ./gather_data
 - None (reads `$TOOLS_BIN` environment variable)
 
 **Outputs:**
-- **stdout:** Active tuned profile name, or "tuned_none" if not active/installed
-- **Exit code:** Always 0
+- **stdout:** Active tuned profile name, or "tuned_none" if not active/installed.
+- **Exit code:** Always 0.
 
 **Examples:**
 ```bash
@@ -827,8 +827,8 @@ to_os_running=rhel ./gather_data
 ```
 
 **Behavior:**
-- Checks for `/usr/sbin/tuned-adm` existence
-- Parses `tuned-adm active` output to extract profile name
+- Checks for `/usr/sbin/tuned-adm` existence.
+- Parses `tuned-adm active` output to extract profile name.
 - Returns "tuned_none" if:
   - tuned-adm not installed
   - No active profile (output contains "profile.")
@@ -844,7 +844,7 @@ to_os_running=rhel ./gather_data
 - Positional argument 2: Destination directory
 
 **Outputs:**
-- **Exit code:** 0 on success, 101 on copy error
+- **Exit code:** 0 on success, 101 on copy error.
 - **Side effects:** Copies files if they exist:
   - `meta_data*.yml` (glob pattern)
   - `hw_info.out`
@@ -855,8 +855,8 @@ to_os_running=rhel ./gather_data
 ```
 
 **Behavior:**
-- Silently skips files that don't exist
-- Only errors if `cp` command fails for existing files
+- Silently skips files that don't exist.
+- Only errors if `cp` command fails for existing files>
 
 ---
 
@@ -865,18 +865,18 @@ to_os_running=rhel ./gather_data
 **Purpose:** Generates standardized test metadata headers for CSV/text result files.
 
 **Inputs:**
-- `--field_header <string>` - CSV column header line
-- `--field_separ <char>` - Field separator in directory name (default: "_")
-- `--front_matter` - Include full system information header
-- `--host <name>` - Host configuration name
-- `--info_in_dir_name "<dir> <fields>"` - Extract metadata from directory name structure
-- `--meta_output <string>` - Additional metadata string (can be repeated)
-- `--results_file <file>` - Output file to write headers to (required)
-- `--results_version <version>` - Test results format version
-- `--sys_type <type>` - System environment type
-- `--test_name <name>` - Test name
-- `--tuned <profile>` - Tuned profile setting
-- `-h/--usage` - Display help information.
+- `--field_header <string>` - CSV column header line.
+- `--field_separ <char>` - Field separator in directory name (default: "_").
+- `--front_matter` - Include full system information header.
+- `--host <name>` - Host configuration name.
+- `--info_in_dir_name "<dir> <fields>"` - Extract metadata from directory name structure.
+- `--meta_output <string>` - Additional metadata string (can be repeated).
+- `--results_file <file>` - Output file to write headers to (required).
+- `--results_version <version>` - Test results format version.
+- `--sys_type <type>` - System environment type.
+- `--test_name <name>` - Test name.
+- `--tuned <profile>` - Tuned profile setting.
+- `-h/--usage` - Display help information..
 
 **Outputs:**
 - **File:** Writes formatted headers to `--results_file`
@@ -1021,11 +1021,11 @@ exit $E_SUCCESS
 
 ## Notes
 
-1. All scripts use `set -x` debug mode when `--debug` is passed via general_setup
-2. Scripts validate input parameters and exit with appropriate error codes
-3. Most scripts support `--usage`, `-h`, or `--help` for inline documentation
-4. The `general_setup` script provides robust error handling including command-not-found tracking
-5. Exit codes follow a consistent pattern: 0=success, 1-99=retry, ≥100=fatal error
+1. All scripts use `set -x` debug mode when `--debug` is passed via general_setup.
+2. Scripts validate input parameters and exit with appropriate error codes.
+3. Most scripts support `--usage`, `-h`, or `--help` for inline documentation.
+4. The `general_setup` script provides robust error handling including command-not-found tracking.
+5. Exit codes follow a consistent pattern: 0=success, 1-99=retry, ≥100=fatal error.
 
 ---
 
