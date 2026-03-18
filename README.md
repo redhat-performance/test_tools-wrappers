@@ -17,14 +17,19 @@ All scripts use standardized exit codes defined in `error_codes`:
 | 2 | E_PACKAGE_TOOL_REMOVE | Package tool removal error |
 | 3 | E_PACKAGE_TOOL_UPDATE | Package tool update error |
 | 101 | E_GENERAL | General error |
-| 102 | E_PACKAGE_TOOL_NO_REMOVE | Package tool removal error (deprecated) |
+| 102 | E_PACKAGE_TOOL_NO_REMOVE | Package tool removal error |
 | 103 | E_USAGE | Usage/help displayed or invalid usage |
 | 104 | E_PARSE_ARGS | Argument parsing error |
 | 105 | E_PCP_FAILURE | Performance Co-Pilot failure |
 | 106 | E_INVAL_DATA | Invalid data |
 | 107 | E_NO_ARGS | No arguments provided |
+| 108 | E_VALIDATION_FAIL | Validation failure |
+| 109 | E_DEVICE_IN_USE | At least one device is in use |
+| 110 | E_NO_CONFIG_FILE | Unable to find configuration file |
 | 127 | E_NO_CMD | Command not found |
 
+
+E_NO_CMD=127
 **Note:** Exit codes 1-99 indicate the test should be retried; codes ≥100 indicate do not retry.
 
 ---
