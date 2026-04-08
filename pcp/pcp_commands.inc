@@ -16,6 +16,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+source ${TOOLS_BIN}/helpers.inc
 gl_metric_list=""
 gl_metric_separ=""
 FIFO="/tmp/pcpFIFO"
@@ -111,7 +112,7 @@ setup_pcp()
 	# to the screen.
 	which pmlogger > /dev/null 2>&1
 	if [[ $? -ne 0 ]]; then 
-		${TOOLS_BIN}/package_tool --no_packages $to_no_pkg_install --wrapper_config ${TOOLS_BIN}/pcp/pcp.json
+		package_tool --wrapper_config ${TOOLS_BIN}/pcp/pcp.json
 	fi
 	# Distro-specific magic required once the packages are installed
 	running_os=`${TOOLS_BIN}/detect_os`
