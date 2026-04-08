@@ -30,6 +30,7 @@ if [[ $TOOLS_BIN == "" ]]; then
 	TOOLS_BIN=$(realpath $(dirname $0))
 fi
 source ${TOOLS_BIN}/error_codes
+source $TOOLS_BIN/helpers.inc
 
 # Values setting for test wrappers to use.
 #
@@ -188,10 +189,6 @@ to_os_running=""
 
 export to_no_pkg_install
 export to_os_running
-
-package_tool() {
-	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
-}
 
 i=1
 j=$#
@@ -382,5 +379,4 @@ fi
 if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
 fi
-source $TOOLS_BIN/helpers.inc
 set $gen_args_back
