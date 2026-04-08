@@ -30,7 +30,6 @@ if [[ $TOOLS_BIN == "" ]]; then
 	TOOLS_BIN=$(realpath $(dirname $0))
 fi
 source ${TOOLS_BIN}/error_codes
-source $TOOLS_BIN/helpers.inc
 
 # Values setting for test wrappers to use.
 #
@@ -346,6 +345,7 @@ if [[ $test_tools_release != "" ]]; then
 	#
 	TOOLS_BIN=$new_td
 fi
+source $TOOLS_BIN/helpers.inc
 
 export to_sys_env
 if [[ ! -d $TOOLS_BIN ]]; then

@@ -20,14 +20,14 @@
 # Only source this once.
 #
 
-if [[ -n "$HELPERS_SOURCED" ]]; then
+if [[ -n "$__TEST_TOOLS_HELPERS_SOURCED" ]]; then
 	return 0 # Already sourced, no need to do it again
 fi
 #
 # Set it only, not export.  If we export it, then any scripts that are called
 # that need the contents of this file, will not have it.
 #
-HELPERS_SOURCED=true
+__TEST_TOOLS_HELPERS_SOURCED=true
 
 #
 # Standard time stamp for outputting to the csv files
