@@ -189,10 +189,6 @@ to_os_running=""
 export to_no_pkg_install
 export to_os_running
 
-package_tool() {
-	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
-}
-
 i=1
 j=$#
 gen_args_back=$0
@@ -349,6 +345,7 @@ if [[ $test_tools_release != "" ]]; then
 	#
 	TOOLS_BIN=$new_td
 fi
+source $TOOLS_BIN/helpers.inc
 
 export to_sys_env
 if [[ ! -d $TOOLS_BIN ]]; then
@@ -382,5 +379,4 @@ fi
 if [ $to_times_to_run -eq 0 ]; then
 	to_times_to_run=$iteration_default
 fi
-source $TOOLS_BIN/helpers.inc
 set $gen_args_back

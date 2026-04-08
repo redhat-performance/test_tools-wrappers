@@ -17,6 +17,19 @@
 #
 
 #
+# Only source this once.
+#
+
+if [[ -n "$__TEST_TOOLS_HELPERS_SOURCED" ]]; then
+	return 0 # Already sourced, no need to do it again
+fi
+#
+# Set it only, not export.  If we export it, then any scripts that are called
+# that need the contents of this file, will not have it.
+#
+__TEST_TOOLS_HELPERS_SOURCED=true
+
+#
 # Standard time stamp for outputting to the csv files
 #
 retrieve_time_stamp()
@@ -41,3 +54,8 @@ build_data_string()
 
 test_start_time=$(retrieve_time_stamp)
 export test_start_time
+
+package_tool() {
+	"${TOOLS_BIN}/package_tool" ${to_pkg_tool_flags} "$@"
+}
+
