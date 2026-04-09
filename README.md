@@ -955,6 +955,7 @@ Scripts respect these environment variables:
 - `to_sys_env` - System environment type (local, aws, azure, etc.)
 - `to_os_running` - Operating system (set by general_setup)
 - `to_no_pkg_install` - Disable package installation (set by general_setup)
+- `to_pkg_tool_flags` - Flag information passed to package_tool as called from helpers.inc
 
 ---
 
