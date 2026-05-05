@@ -235,7 +235,6 @@ else
 fi
 if [[ ${no_unit} == 0 ]]; then
 	printf "${to_unit}\n"
-else
-	printf "\n"
 fi
+printf "\n"
 exit $E_SUCCESS
