@@ -228,16 +228,14 @@ else
 	cnv_value=`echo "${scale}(${value}*${time_base_unit})/$time_cnvt_to" | bc ${float}`
 fi
 
-#
-# bc does not provide leading 0, which causes problems later.
-#
-zero_front=""
-if [[ ${cnv_value} == "."* ]]; then
-	zero_front="0"
+if [[ $float != "" ]]; then
+	printf "%0.9f" "${cnv_value}"
+else
+	printf "%d" "${cnv_value}"
 fi
 if [[ ${no_unit} == 0 ]]; then
-	echo ${zero_front}${cnv_value}${to_unit}
+	printf "${to_unit}\n"
 else
-	echo ${zero_front}${cnv_value}
+	printf "\n"
 fi
 exit $E_SUCCESS
