@@ -20,6 +20,10 @@
 #
 # Convert various time and memory units.
 
+float=""
+scale=""
+no_unit=0
+
 if [[ $TOOLS_BIN == "" ]]; then
 	TOOLS_BIN=$(realpath $(dirname $0))
 fi
@@ -31,6 +35,8 @@ usage()
 	echo "usage $1 <unit>"
 	echo "-h --help --usage: This help message"
 	echo "--value <value>: Value to be converted."
+	echo "--float:  Output is a floating point number.."
+	echo "--no_unit:  Do not print the unit."
 	echo "--from_unit <u>: Unit of value to be converted"
 	echo "  Default K if --time_val is not specified, otherwise ns"
 	echo "--time_val: Units being worked with are time vals"
@@ -66,7 +72,9 @@ if [[ $1 == "" ]]; then
 fi
 
 NOARG_OPTS=(
+	"float"
 	"help"
+	"no_unit"
 	"time_val"
 	"usage"
 )
@@ -105,8 +113,17 @@ time_val=0
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
+		--float)
+			float="-l"
+			scale="scale=9;"
+			shift 1
+		;;
 		-h | --usage | --help)
 			usage $0
+		;;
+		--no_unit)
+			no_unit="1"
+			shift 1
 		;;
 		--to_unit)
 			to_unit=$2
@@ -200,15 +217,24 @@ cnvt_unit_to_nsec()
 	fi
 }
 
+cnv_value=""
 if [ $time_val -eq 0 ]; then
 	cnvt_to_bytes $from_unit to_base_unit
 	cnvt_to_bytes $to_unit converting_to
-	cnv_value=`echo \(${value}*${to_base_unit}\)/$converting_to | bc`
-	echo ${cnv_value}${to_unit}
+	cnv_value=`echo "${scale}(${value}*${to_base_unit})/$converting_to" | bc ${float}`
 else
 	cnvt_unit_to_nsec $from_unit time_base_unit
 	cnvt_unit_to_nsec $to_unit time_cnvt_to
-	cnv_value=`echo \(${value}*${time_base_unit}\)/$time_cnvt_to | bc`
-	echo ${cnv_value}${to_unit}
+	cnv_value=`echo "${scale}(${value}*${time_base_unit})/$time_cnvt_to" | bc ${float}`
 fi
+
+if [[ $float != "" ]]; then
+	printf "%0.9f" "${cnv_value}"
+else
+	printf "%d" "${cnv_value}"
+fi
+if [[ ${no_unit} == 0 ]]; then
+	printf "${to_unit}\n"
+fi
+printf "\n"
 exit $E_SUCCESS
