@@ -14,6 +14,7 @@ usage()
 	echo "  --update: Update the system."
 	echo "  --usage: This usage message."
 	echo "  --pip_packages: comma separated list of pip modules to install"
+	echo "  --pip_index: The index to download python pip packages from"
 	echo "  --no_pip_packages: value 0 installs pip packages, value 1 does not.  Same logic as --no_packages"
 	echo "  --python_exec: path to python interpreter to install pip modules for (default \"python3\"), will require installation of relevant packages to install pip"
 	echo "  --update_cache: Update package cache before install/updating packages, 1 (default) updates cache, 0 skips cache update"
@@ -38,6 +39,7 @@ update_cache=1
 cache_cmd=""
 skip_pkg_install=0
 skip_pip_pkg_install=0
+pip_index=""
 
 base_dir=$(dirname $(realpath $0))
 running_os=$($base_dir/detect_os)
@@ -143,6 +145,9 @@ install_pip_pkgs() {
 	if [[ $running_os == "ubuntu" ]]; then
 		python_pip_flags="$python_pip_flags --break-system-packages"
 	fi
+	if [[ -n "$pip_index" ]]; then
+		python_pip_flags="$python_pip_flags --index-url $pip_index"
+	fi
 
 	install_cmd="$python_exec -m pip install $python_pip_flags"
 	for pip_pkg in $(echo $pip_packages | sed -e 's/,/ /g'); do
@@ -160,6 +165,7 @@ ARGUMENT_LIST=(
 	"no_system_packages"
 	"update_cache"
 	"packages"
+	"pip_index"
 	"remove_packages"
 	"wrapper_config"
 	"pip_packages"
@@ -201,6 +207,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--pip_packages)
 			pip_packages=$(append_packages $pip_packages $2)
+			shift 2
+		;;
+		--pip_index)
+			pip_index=$2
 			shift 2
 		;;
 		--no_pip_packages)
