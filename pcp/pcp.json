@@ -9,6 +9,11 @@
       "pcp-pmda-openmetrics",
       "pcp-pmda-denki"
     ],
+    "azurelinux": [
+      "pcp-zeroconf",
+      "pcp-pmda-openmetrics",
+      "pcp-pmda-denki"
+    ],
     "sles": [
       "pcp-zeroconf",
       "pcp-pmda-openmetrics"

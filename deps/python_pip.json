@@ -3,6 +3,9 @@
         "rhel": [
             "python3-pip"
         ],
+        "azurelinux": [
+            "python3-pip"
+        ],
         "ubuntu": [
             "python3-pip"
         ],
