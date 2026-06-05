@@ -1,0 +1,290 @@
+#!/usr/bin/env python3
+
+#
+#                         License
+#
+# Copyright (C) 2026  Peter Rival frival@redhat.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Upload a file to an S3-compatible storage service.
+
+import argparse
+import datetime
+import hashlib
+import hmac
+import os
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
+E_SUCCESS = 0
+E_GENERAL = 101
+E_USAGE = 103
+E_PARSE_ARGS = 104
+E_INVAL_DATA = 106
+
+
+def create_signature_key(key, date_stamp, region_name, service_name):
+    k_date = hmac.new(
+        ("AWS4" + key).encode("utf-8"),
+        date_stamp.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    k_region = hmac.new(k_date, region_name.encode("utf-8"), hashlib.sha256).digest()
+    k_service = hmac.new(
+        k_region, service_name.encode("utf-8"), hashlib.sha256
+    ).digest()
+    k_signing = hmac.new(k_service, b"aws4_request", hashlib.sha256).digest()
+    return k_signing
+
+
+def build_host_header(hostname, port):
+    if port and port not in (80, 443):
+        return f"{hostname}:{port}"
+    return hostname
+
+
+def upload_with_credentials(
+    file_content, bucket, object_key, endpoint, region, access_key, secret_key
+):
+    parsed = urllib.parse.urlparse(endpoint)
+    host = parsed.hostname
+    scheme = parsed.scheme or "https"
+    port = parsed.port
+    host_header = build_host_header(host, port)
+
+    encoded_key = urllib.parse.quote(object_key, safe="/")
+    path = f"/{bucket}/{encoded_key}"
+    url = f"{scheme}://{host_header}{path}"
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    amz_date = now.strftime("%Y%m%dT%H%M%SZ")
+    date_stamp = now.strftime("%Y%m%d")
+
+    payload_hash = hashlib.sha256(file_content).hexdigest()
+
+    canonical_headers = (
+        f"host:{host_header}\n"
+        f"x-amz-content-sha256:{payload_hash}\n"
+        f"x-amz-date:{amz_date}\n"
+    )
+    signed_headers = "host;x-amz-content-sha256;x-amz-date"
+
+    canonical_request = "\n".join([
+        "PUT",
+        urllib.parse.quote(path, safe="/"),
+        "",
+        canonical_headers,
+        signed_headers,
+        payload_hash,
+    ])
+
+    algorithm = "AWS4-HMAC-SHA256"
+    credential_scope = f"{date_stamp}/{region}/s3/aws4_request"
+    string_to_sign = "\n".join([
+        algorithm,
+        amz_date,
+        credential_scope,
+        hashlib.sha256(canonical_request.encode("utf-8")).hexdigest(),
+    ])
+
+    signing_key = create_signature_key(secret_key, date_stamp, region, "s3")
+    signature = hmac.new(
+        signing_key, string_to_sign.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+    authorization = (
+        f"{algorithm} "
+        f"Credential={access_key}/{credential_scope}, "
+        f"SignedHeaders={signed_headers}, "
+        f"Signature={signature}"
+    )
+
+    headers = {
+        "Host": host_header,
+        "x-amz-date": amz_date,
+        "x-amz-content-sha256": payload_hash,
+        "Authorization": authorization,
+        "Content-Length": str(len(file_content)),
+    }
+
+    req = urllib.request.Request(url, data=file_content, headers=headers, method="PUT")
+    response = urllib.request.urlopen(req)
+    return url, response.status
+
+
+def upload_with_token(file_content, bucket, object_key, endpoint, access_token):
+    parsed = urllib.parse.urlparse(endpoint)
+    host = parsed.hostname
+    scheme = parsed.scheme or "https"
+    port = parsed.port
+    host_header = build_host_header(host, port)
+
+    encoded_key = urllib.parse.quote(object_key, safe="/")
+    path = f"/{bucket}/{encoded_key}"
+    url = f"{scheme}://{host_header}{path}"
+
+    headers = {
+        "Host": host_header,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Length": str(len(file_content)),
+    }
+
+    req = urllib.request.Request(url, data=file_content, headers=headers, method="PUT")
+    response = urllib.request.urlopen(req)
+    return url, response.status
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Upload a file to an S3-compatible storage service.",
+        epilog=(
+            "Security: prefer environment variables (S3_USERNAME, S3_PASSWORD, "
+            "S3_ACCESS_TOKEN) over command-line arguments for credentials, as "
+            "command-line arguments may be visible in process listings."
+        ),
+    )
+
+    parser.add_argument("--bucket", required=True, help="S3 bucket name")
+    parser.add_argument("--file", required=True, help="Path to the file to upload")
+    parser.add_argument(
+        "--endpoint",
+        help="S3 endpoint URL (default: https://s3.<region>.amazonaws.com)",
+    )
+    parser.add_argument(
+        "--region",
+        default="us-east-1",
+        help="AWS region for signature signing (default: us-east-1)",
+    )
+    parser.add_argument(
+        "--object-key",
+        help="Object key/path in the bucket (default: file basename)",
+    )
+    parser.add_argument(
+        "--log-file",
+        default="/tmp/s3_upload.log",
+        help="Log file for upload results (default: /tmp/s3_upload.log)",
+    )
+
+    auth_group = parser.add_mutually_exclusive_group()
+    auth_group.add_argument(
+        "--username",
+        help="S3 access key ID (or set S3_USERNAME env var)",
+    )
+    auth_group.add_argument(
+        "--access-token",
+        help="Bearer token for S3-compatible services (or set S3_ACCESS_TOKEN env var)",
+    )
+    parser.add_argument(
+        "--password",
+        help="S3 secret access key, required with --username (or set S3_PASSWORD env var)",
+    )
+
+    args = parser.parse_args()
+
+    if args.username:
+        username = args.username
+        password = args.password or os.environ.get("S3_PASSWORD")
+        access_token = None
+    elif args.access_token:
+        username = None
+        password = None
+        access_token = args.access_token
+    else:
+        username = os.environ.get("S3_USERNAME")
+        password = os.environ.get("S3_PASSWORD")
+        access_token = os.environ.get("S3_ACCESS_TOKEN")
+        if username and access_token:
+            print(
+                "Error: S3_USERNAME and S3_ACCESS_TOKEN environment variables "
+                "are mutually exclusive",
+                file=sys.stderr,
+            )
+            sys.exit(E_PARSE_ARGS)
+
+    if not username and not access_token:
+        print(
+            "Error: provide --username/--password or --access-token "
+            "(or set S3_USERNAME/S3_PASSWORD or S3_ACCESS_TOKEN env vars)",
+            file=sys.stderr,
+        )
+        sys.exit(E_PARSE_ARGS)
+
+    if username and not password:
+        print("Error: --password (or S3_PASSWORD) is required with --username", file=sys.stderr)
+        sys.exit(E_PARSE_ARGS)
+
+    if not os.path.isfile(args.file):
+        print(f"Error: file not found: {args.file}", file=sys.stderr)
+        sys.exit(E_INVAL_DATA)
+
+    with open(args.file, "rb") as f:
+        file_content = f.read()
+
+    object_key = args.object_key or os.path.basename(args.file)
+
+    endpoint = args.endpoint
+    if not endpoint:
+        endpoint = f"https://s3.{args.region}.amazonaws.com"
+    elif not endpoint.startswith(("http://", "https://")):
+        endpoint = f"https://{endpoint}"
+
+    try:
+        if username:
+            url, status = upload_with_credentials(
+                file_content, args.bucket, object_key,
+                endpoint, args.region, username, password,
+            )
+        else:
+            url, status = upload_with_token(
+                file_content, args.bucket, object_key,
+                endpoint, access_token,
+            )
+    except urllib.error.HTTPError as e:
+        print(f"Error: upload failed with HTTP {e.code}: {e.reason}", file=sys.stderr)
+        try:
+            body = e.read().decode("utf-8", errors="replace")
+            if body:
+                print(body, file=sys.stderr)
+        except Exception:
+            pass
+        sys.exit(E_GENERAL)
+    except urllib.error.URLError as e:
+        print(f"Error: could not connect to endpoint: {e.reason}", file=sys.stderr)
+        sys.exit(E_GENERAL)
+    except OSError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(E_GENERAL)
+
+    print(url)
+
+    if args.log_file:
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        log_entry = f"{timestamp} {url}\n"
+        try:
+            with open(args.log_file, "a") as lf:
+                lf.write(log_entry)
+        except OSError as e:
+            print(f"Warning: could not write to log file: {e}", file=sys.stderr)
+
+    sys.exit(E_SUCCESS)
+
+
+if __name__ == "__main__":
+    main()

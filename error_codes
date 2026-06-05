@@ -7,6 +7,7 @@
 #       any value here, make sure you update the python files.
 #       Currently the python files are
 #          csv_to_json
+#          s3_upload
 #          verify_results
 #
 E_SUCCESS=0
