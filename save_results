@@ -225,6 +225,10 @@ copy_file ${curdir}/hw_info.out ${RESULTS_PATH}
 
 copy_file ${results_dir}/*  ${RESULTS_PATH}
 pushd $export_results > /dev/null
+#
+# Save desired system info.
+#
+dmesg > ${RESULTS_PATH}/dmesg.out
 tar hcf results_${test_name}_${tuned_setting}.tar ${results_dir}
 mv results_${test_name}_${tuned_setting}.tar /tmp
 popd > /dev/null
