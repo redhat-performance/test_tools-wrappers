@@ -36,6 +36,7 @@ declare -a output
 passed_meta=""
 output_index=0
 field_separ='_'
+meta_passed=0
 
 print_general_header_info()
 {
@@ -163,6 +164,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 		--meta_output)
 			passed_meta="${passed_meta}# ${2}\n"
+			meta_passed=1
 			shift 2
 		;;
 		--results_file)
@@ -203,7 +205,8 @@ done
 
 if [ $front_matter -eq 1 ]; then
 	print_general_header_info $results_file
-else
+fi
+if [[ $meta_passed -eq 1 ]] then
 	print_test_meta $results_file
 fi
 if [[ $field_header ]]; then

@@ -349,4 +349,8 @@ fi
 if [[ -z "$TERM" ]] || [[ "$TERM" == "dumb" ]] || [[ "$TERM" == "unknown" ]]; then
 	export TERM=xterm
 fi
+
+export to_configuration
+export to_tuned_setting
+export to_sys_type
 set $gen_args_back
