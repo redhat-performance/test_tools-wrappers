@@ -41,7 +41,7 @@ def main(csv_file: TextIO, output: TextIO, separator: str, transpose: bool):
     try:
         df = pd.read_csv(csv_file, sep=separator, comment='#')
     except pd.errors.EmptyDataError:
-        print("CSV file is empty or contains only comments, exiting")
+        print("CSV file is empty or contains only comments, exiting", file=sys.stderr)
         exit(E_INVALID_DATA)
     except pd.errors.ParserError:
         print("Could not parse CSV file, exiting")
