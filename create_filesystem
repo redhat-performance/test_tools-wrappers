@@ -22,11 +22,11 @@ mount_pnt=""
 fs_type=""
 valid_fs_type="xfs ext4 ext3 gfs2 gfs"
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
 
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 usage()
 {
@@ -42,15 +42,15 @@ usage()
 #
 validate_data()
 {
-	if [[ $device_to_use = "" ]]; then
+	if [[ "$device_to_use" = "" ]]; then
 		echo You need to designate a device to use.
 		exit $E_GENERAL
 	fi
-	if [[ ! -e $device_to_use ]]; then
-		echo Designated device, $device_to_use, does not exist
+	if [[ ! -e "$device_to_use" ]]; then
+		echo Designated device, "$device_to_use", does not exist
 		exit $E_GENERAL
 	fi
-	if [[ $mount_pnt = "" ]]; then
+	if [[ "$mount_pnt" = "" ]]; then
 		echo You need to designate a mount point.
 		exit $E_GENERAL
 	fi
@@ -145,11 +145,11 @@ case $fs_type in
 	;;
 esac
 echo "mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}"
-mkfs -t ${fs_type} ${MKFS_OPS} ${device_to_use}
+mkfs -t ${fs_type} ${MKFS_OPS} "${device_to_use}"
 if [ $? -ne 0 ]; then
 	exit $E_GENERAL
 fi
-mount ${device_to_use} "${mount_pnt}"
+mount "${device_to_use}" "${mount_pnt}"
 if [ $? -ne 0 ]; then
 	exit $E_GENERAL
 fi

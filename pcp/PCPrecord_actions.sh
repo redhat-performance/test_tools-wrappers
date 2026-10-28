@@ -22,8 +22,8 @@
 
 # GLOBALS ###################
 # Include the PCP Functions file
-source $PWD/pcp_functions.inc
-source $PWD/../error_codes
+source "$PWD/pcp_functions.inc"
+source "$PWD/../error_codes"
 
 FIFO="/tmp/pcpFIFO"                 # get from cmdline
 sample_rate=5                       # hardcode DEFAULT for now
@@ -37,7 +37,7 @@ om_workload_file_reset="/tmp/openmetrics_workload_reset.txt"
 reset_om_metrics()
 {
     echo "Reset OpenMetrics values"
-    cp ${om_workload_file_reset} ${om_workload_file}
+    cp "${om_workload_file_reset}" "${om_workload_file}"
 }
 
 error_exit()

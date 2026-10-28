@@ -1,0 +1,89 @@
+#!/bin/bash
+#
+# Verify path arguments with spaces work (issue #161).
+#
+source error_codes
+
+exec_root="$(pwd)"
+TESTROOT=$(mktemp -d /tmp/ttw_quote_paths.XXXXX)
+SPACEDIR="$TESTROOT/path with spaces"
+mkdir -p "$SPACEDIR"
+
+cleanup() {
+	rm -rf "$TESTROOT"
+}
+trap cleanup EXIT
+
+failed=0
+pass() { echo "PASS: $1"; }
+fail() { echo "FAIL: $1"; failed=$((failed + 1)); }
+
+# convert_csv_to_txt: spaced input/output files
+printf 'a:b\n1:2\n' > "$SPACEDIR/in file.csv"
+if "$exec_root/convert_csv_to_txt" --field_size 4 \
+	--results_in "$SPACEDIR/in file.csv" \
+	--results_out "$SPACEDIR/out file.txt"; then
+	if [[ "$(cat "$SPACEDIR/out file.txt")" == $'   a   b\n   1   2' ]]; then
+		pass "convert_csv_to_txt with spaced paths"
+	else
+		fail "convert_csv_to_txt output mismatch: $(cat "$SPACEDIR/out file.txt" | od -c)"
+	fi
+else
+	fail "convert_csv_to_txt exited non-zero"
+fi
+
+# TOOLS_BIN containing spaces
+LINKDIR="$TESTROOT/tools bin"
+ln -s "$exec_root" "$LINKDIR"
+if TOOLS_BIN="$LINKDIR" "$LINKDIR/detect_os" >/dev/null; then
+	pass "detect_os with spaced TOOLS_BIN"
+else
+	fail "detect_os with spaced TOOLS_BIN"
+fi
+
+# move_data: spaced source/dest directories
+mkdir -p "$SPACEDIR/dest dir"
+echo "hw" > "$SPACEDIR/hw_info.out"
+echo "k: v" > "$SPACEDIR/meta_data_test.yml"
+if E_SUCCESS=0 E_GENERAL=101 "$exec_root/move_data" "$SPACEDIR" "$SPACEDIR/dest dir"; then
+	if [[ -f "$SPACEDIR/dest dir/hw_info.out" && -f "$SPACEDIR/dest dir/meta_data_test.yml" ]]; then
+		pass "move_data with spaced paths"
+	else
+		fail "move_data missing copied files"
+	fi
+else
+	fail "move_data exited non-zero"
+fi
+
+# save_results: spaced home/results/copy_dir
+mkdir -p "$SPACEDIR/home/user" "$SPACEDIR/copy me"
+echo "result line" > "$SPACEDIR/results.txt"
+echo "extra" > "$SPACEDIR/extra file.txt"
+echo "x" > "$SPACEDIR/copy me/data.txt"
+if "$exec_root/save_results" \
+	--curdir "$SPACEDIR" \
+	--home_root "$SPACEDIR/home" \
+	--user user \
+	--results "$SPACEDIR/results.txt" \
+	--other_files "$SPACEDIR/extra file.txt" \
+	--copy_dir "$SPACEDIR/copy me" \
+	--test_name quote_test \
+	--tuned_setting none \
+	--version test >/dev/null 2>&1; then
+	if find "$SPACEDIR/home/user/export_results" -name results.txt | grep -q . \
+		&& find "$SPACEDIR/home/user/export_results" -path '*/copy me/data.txt' | grep -q .; then
+		pass "save_results with spaced paths"
+	else
+		fail "save_results did not create expected files under spaced export_results"
+		find "$SPACEDIR/home/user/export_results" -type f || true
+	fi
+else
+	fail "save_results exited non-zero"
+fi
+
+if [[ $failed -eq 0 ]]; then
+	echo "all quote-path tests passed."
+	exit 0
+fi
+echo "$failed quote-path test(s) failed."
+exit 1

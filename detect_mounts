@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 if [[ $1 == "-h" ]] || [[ $# -lt 1 ]]; then
 	echo usage $1
@@ -13,7 +13,7 @@ if [[ $1 == "-h" ]] || [[ $# -lt 1 ]]; then
 fi
 
 mount_tmp=`mktemp /tmp/mount_temp.XXXXX`
-mount | cut -d' ' -f1 > $mount_tmp
+mount | cut -d' ' -f1 > "$mount_tmp"
 #
 # Any disk that is an LVM physical volume is in use — even if no
 # LV on it is currently mounted.  A benchmark (fio, iozone, etc.)
@@ -23,18 +23,18 @@ if command -v pvs &>/dev/null; then
 	pv_output=$(pvs --noheadings -o pv_name 2>&1)
 	if [ $? -ne 0 ]; then
 		echo "Error: pvs query failed: $pv_output" >&2
-		rm $mount_tmp
+		rm "$mount_tmp"
 		exit $E_DEVICE_IN_USE
 	else
 		for pv in $(echo "$pv_output" | awk '{print $1}'); do
-			echo "$pv" >> $mount_tmp
+			echo "$pv" >> "$mount_tmp"
 			pv_base=${pv#/dev/}
 			if [[ $pv_base =~ ^nvme || $pv_base =~ ^mmcblk ]]; then
 				pv_base=$(echo "$pv_base" | sed 's/p[[:digit:]]*$//')
 			else
 				pv_base=$(echo "$pv_base" | sed 's/[[:digit:]]*$//')
 			fi
-			echo "/dev/$pv_base" >> $mount_tmp
+			echo "/dev/$pv_base" >> "$mount_tmp"
 		done
 	fi
 fi
@@ -43,12 +43,12 @@ fi
 #
 for var in "$@"
 do
-	grep -qx $var $mount_tmp
+	grep -qx "$var" "$mount_tmp"
 	if [ $? -eq 0 ]; then
-		rm $mount_tmp
+		rm "$mount_tmp"
 		exit $E_DEVICE_IN_USE
 	fi
 done
-rm $mount_tmp
+rm "$mount_tmp"
 exit $E_SUCCESS
 

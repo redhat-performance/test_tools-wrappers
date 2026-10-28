@@ -36,7 +36,7 @@ pcp_verify()
     local cfg_file="$1"          # PMLOGGER Configuration File
 # Verify user provided pmlogger.conf file exists. If not abort.
     if [[ ! -f "$cfg_file" ]]; then
-        echo "File $cfg_file not found!"; echo
+        echo "File ${cfg_file} not found!"; echo
         exit $E_PCP_FAILURE
     fi
 

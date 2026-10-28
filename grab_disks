@@ -17,11 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
 
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 disks_passed=$1
 disks=""
@@ -51,20 +51,20 @@ grab_disks()
 		ALLSTG=$(mktemp /tmp/allstgdsk.XXXXX)
 		USEDDSK=$(mktemp /tmp/useddsk.XXXXX)
 		ALLDSK=$(mktemp /tmp/alldsk.XXXXX)
-		lsblk -l > ${ALLSTG}
-		rootdisk=$(grep -e "part /$" -e boot$ ${ALLSTG} | awk '{print $1}')
+		lsblk -l > "${ALLSTG}"
+		rootdisk=$(grep -e "part /$" -e boot$ "${ALLSTG}" | awk '{print $1}')
 	
 		if [[ $rootdisk =~ nvme* ]]; then
-			grep part ${ALLSTG}| grep -e / -e swap | awk '{print $1}' | sed s/p[[:digit:]]*$// | sort | uniq > $USEDDSK
+			grep part "${ALLSTG}"| grep -e / -e swap | awk '{print $1}' | sed s/p[[:digit:]]*$// | sort | uniq > "$USEDDSK"
 		else
-			grep -e disk -e part ${ALLSTG}| grep -e / -e swap | awk '{print $1}' | sed s/[[:digit:]]*$// | sort | uniq > $USEDDSK
+			grep -e disk -e part "${ALLSTG}"| grep -e / -e swap | awk '{print $1}' | sed s/[[:digit:]]*$// | sort | uniq > "$USEDDSK"
 		fi
 		#
 		# Now the mounted disks
 		#
 		for i in `df --output=source |  grep /dev`
 		do
-			echo ${i##*/} >> $USEDDSK
+			echo ${i##*/} >> "$USEDDSK"
 		done
 
 		#
@@ -81,10 +81,10 @@ grab_disks()
 				else
 					echo "$pv_base" | sed 's/[[:digit:]]*$//'
 				fi
-			done | sort | uniq >> $USEDDSK
+			done | sort | uniq >> "$USEDDSK"
 		fi
 
-		grep disk ${ALLSTG} | awk '{print $1}' | sort | uniq > ${ALLDSK}
+		grep disk "${ALLSTG}" | awk '{print $1}' | sort | uniq > "${ALLDSK}"
 		# Filter out block devices smaller than 1MB (For IBM cloud-init config drives)
 		FILTDSK=$(mktemp /tmp/filtdsk.XXXXX)
 		while read dsk; do
@@ -92,11 +92,11 @@ grab_disks()
 			if [[ -n "$dsk_sz" ]] && [[ "$dsk_sz" -ge 1048576 ]]; then
 				echo "$dsk"
 			fi
-		done < ${ALLDSK} > ${FILTDSK}
-		mv ${FILTDSK} ${ALLDSK}
-		disks_temp=`echo $(grep -F -x -v -f ${USEDDSK} ${ALLDSK})`
+		done < "${ALLDSK}" > "${FILTDSK}"
+		mv "${FILTDSK}" "${ALLDSK}"
+		disks_temp=`echo $(grep -F -x -v -f "${USEDDSK}" "${ALLDSK}")`
 		echo "$disks_temp"  | awk '{ for (i=NF; i > 1; i--) printf("%s ",$i); print $1; }' > disks
-		rm -f $ALLSTG $USEDDSK $ALLDSK
+		rm -f "$ALLSTG" "$USEDDSK" "$ALLDSK"
 	fi
 	build_disks_list "`cat disks`"
 	rm -f disks

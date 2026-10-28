@@ -22,10 +22,10 @@
 
 test_cmd=$0
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 # Values setting for test wrappers to use.
 #
@@ -101,8 +101,8 @@ command_not_found_handle() {
 	# message, regardless of what redirection the faulting  script
 	# did for output redirection.
 	#
-	os=`${TOOLS_BIN}/detect_os`
-	grep -qx "${os},${command}," ${TOOLS_BIN}/ignore_missing_cmds.txt
+	os=`"${TOOLS_BIN}/detect_os"`
+	grep -qx "${os},${command}," "${TOOLS_BIN}/ignore_missing_cmds.txt"
 	if [[ $? -ne 0 ]]; then
 		echo "Error: The command \"$command\" was not found." > /dev/tty
 		echo $E_NO_CMD > exit_with_$$
@@ -307,17 +307,17 @@ if [[ $test_tools_release != "" ]]; then
 	#  Note TOOLS_BIN has already been set in the wrapper.  This will set it to the
 	#  test_tool version we are using.
 	#
-	TOOLS_BIN=$new_td
+	TOOLS_BIN="$new_td"
 fi
-source $TOOLS_BIN/helpers.inc
+source "$TOOLS_BIN/helpers.inc"
 
 export to_sys_env
-if [[ ! -d $TOOLS_BIN ]]; then
+if [[ ! -d "$TOOLS_BIN" ]]; then
 	TOOLS_BIN=${to_home_root}/${to_user}/test_tools
 fi
 
 if [[ $to_tuned_setting == "" ]]; then
-	to_tuned_setting=`${TOOLS_BIN}/get_tuned_setting`
+	to_tuned_setting=`"${TOOLS_BIN}/get_tuned_setting"`
 fi
 
 source "$TOOLS_BIN/include/verify.sh"
@@ -330,7 +330,7 @@ fi
 #  Do not depend on $to_tuned_setting. It might not have set 
 #  properly to start with.
 #
-to_os_running=`${TOOLS_BIN}/detect_os`
+to_os_running=`"${TOOLS_BIN}/detect_os"`
 if [[ $to_os_running == "rhel" ]]; then
 	#
 	# We expect tuned to be available on rhel

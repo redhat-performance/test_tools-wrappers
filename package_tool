@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 usage()
 {
@@ -86,21 +86,21 @@ parse_json()
 	fi
 
 	jq_args="-r --arg platform $platform"
-	is_empty=$(jq $jq_args '.dependencies | if has($platform) then "0" else 1 end' $json_file)
+	is_empty=$(jq $jq_args '.dependencies | if has($platform) then "0" else 1 end' "$json_file")
 	if [[ "$is_empty" -eq 1 ]]; then
 		return
 	fi
 
-	dep_type=$(jq $jq_args '.dependencies[$platform] | if type=="array" then "unversioned" else "versioned" end' $json_file 2> /dev/null)
+	dep_type=$(jq $jq_args '.dependencies[$platform] | if type=="array" then "unversioned" else "versioned" end' "$json_file" 2> /dev/null)
 
 	if [[ "$dep_type" == "unversioned" ]]; then
-		packages=$(jq $jq_args ".dependencies.$platform | @csv" $json_file 2> /dev/null)
+		packages=$(jq $jq_args ".dependencies.$platform | @csv" "$json_file" 2> /dev/null)
 	elif [[ "$dep_type" == "versioned" ]]; then
 		os_version=$($base_dir/detect_os --os-version)
 		os_major_version=$($base_dir/detect_os --os-version --major-version)
 		
 		for version in $os_version $os_major_version "default"; do
-			packages=$(jq $jq_args --arg version "$version" '.dependencies[$platform][$version] | @csv' $json_file 2> /dev/null)
+			packages=$(jq $jq_args --arg version "$version" '.dependencies[$platform][$version] | @csv' "$json_file" 2> /dev/null)
 
 			if [[ $? -eq 0 ]]; then
 				break
@@ -109,7 +109,7 @@ parse_json()
 	fi
 
 	if [[ $? -ne 0 ]]; then
-		echo "WARN: Could not find dependency information for $platform in $json_file, this could be intended behavior" > /dev/stderr
+		echo "WARN: Could not find dependency information for $platform in ${json_file}, this could be intended behavior" > /dev/stderr
 	fi
 	echo $packages | tr -d '"'
 }
