@@ -676,6 +676,72 @@ ${TOOLS_BIN}/save_results \
 
 ---
 
+### s3_upload
+
+**Purpose:** Uploads a file to an S3-compatible storage service (AWS S3, MinIO, Ceph, etc.).
+
+**Inputs:**
+- `--bucket <name>` - S3 bucket name (required).
+- `--file <path>` - Path to the file to upload (required).
+- `--endpoint <url>` - S3 endpoint URL (default: `https://s3.<region>.amazonaws.com`).
+- `--region <region>` - AWS region for signature signing (default: `us-east-1`).
+- `--object-key <key>` - Object key/path in the bucket (default: file basename).
+- `--log-file <path>` - Log file for recording upload results (default: `/tmp/s3_upload.log`).
+- `--username <key_id>` - S3 access key ID (mutually exclusive with `--access-token`).
+- `--password <secret>` - S3 secret access key (required with `--username`).
+- `--access-token <token>` - Bearer token for S3-compatible services (mutually exclusive with `--username`).
+- `-h/--help` - Display help information.
+
+**Environment Variables:**
+- `S3_USERNAME` - S3 access key ID (fallback for `--username`).
+- `S3_PASSWORD` - S3 secret access key (fallback for `--password`).
+- `S3_ACCESS_TOKEN` - Bearer token (fallback for `--access-token`).
+
+**Outputs:**
+- **stdout:** URL of the uploaded file.
+- **stderr:** Error messages.
+- **File:** Appends timestamped upload URL to `--log-file`.
+- **Exit code:**
+  - 0 (E_SUCCESS) on success.
+  - 101 (E_GENERAL) on upload or network failure.
+  - 104 (E_PARSE_ARGS) on invalid or missing credentials.
+  - 106 (E_INVAL_DATA) if the file to upload is not found.
+
+**Authentication:**
+Two mutually exclusive methods are supported:
+1. **Username/Password (AWS Signature V4):** Uses `--username` as the access key ID and `--password` as the secret access key. Suitable for AWS S3 and S3-compatible services that support AWS Signature V4.
+2. **Access Token (Bearer):** Uses `--access-token` as a Bearer token. Suitable for S3-compatible services that support token-based authentication.
+
+Prefer environment variables over command-line arguments for credentials, as command-line arguments may be visible in process listings.
+
+**Requirements:** Python 3 (no external packages)
+
+**Examples:**
+```bash
+# Upload using access key credentials
+./s3_upload --bucket my-bucket --file results.tar.gz \
+    --username AKIAIOSFODNN7EXAMPLE --password wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+# Upload using environment variables (recommended)
+export S3_USERNAME=AKIAIOSFODNN7EXAMPLE
+export S3_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+./s3_upload --bucket my-bucket --file results.tar.gz
+
+# Upload to a custom S3-compatible endpoint with bearer token
+./s3_upload --bucket my-bucket --file data.csv \
+    --endpoint https://minio.example.com:9000 --access-token mytoken123
+
+# Upload with custom object key and log file
+./s3_upload --bucket my-bucket --file local_data.csv \
+    --object-key results/2026/data.csv --log-file /var/log/uploads.log
+
+# Use uploaded URL in a subsequent command
+uploaded_url=$(./s3_upload --bucket my-bucket --file results.tar.gz)
+echo "Results available at: $uploaded_url"
+```
+
+---
+
 ### detect_mounts
 
 **Purpose:** Checks if specified devices are currently mounted or used by LVM.
