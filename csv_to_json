@@ -44,7 +44,7 @@ def main(csv_file: TextIO, output: TextIO, separator: str, transpose: bool):
         print("CSV file is empty or contains only comments, exiting", file=sys.stderr)
         exit(E_INVALID_DATA)
     except pd.errors.ParserError:
-        print("Could not parse CSV file, exiting")
+        print("Could not parse CSV file, exiting", file=sys.stderr)
         exit(E_INVALID_DATA)
 
     if transpose:
