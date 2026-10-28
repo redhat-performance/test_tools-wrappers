@@ -64,7 +64,7 @@ grab_disks()
 		#
 		for i in `df --output=source |  grep /dev`
 		do
-			echo ${i##*/} >> "$USEDDSK"
+			echo "${i##*/}" >> "$USEDDSK"
 		done
 
 		#
