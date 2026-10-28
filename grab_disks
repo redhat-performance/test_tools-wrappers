@@ -22,10 +22,10 @@ if [[ $TOOLS_BIN == "" ]]; then
 fi
 
 source ${TOOLS_BIN}/error_codes
-
 disks_passed=$1
 disks=""
 numb_disks=0
+os_running=$(${TOOLS_BIN}/detect_os)
 
 separator=""
 
@@ -51,9 +51,16 @@ grab_disks()
 		ALLSTG=$(mktemp /tmp/allstgdsk.XXXXX)
 		USEDDSK=$(mktemp /tmp/useddsk.XXXXX)
 		ALLDSK=$(mktemp /tmp/alldsk.XXXXX)
-		lsblk -l > ${ALLSTG}
+		#
+		# sles output for lsblk -l is different from rhel and others.
+		#
+		if [[ $os_running != "sles" ]]; then
+			lsblk -l > ${ALLSTG}
+		else
+			lsblk -bJ -o NAME,TYPE | jq -r '.blockdevices[] | select(.children == null and .type == "disk") | "\(.name) \(.type)"' > ${ALLSTG}
+		fi
 		rootdisk=$(grep -e "part /$" -e boot$ ${ALLSTG} | awk '{print $1}')
-	
+
 		if [[ $rootdisk =~ nvme* ]]; then
 			grep part ${ALLSTG}| grep -e / -e swap | awk '{print $1}' | sed s/p[[:digit:]]*$// | sort | uniq > $USEDDSK
 		else
