@@ -29,3 +29,6 @@ nmcli con delete bridge-slave-eth0
 
 # unmount the ISO
 umount /iso_install_host
+
+# Stop the services we started in the staging script
+for drv in qemu network nodedev nwfilter secret storage interface; do systemctl stop virt${drv}d{,-ro,-admin}.socket; done
