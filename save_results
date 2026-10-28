@@ -199,8 +199,8 @@ fi
 
 
 if [[ $other_files != "" ]]; then
-	file_list=`echo $other_files | sed "s/,/ /g"`
-	for i in $file_list; do
+	IFS=',' read -ra file_list <<< "$other_files"
+	for i in "${file_list[@]}"; do
 		copy_file "$i" "$RESULTS_PATH"
 	done
 fi
@@ -236,8 +236,8 @@ pushd "$export_results" > /dev/null
 # Save desired system info.
 #
 dmesg > "${RESULTS_PATH}/dmesg.out"
-tar hcf results_${test_name}_${tuned_setting}.tar "${results_dir}"
-mv results_${test_name}_${tuned_setting}.tar /tmp
+tar hcf "results_${test_name}_${tuned_setting}.tar" "${results_dir}"
+mv "results_${test_name}_${tuned_setting}.tar" /tmp
 popd > /dev/null
 cd /tmp
 
