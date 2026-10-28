@@ -39,8 +39,8 @@ cache_cmd=""
 skip_pkg_install=0
 skip_pip_pkg_install=0
 
-base_dir=$(dirname $(realpath $0))
-running_os=$($base_dir/detect_os)
+base_dir=$(dirname "$(realpath "$0")")
+running_os=$("$base_dir/detect_os")
 
 update_system_cache() {
 	if [[ "$update_cache" -eq 1 ]]; then
@@ -96,8 +96,8 @@ parse_json()
 	if [[ "$dep_type" == "unversioned" ]]; then
 		packages=$(jq $jq_args ".dependencies.$platform | @csv" "$json_file" 2> /dev/null)
 	elif [[ "$dep_type" == "versioned" ]]; then
-		os_version=$($base_dir/detect_os --os-version)
-		os_major_version=$($base_dir/detect_os --os-version --major-version)
+		os_version=$("$base_dir/detect_os" --os-version)
+		os_major_version=$("$base_dir/detect_os" --os-version --major-version)
 		
 		for version in $os_version $os_major_version "default"; do
 			packages=$(jq $jq_args --arg version "$version" '.dependencies[$platform][$version] | @csv' "$json_file" 2> /dev/null)
@@ -295,11 +295,11 @@ if [ $update -ne 0 ]; then
 fi
 
 if [[ -n "$wrapper_config" ]]; then
-	wrapper_pkgs=$(parse_json $wrapper_config $running_os)
+	wrapper_pkgs=$(parse_json "$wrapper_config" $running_os)
 	if [[ $? -ne 0 ]]; then
 		exit_out "Error parsing .dependencies.$running_os in $wrapper_config" $E_GENERAL
 	fi
-	wrapper_pip=$(parse_json $wrapper_config pip)
+	wrapper_pip=$(parse_json "$wrapper_config" pip)
 	if [[ $? -ne 0 ]]; then
 		exit_out "Error parsing .dependencies.pip in $wrapper_config" $E_GENERAL
 	fi
@@ -312,7 +312,7 @@ fi
 # If a custom one is provided, let the wrapper figure out the
 # correct method to install pip
 if [[ -n "$pip_packages" ]] && [[ "$python_exec" == "python3" ]] && [[ "$skip_pip_pkg_install" -eq 0 ]]; then
-	pip_os_pkg=$(parse_json $base_dir/deps/python_pip.json $running_os)
+	pip_os_pkg=$(parse_json "$base_dir/deps/python_pip.json" $running_os)
 	if [[ -z "$pip_os_pkg" ]]; then
 		exit_out "$running_os has no known python3-pip package" 1
 	fi

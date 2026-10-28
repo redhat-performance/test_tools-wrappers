@@ -204,10 +204,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ $front_matter -eq 1 ]; then
-	print_general_header_info $results_file
+	print_general_header_info "$results_file"
 fi
 if [[ $meta_passed -eq 1 ]]; then
-	print_test_meta $results_file
+	print_test_meta "$results_file"
 fi
 if [[ $field_header ]]; then
 	echo "${field_header},Start_Date,End_Date" >> "$results_file"
