@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 while getopts "c:d:t:" o; do
 	case "${o}" in
@@ -25,7 +25,7 @@ shift $((OPTIND-1))
 #
 file="${directory}/test_params/${config_name}.${test}"
 if test -f "$file"; then
-	echo $file 
+	echo "$file"
 	exit $E_SUCCESS
 fi
 
@@ -35,7 +35,7 @@ fi
 file="${directory}/test_params/zathras_light.${test}"
 
 if test -f "$file"; then
-	echo $file 
+	echo "$file"
 	exit $E_SUCCESS
 fi
 

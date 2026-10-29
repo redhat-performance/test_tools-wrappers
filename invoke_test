@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 usage()
 {
@@ -121,10 +121,11 @@ else
 fi
 
 cd /tmp
-for i in `ls results*${test_name}*.tar`; do
-	rdir=`tar xvf $i | cut -d'/' -f1 | sort -u`
-	cp /tmp/${test_name}_tuned.status $rdir
-	tar cf $i $rdir
+for i in results*${test_name}*.tar; do
+	[[ -e "$i" ]] || continue
+	rdir=`tar xvf "$i" | cut -d'/' -f1 | sort -u`
+	cp "/tmp/${test_name}_tuned.status" "$rdir"
+	tar cf "$i" "$rdir"
 done
 
 exit $rtc

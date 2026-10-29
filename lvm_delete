@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 lvm_vol=""
 lvm_grp=""
@@ -94,7 +94,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 devices=$(pvs --noheadings -o pv_name,vg_name 2>/dev/null | grep $lvm_grp | awk '{print $1}')
-umount $mount_pnt
+umount "$mount_pnt"
 lvremove -f $lvm_vol/$lvm_grp
 if [[ $? -ne 0 ]]; then
 	exit $E_GENERAL

@@ -18,10 +18,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-if [[ $TOOLS_BIN == "" ]]; then
-        TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+        TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 field_header=""
 configuration="None"
@@ -41,26 +41,26 @@ meta_passed=0
 print_general_header_info()
 {
 	out_file=$1
-	echo "# Test general meta start" >> $out_file
-	echo "# Test: ${test_name}" >> $out_file
-	echo "# Results version: $results_version" >> $out_file
-	echo "# Host: $configuration" >> $out_file
-	echo "# Sys environ: $sys_type" >> $out_file
-	echo "# Tuned: $tuned_setting" >> $out_file
-	printf "# OS: " >> $out_file
-	uname -r >> $out_file
-	printf "# Numa nodes: " >> $out_file
-	$TOOLS_BIN/detect_numa --node-count >> $out_file
+	echo "# Test general meta start" >> "$out_file"
+	echo "# Test: ${test_name}" >> "$out_file"
+	echo "# Results version: $results_version" >> "$out_file"
+	echo "# Host: $configuration" >> "$out_file"
+	echo "# Sys environ: $sys_type" >> "$out_file"
+	echo "# Tuned: $tuned_setting" >> "$out_file"
+	printf "# OS: " >> "$out_file"
+	uname -r >> "$out_file"
+	printf "# Numa nodes: " >> "$out_file"
+	"$TOOLS_BIN"/detect_numa --node-count >> "$out_file"
 	if [ $? -ne 0 ]; then
-		echo "Unknown" >> $out_file
+		echo "Unknown" >> "$out_file"
 	fi
-	printf "# CPU family: " >> $out_file
-	lscpu | grep "Model name" | grep -v BIOS | cut -d':' -f 2- | awk '{$1=$1;print}' >> $out_file
-	printf "# Number cpus: " >> $out_file
-	lscpu | grep "CPU(s):" | grep -v NUMA | cut -d':' -f2 | awk '{$1=$1;print}' >> $out_file
-	printf "# Memory: " >> $out_file
-	grep MemTotal: /proc/meminfo | awk '{print $2 $3}' >> $out_file
-	echo "# Test general meta end" >> $out_file
+	printf "# CPU family: " >> "$out_file"
+	lscpu | grep "Model name" | grep -v BIOS | cut -d':' -f 2- | awk '{$1=$1;print}' >> "$out_file"
+	printf "# Number cpus: " >> "$out_file"
+	lscpu | grep "CPU(s):" | grep -v NUMA | cut -d':' -f2 | awk '{$1=$1;print}' >> "$out_file"
+	printf "# Memory: " >> "$out_file"
+	grep MemTotal: /proc/meminfo | awk '{print $2 $3}' >> "$out_file"
+	echo "# Test general meta end" >> "$out_file"
 }
 #
 # Place run info in header file.
@@ -71,12 +71,12 @@ print_test_meta()
 	tdir=""
 	fields=""
 
-	echo "# Test meta data start" >> $out_file
+	echo "# Test meta data start" >> "$out_file"
 	#
 	# Only if passed meta data was provided.
 	#
 	if [[ "$passed_meta" != "" ]]; then
-		printf "$passed_meta" >> $out_file
+		printf "$passed_meta" >> "$out_file"
 	fi
 	#
 	# Only if the dir name is provided.
@@ -86,10 +86,10 @@ print_test_meta()
 		fields=`echo "$info_in_dir_name" | cut -d' ' -f2-`
 		for i in $fields; do
 			value=`echo $tdir | cut -d $field_separ -f $i | sed "s/_/ /g" | sed "s/ /: /"`
-			echo "# $value" >> $out_file
+			echo "# $value" >> "$out_file"
 		done
 	fi
-	echo "# Test meta data end" >> $out_file
+	echo "# Test meta data end" >> "$out_file"
 }
 
 usage()
@@ -204,12 +204,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ $front_matter -eq 1 ]; then
-	print_general_header_info $results_file
+	print_general_header_info "$results_file"
 fi
 if [[ $meta_passed -eq 1 ]]; then
-	print_test_meta $results_file
+	print_test_meta "$results_file"
 fi
 if [[ $field_header ]]; then
-	echo "${field_header},Start_Date,End_Date" >> $results_file
+	echo "${field_header},Start_Date,End_Date" >> "$results_file"
 fi
 exit $E_SUCCESS

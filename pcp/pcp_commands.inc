@@ -16,7 +16,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-source ${TOOLS_BIN}/helpers.inc
+source "${TOOLS_BIN}/helpers.inc"
 gl_metric_list=""
 gl_metric_separ=""
 FIFO="/tmp/pcpFIFO"
@@ -60,19 +60,19 @@ openmetrics_file_verification()
 	#
 	# Verify we have no special characters
 	#
-	if [[ `cat $metric_file | awk '{print $1}' | tr -d '\n'` =~ [^a-zA-Z0-9_] ]]; then
+	if [[ `cat "$metric_file" | awk '{print $1}' | tr -d '\n'` =~ [^a-zA-Z0-9_] ]]; then
 		echo "Error: Invalid entry in $1, metric name must be non special."
 		exit $E_PCP_FAILURE
 	fi
 	#
 	# Verify there are no blank lines.
 	#
-	grep -q "^$" $metric_file
+	grep -q "^$" "$metric_file"
 	if [[ $? -eq 0 ]]; then
 		echo "Error $1 contains a blank line."
 		exit $E_PCP_FAILURE
 	fi
-	grep -q "^[0-9]" $metric_file
+	grep -q "^[0-9]" "$metric_file"
 	if [[ $? -eq 0 ]]; then
 		echo "Error: $1 contains a metric starting with a digit."
 		exit $E_PCP_FAILURE
@@ -81,26 +81,26 @@ openmetrics_file_verification()
 	#
 	# Verify we have exactly two fields in the file
 	#
-	field1=`awk '{print $1}' $metric_file | wc -l`
-	field2=`awk '{print $2}' $metric_file | grep -v "^$" | wc -l`
+	field1=`awk '{print $1}' "$metric_file" | wc -l`
+	field2=`awk '{print $2}' "$metric_file" | grep -v "^$" | wc -l`
 	if [[ $field2 -lt $field1 ]]; then
-		echo "Error $metric_file has at least one line with only 1 field."
+		echo "Error ${metric_file} has at least one line with only 1 field."
 		exit $E_PCP_FAILURE
 	fi
-	extra_field=`awk '{print $3}' $metric_file | grep -v "^$" | wc -l`
+	extra_field=`awk '{print $3}' "$metric_file" | grep -v "^$" | wc -l`
 	if [[ $extra_field -ne 0 ]]; then
-		echo "Error $metric_file has at least one line with more then 2 fields."
+		echo "Error ${metric_file} has at least one line with more then 2 fields."
 		exit $E_PCP_FAILURE
 	fi
 	#
 	# Verify there are no duplicate records.
 	#
-	total_recs=`wc -l $metric_file | awk '{print $1}'`
-	uniq_recs=$(awk '{print $1}' $metric_file | sort -u | wc -l)
+	total_recs=`wc -l "$metric_file" | awk '{print $1}'`
+	uniq_recs=$(awk '{print $1}' "$metric_file" | sort -u | wc -l)
 	if [[ $total_recs -ne  $uniq_recs ]]; then
-		echo "ERROR: $metric_file contains duplicate metric names"
+		echo "ERROR: ${metric_file} contains duplicate metric names"
 		echo "Following are the dups"
-		awk '{print $1}' $metric_file | sort | uniq -d
+		awk '{print $1}' "$metric_file" | sort | uniq -d
 		exit $E_PCP_FAILURE
 	fi
 }
@@ -112,10 +112,10 @@ setup_pcp()
 	# to the screen.
 	which pmlogger > /dev/null 2>&1
 	if [[ $? -ne 0 ]]; then 
-		package_tool --wrapper_config ${TOOLS_BIN}/pcp/pcp.json
+		package_tool --wrapper_config "${TOOLS_BIN}/pcp/pcp.json"
 	fi
 	# Distro-specific magic required once the packages are installed
-	running_os=`${TOOLS_BIN}/detect_os`
+	running_os=`"${TOOLS_BIN}/detect_os"`
 	case "$running_os" in
 		"ubuntu")
 			# Ubuntu drops the PMDAs in a known place when zeroconf is used, but doesn't make them usable.
@@ -145,19 +145,19 @@ setup_pcp()
 working_dir="/usr/local/src/PCPrecord"
 
 	mkdir -p "${working_dir}"
-	chmod 755 ${TOOLS_BIN}/pcp/*.sh
-	cp ${TOOLS_BIN}/pcp/PCPrecord.service /etc/systemd/system/.
-	cp ${TOOLS_BIN}/pcp/PCPrecord_actions.sh "${working_dir}/."
-	cp ${TOOLS_BIN}/pcp/pcp_functions.inc "${working_dir}/."
-	cp ${TOOLS_BIN}/pcp/workload.url /var/lib/pcp/pmdas/openmetrics/config.d/
+	chmod 755 "${TOOLS_BIN}"/pcp/*.sh
+	cp "${TOOLS_BIN}/pcp/PCPrecord.service" /etc/systemd/system/.
+	cp "${TOOLS_BIN}/pcp/PCPrecord_actions.sh" "${working_dir}/."
+	cp "${TOOLS_BIN}/pcp/pcp_functions.inc" "${working_dir}/."
+	cp "${TOOLS_BIN}/pcp/workload.url" /var/lib/pcp/pmdas/openmetrics/config.d/
 
 	#If there's a workload specific OM file use it. Otherwise use a generic one
-	om_reset_file=${TOOLS_BIN}/pcp/openmetrics_default_reset.txt
-	if [[ -f ${run_dir}/openmetrics_${test_name}_reset.txt ]]; then
-		om_reset_file=${run_dir}/openmetrics_${test_name}_reset.txt
-		cp ${run_dir}/openmetrics_${test_name}_reset.txt /tmp/openmetrics_workload_reset.txt
+	om_reset_file="${TOOLS_BIN}/pcp/openmetrics_default_reset.txt"
+	if [[ -f "${run_dir}/openmetrics_${test_name}_reset.txt" ]]; then
+		om_reset_file="${run_dir}/openmetrics_${test_name}_reset.txt"
+		cp "${run_dir}/openmetrics_${test_name}_reset.txt" /tmp/openmetrics_workload_reset.txt
 	else
-		cp ${TOOLS_BIN}/pcp/openmetrics_default_reset.txt /tmp/openmetrics_workload_reset.txt
+		cp "${TOOLS_BIN}/pcp/openmetrics_default_reset.txt" /tmp/openmetrics_workload_reset.txt
 	fi
 	openmetrics_file_verification /tmp/openmetrics_workload_reset.txt
 	cp /tmp/openmetrics_workload_reset.txt /tmp/openmetrics_workload.txt
@@ -181,10 +181,10 @@ working_dir="/usr/local/src/PCPrecord"
 #$3: PMLogger config file to use
 start_pcp()
 {
-	printf "Reset\n" > $FIFO
+	printf "Reset\n" > "$FIFO"
 	echo "PCP metrics reset"
 	sleep 2
-	printf "Start ${1} ${2} ${3}\n" > $FIFO
+	printf "Start ${1} ${2} ${3}\n" > "$FIFO"
 	echo "PCP Start Complete"
 }
 
@@ -192,7 +192,7 @@ start_pcp()
 #Sends "Stop" command to PCPrecord_actions
 stop_pcp()
 {
-	printf "Stop\n" > $FIFO
+	printf "Stop\n" > "$FIFO"
 	sleep 2
 }
 
@@ -231,7 +231,7 @@ shutdown_pcp()
 reset_pcp_om()
 {
 	check_svc $timeout_short
-        printf "Reset\n" > $FIFO
+        printf "Reset\n" > "$FIFO"
         echo "PCP metrics reset"
 	check_svc $timeout_short
 	sleep 2
@@ -243,7 +243,7 @@ start_pcp_subset()
 {
 	reset_pcp_om
 	echo "Starting PCP subset"
-	printf "running 1" > $FIFO
+	printf "running 1" > "$FIFO"
 	check_svc $timeout_short
 	sleep 2
 }
@@ -252,7 +252,7 @@ start_pcp_subset()
 stop_pcp_subset()
 {
 	echo "Stopping PCP subset"
-	printf "running 0" > $FIFO
+	printf "running 0" > "$FIFO"
 	check_svc $timeout_short
 	sleep 2
 }

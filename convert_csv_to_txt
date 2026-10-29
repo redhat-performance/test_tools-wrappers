@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 usage()
 {
 	echo "  --field_separator <char>:  character separator, default is :"
@@ -97,23 +97,23 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-if [[ $field_size == "" ]] || [[ $results_in == "" ]] || [[ $results_out == "" ]]; then
+if [[ $field_size == "" ]] || [[ "$results_in" == "" ]] || [[ "$results_out" == "" ]]; then
 	echo Error: one or more fields are not set, field_size, results_in or results_out.
 	exit $E_GENERAL
 fi
 
-rm -rf $results_out
+rm -rf "$results_out"
 
 while IFS= read -r line
 do
 	if [[ "$line" == "#"* ]] || [[ "$line" != *"${field_separator}"* ]]; then
-		echo $line >> $results_out
+		echo $line >> "$results_out"
 		continue
 	fi
 	break_down=`echo "$line" | sed "s/ /_/g" | sed "s/${field_separator}/ /g"`
 	for  i in $break_down; do
-		printf "%${field_size}s" "$i" >> $results_out
+		printf "%${field_size}s" "$i" >> "$results_out"
 	done
-	printf "\n" >> $results_out
+	printf "\n" >> "$results_out"
 done < "$results_in"
 exit $E_SUCCESS

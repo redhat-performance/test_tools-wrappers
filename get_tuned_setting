@@ -1,10 +1,10 @@
 #!/bin/bash
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
 
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 if [ -f /usr/sbin/tuned-adm ]; then
         tval=`/usr/sbin/tuned-adm active|awk '{print $4}'`

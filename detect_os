@@ -23,10 +23,10 @@ get_major=0
 get_minor=0
 vers_sep="."
 
-if [[ $TOOLS_BIN == "" ]]; then
-	TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+	TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 
 usage()
@@ -60,7 +60,7 @@ echo_stderr()
 
 parse_os_release()
 {
-    source $os_release_file
+    source "$os_release_file"
     if [[ $get_version -eq 1 ]]; then
         if [[ "$VERSION_ID" == *"${vers_sep}"* ]]; then
             major_version=$(echo $VERSION_ID | cut -d${vers_sep} -f1)

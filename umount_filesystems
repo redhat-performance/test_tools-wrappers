@@ -19,11 +19,11 @@
 
 mount_pnt=""
 number_mount_pnts=""
-if [[ $TOOLS_BIN == "" ]]; then
-        TOOLS_BIN=$(realpath $(dirname $0))
+if [[ "$TOOLS_BIN" == "" ]]; then
+        TOOLS_BIN=$(realpath "$(dirname "$0")")
 fi
 
-source ${TOOLS_BIN}/error_codes
+source "${TOOLS_BIN}/error_codes"
 
 usage()
 {
@@ -86,7 +86,7 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-if [[ $mount_pnt == "" ]]; then
+if [[ "$mount_pnt" == "" ]]; then
 	echo Need to designate mount point prefix
 	usage $0
 fi
@@ -98,6 +98,6 @@ fi
 let "number_mount_pnts=$number_mount_pnts-1"
 for findex in `seq 0 1 $number_mount_pnts`
 do
-	umount  ${mount_pnt}${findex}
+	umount  "${mount_pnt}"${findex}
 done
 exit $E_SUCCESS
